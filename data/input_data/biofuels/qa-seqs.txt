@@ -1,0 +1,16 @@
+Question: What are steps of water splitting reaction?
+Answer: The first step is the oxidation of water to form oxygen and protons. The second step is the reduction of protons and electrons to form hydrogen gas.
+
+Question: What are important catalyst composition for the first half-reaction of water-splitting reaction? Why?
+Answer: Oxidation and the ability to be reduced easily are important properties.
+
+Question: What are specific targets of this catalysis discovery?
+Answer: Enabling reactions at lower temperature.
+
+Question: What are important properties for oxidation of a catalyst for reaction with lower temperature?
+Answer: High specific surface area, high pore volume, small pore size.
+
+Question: Why is high specific surface area, high pore volume, small pore size important for oxidation of a catalyst for reaction at lower temperature?
+Answer: High pore volume increases the number of possible collisions between reactants and the surface of the catalyst
+
+Question:Which catalysts have high specific surface area, high pore volume, small pore size for oxidation reaction at lower temperature?

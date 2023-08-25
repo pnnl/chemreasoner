@@ -1,0 +1,11 @@
+*.pyc
+*.gpickle
+*.json
+*.ipynb
+*.zip
+*.DS_Store
+*.xyz
+*.traj
+*.pt
+data/output_data/
+ext/*/*.yml
