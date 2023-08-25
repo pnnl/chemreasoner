@@ -1,0 +1,9 @@
+[submodule "ext/ocp"]
+	path = ext/ocp
+	url = https://github.com/Open-Catalyst-Project/ocp.git
+[submodule "ext/tree-of-thought-llm"]
+	path = ext/tree-of-thought-llm
+	url = https://github.com/princeton-nlp/tree-of-thought-llm.git
+[submodule "ext/MAZE-sim"]
+	path = ext/MAZE-sim
+	url = https://github.com/kul-group/MAZE-sim.git
