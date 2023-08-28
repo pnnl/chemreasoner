@@ -61,7 +61,6 @@ class StructureReward(BaseReward):
                 name = f"{self.reduce_metal_symbols(s)}_{combo[2]}"
                 adslab_ats += self.sample_adslabs(s, a, name)
                 name_candidate_mapping[name] = combo[0]
-
         adslabs_and_energies = self.create_batches_and_calculate(
             adslab_ats,
         )
@@ -98,20 +97,20 @@ class StructureReward(BaseReward):
     def create_batches_and_calculate(self, adslabs):
         """Split adslabs into batches and run the simulations."""
         results = []
+        adslab_batch = []
+        fname_batch = []
         for idx, name, adslab in adslabs:
-            adslab_batch = []
-            fname_batch = []
 
             fname = str(Path(f"{name}") / f"{idx}")
             (self.adsorption_calculator.traj_dir / fname).parent.mkdir(
                 parents=True, exist_ok=True
             )
-            if not (self.adsorption_calculator.traj_dir / fname).exists():
+            if not (self.adsorption_calculator.traj_dir / (fname + ".traj")).exists():
                 adslab_batch.append(adslab)
                 fname_batch.append(fname)
             else:
-                idx = fname.stem
-                name = fname.parent
+                idx = str(fname.stem)
+                name = str(fname.parent)
                 if (
                     self.adsorption_calculator.traj_dir / name / "adsorption.json"
                 ).exists():
@@ -137,10 +136,13 @@ class StructureReward(BaseReward):
                 batch_results = self.calculate_batch(adslab_batch, fname_batch)
                 results += self.unpack_batch_results(batch_results, fname_batch)
                 adslab_batch = []
+                fname_batch = []
 
         if len(adslab_batch) > 0:
             batch_results = self.calculate_batch(adslab_batch, fname_batch)
             results += self.unpack_batch_results(batch_results, fname_batch)
+            adslab_batch = []
+            fname_batch = []
 
         return results
 
