@@ -102,7 +102,7 @@ class StructureReward(BaseReward):
             adslab_batch = []
             fname_batch = []
 
-            fname = str(Path(f"{name}") / f"{idx}.traj")
+            fname = str(Path(f"{name}") / f"{idx}")
             (self.adsorption_calculator.traj_dir / fname).parent.mkdir(
                 parents=True, exist_ok=True
             )
