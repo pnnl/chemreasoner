@@ -38,7 +38,7 @@ class StructureGenerationError(Exception):
         super().__init__(message)
 
 
-class AdsorbateBindingError(Exception):
+class AdsorbatePlacementError(Exception):
     """Error class for structure generation."""
 
     def __init__(self, message):
@@ -259,7 +259,7 @@ def combine_adsorbate_slab(slab: Atoms, ads: Atoms, location=None) -> Atoms:
         disp = -np.diff(ads.get_positions()[binding_molecules])
         coords -= disp[0:2] / 2  # displace position in the xy-plane
     elif len(binding_molecules) != 1:
-        raise AdsorbateBindingError(
+        raise AdsorbatePlacementError(
             f"Unable to add adsorbate with {len(binding_molecules)} binding molecules."
         )
     build.add_adsorbate(slab, ads, 3, position=coords, mol_index=binding_molecules[0])
