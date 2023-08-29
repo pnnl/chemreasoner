@@ -45,7 +45,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         8: -7.204,
     }
 
-    def __init__(self, model: str, traj_dir: Path, batch_size=32, device="cpu"):
+    def __init__(self, model: str, traj_dir: Path, batch_size=32, device="cuda:0"):
         """Createobject from model class (gemnet or equiformer).
 
         Downloads weights if they are not available.
@@ -162,7 +162,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         # convert to torch geometric batch
         batch = Batch.from_data_list(self.ats_to_graphs.convert_all(atoms))
         batch.sid = atoms_names
-        print(f"Batch sids {batch.sid}")
+        batch = batch.to(device if device is not None else self.device)
 
         trainer = self.get_torch_model(device=device)
 
@@ -212,6 +212,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             bulk_atoms.append(bulk_ats.copy())
         # convert to torch geometric batch
         batch = Batch.from_data_list(self.ats_to_graphs.convert_all(bulk_atoms))
+        batch = batch.to(device if device is not None else self.device)
 
         calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
         # reset the tags, they got lost in conversion to Torch
