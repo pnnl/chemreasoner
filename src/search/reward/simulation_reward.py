@@ -217,9 +217,9 @@ if __name__ == "__main__":
     # ]
     test_candidates = [
         ["Ni"],
-        None,
+        # None,
         # "Cobalt oxide",
-        None,
+        # None,
         # "CuO2",
         ["Pt", "Ni"],
         ["Ni"],
