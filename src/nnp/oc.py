@@ -114,11 +114,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         Specifying device overrides self.device.
         """
         # set up calculator for ase relaxations
-        ase_calc = OCPCalculator(
-            config_yml=str(self.config_path),
-            checkpoint_path=str(self.model_path),
-            cpu=self.device == "cpu" if device is None else device == "cpu",
-        )
+        ase_calc = self.get_ase_calculator(device=device)
         return ase_calc.trainer
 
     def relax_atoms_ase(
