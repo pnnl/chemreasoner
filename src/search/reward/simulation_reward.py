@@ -101,13 +101,13 @@ class StructureReward(BaseReward):
         fname_batch = []
         for idx, name, adslab in adslabs:
 
-            fname = str(Path(f"{name}") / f"{idx}")
+            fname = Path(f"{name}") / f"{idx}"
             (self.adsorption_calculator.traj_dir / fname).parent.mkdir(
                 parents=True, exist_ok=True
             )
             if not (self.adsorption_calculator.traj_dir / (fname + ".traj")).exists():
                 adslab_batch.append(adslab)
-                fname_batch.append(fname)
+                fname_batch.append(str(fname))
             else:
                 idx = str(fname.stem)
                 name = str(fname.parent)
@@ -127,10 +127,10 @@ class StructureReward(BaseReward):
                             results.append((idx, name, ads_energy))
                         else:
                             adslab_batch.append(adslab)
-                            fname_batch.append(fname)
+                            fname_batch.append(str(fname))
                 else:
                     adslab_batch.append(adslab)
-                    fname_batch.append(fname)
+                    fname_batch.append(str(fname))
 
             if len(adslab_batch) == self.adsorption_calculator.batch_size:
                 batch_results = self.calculate_batch(adslab_batch, fname_batch)
