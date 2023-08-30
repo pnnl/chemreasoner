@@ -69,6 +69,7 @@ class StructureReward(BaseReward):
         for idx, name, energy in adslabs_and_energies:
             cand = name_candidate_mapping[name]
             ads = name.split("_")[-1]
+            return
             if cand in reward_values.keys():
                 if name.split("_")[-1] in reward_values[cand].keys():
                     reward_values[cand][ads] += [energy]
@@ -242,5 +243,10 @@ if __name__ == "__main__":
             "traj_dir": Path("data/output_data/trajectories/pipeline_test"),
         }
     )
+    import time
+
+    start = time.time()
     reward = sr(test_state)
+    end = time.time()
+    print(end - start)
     print(reward)
