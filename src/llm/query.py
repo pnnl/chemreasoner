@@ -172,7 +172,7 @@ class QueryState:
         for state in states:
             relevant_strings.append(state.prompt)
             relevant_strings.append(state.answer)
-        embeddings = get_embedding(states, model=self.embedding_model)
+        embeddings = run_get_embedding(relevant_strings, model=self.embedding_model)
 
         p = embeddings.pop(0)
         y = embeddings.pop(0)
@@ -324,6 +324,12 @@ def init_openai():
 query_counter = 0
 tok_sent = 0
 tok_recieved = 0
+
+
+@backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=60)
+def run_get_embedding(strings, model="text-embedding-ada-002"):
+    """Query language model for a list of k candidates."""
+    return get_embedding(strings, model=model)
 
 
 @backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=60)
