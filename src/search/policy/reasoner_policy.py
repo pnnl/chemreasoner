@@ -202,18 +202,18 @@ class ReasonerPolicy:
                 else:
                     self.weights[i] = 1
 
-    # def get_actions(
-    #     self, state: object
-    # ) -> tuple[list[Callable[object, object]], np.array]:
-    #     """Return a actions and prior_logits for given state."""
-    #     self.init_weights()
-    #     self.check_repeated_properties(state)
-    #     self.check_relationship_to_candidate_list(state)
-    #     normalization = np.sum(self.weights) if np.sum(self.weights) != 0 else 1
-    #     return (
-    #         self.actions,
-    #         self.weights / normalization,
-    #     )
+    def get_actions(
+        self, state: object
+    ) -> tuple[list[Callable[object, object]], np.array]:
+        """Return a actions and prior_logits for given state."""
+        self.init_weights()
+        self.check_repeated_properties(state)
+        self.check_relationship_to_candidate_list(state)
+        normalization = np.sum(self.weights) if np.sum(self.weights) != 0 else 1
+        return (
+            self.actions,
+            self.weights / normalization,
+        )
 
     @staticmethod
     def early_stopping(*args):
