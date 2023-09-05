@@ -92,8 +92,9 @@ class StructureReward(BaseReward):
                 )
             else:  # Handle default here TODO: determine some logic/pentaly for this
                 pass
-
-        return np.mean(rewards)  # return mean over candidates
+        final_reward = np.mean(rewards)
+        s.reward = final_reward
+        return final_reward  # return mean over candidates
 
     def create_batches_and_calculate(self, adslabs):
         """Split adslabs into batches and run the simulations."""

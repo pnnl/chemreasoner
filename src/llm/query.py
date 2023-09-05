@@ -175,8 +175,12 @@ class QueryState:
         p = embeddings.pop(0)
         y = embeddings.pop(0)
         p_y = p + y
+        similarities = []
         while len(embeddings) > 0:
-            sim = cosine_similarity(embeddings.pop(0), p_y)
+            similarities.append(cosine_similarity(embeddings.pop(0), p_y))
+
+        similarities = np.array(similarities)
+        return similarities * self.reward + (1 - similarities) * (1 - self.reward)
 
 
 _reward_system_prompt = "You are a helpful catalysis expert with extensive knowledge \
