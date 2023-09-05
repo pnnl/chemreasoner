@@ -77,7 +77,7 @@ def create_bulk(name):
     # return ats
 
 
-def add_adsorbates(
+def generate_bulk_ads_pairs(
     ads: str,
     bulk: Atoms,
     sites: Union[str, list[str]] = None,
@@ -97,7 +97,6 @@ def add_adsorbates(
         num_tries = 0
         valid = False  # Indicate whether generated structure is valid
         while not valid:
-            new_bulk = bulk.copy()
             new_ads = ads.copy()
             if random_rotate:
                 # randomly sample rotation angles
@@ -109,10 +108,9 @@ def add_adsorbates(
                 new_ads.rotate("x", x_rot)
                 new_ads.rotate("y", y_rot)
             # Apply adsorbate to new_bullk
-            build.add_adsorbate(
-                new_bulk,
+            new_bulk = combine_adsorbate_slab(
+                bulk,
                 new_ads,
-                position="ontop",
                 height=height + 0.1 * num_tries,
             )
             new_bulk.center(vacuum=13.0, axis=2)
@@ -245,7 +243,7 @@ def ads_symbols_to_structure(syms: str):
     return ats
 
 
-def combine_adsorbate_slab(slab: Atoms, ads: Atoms, location=None) -> Atoms:
+def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, location=None) -> Atoms:
     """Attach an adsorbate to a slab adsorption site."""
     slab = slab.copy()
     ads = ads.copy()
