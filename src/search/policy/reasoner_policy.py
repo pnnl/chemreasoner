@@ -1,4 +1,6 @@
 """Class for the reasoner policy."""
+from collections.abc import Callable
+
 import numpy as np
 
 
@@ -208,7 +210,9 @@ class ReasonerPolicy:
             self.weights[random_index] / np.sum(self.weights),
         )
 
-    def get_actions(self, state):
+    def get_actions(
+        self, state: object
+    ) -> tuple[list[Callable[object, object]], np.array]:
         """Return a actions and prior_logits for given state."""
         self.init_weights()
         self.check_repeated_properties(state)

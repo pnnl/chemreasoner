@@ -15,7 +15,7 @@ class CoherentPolicy(ReasonerPolicy):
 
     def __init__(
         self,
-        temperature=0.6,
+        temperature: float = 0.6,
         include_property_types: list[str] = None,
         exclude_property_types: list[str] = None,
         relationship_to_candidate_list_types: list[str] = None,
@@ -44,10 +44,16 @@ class CoherentPolicy(ReasonerPolicy):
                 trial_states.append(a(state, trial=True))
 
             sim_scores = state.similarity(trial_states)
+            print(sim_scores)
+            print("\n\n\nhere\n\n\n")
             new_priors = softmax(sim_scores / self.temperature * priors)
             return actions, new_priors
 
 
 if __name__ == "__main__":
+    from llm.automate_prompts import get_initial_state_oc
+
+    s, _ = get_initial_state_oc("H20", "gpt-3.5-turbo", "gpt-3.5-turbo")
     p = CoherentPolicy(0.4)
-    print(p)
+    print(p.temperature)
+    print(p.get_actions(s))
