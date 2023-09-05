@@ -44,8 +44,6 @@ class CoherentPolicy(ReasonerPolicy):
             trial_states.append(a(state, trial=True))
 
         sim_scores = state.similarity(trial_states)
-        print(sim_scores)
-        print("\n\n\nhere\n\n\n")
         new_priors = softmax(sim_scores / self.temperature * priors)
         return actions, new_priors
 
