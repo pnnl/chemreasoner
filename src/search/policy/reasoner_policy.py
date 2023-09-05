@@ -129,7 +129,7 @@ def toggle_oxide(state, trial=False):
     return new_state
 
 
-def _query_again(state):
+def _query_again(state, trial=False):
     new_state = state.return_next()
     if not trial:
         new_state.query()
