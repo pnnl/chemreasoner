@@ -1,7 +1,7 @@
 """Class for the coherence policy."""
 import sys
 
-from abc import Callable, Optional
+from abc import Callable
 from pathlib import Path
 
 import numpy as np

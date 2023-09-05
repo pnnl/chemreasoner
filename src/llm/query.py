@@ -32,9 +32,10 @@ class QueryState:
         include_list: list[str] = [],
         exclude_list: list[str] = [],
         answer: str = None,
-        num_queries=0,
-        prediction_model="gpt-3.5-turbo",
-        reward_model="gpt-3.5-turbo",
+        num_queries: int = 0,
+        prediction_model: str = "gpt-3.5-turbo",
+        reward_model: str = "gpt-3.5-turbo",
+        embedding_model: str = "text-embedding-ada-002",
         **kwargs,
     ):
         """Initialize the object."""
@@ -55,6 +56,7 @@ class QueryState:
         self.num_queries = num_queries
         self.prediction_model = prediction_model
         self.reward_model = reward_model
+        self.embedding_model = embedding_model
 
     def copy(self):
         """Return a copy of self."""
@@ -72,6 +74,7 @@ class QueryState:
             num_queries=self.num_queries,
             prediction_model=self.prediction_model,
             reward_model=self.reward_model,
+            embedding_model=self.embedding_model,
         )
 
     def return_next(self):
@@ -88,6 +91,7 @@ class QueryState:
             num_queries=0,
             prediction_model=self.prediction_model,
             reward_model=self.reward_model,
+            embedding_model=self.embedding_model,
         )
 
     @property
@@ -162,15 +166,13 @@ class QueryState:
         self.num_queries += 1
         return answer
 
-    def similarity(
-        self, states: "list[QueryState]", model="text-embedding-ada-002"
-    ) -> float:
+    def similarity(self, states: "list[QueryState]") -> float:
         """Calculate a similarity score of this state with a list of trial states."""
         relevant_strings = [self.prompt, self.answer]
         for state in states:
             relevant_strings.append(state.prompt)
             relevant_strings.append(state.answer)
-        embeddings = get_embedding(states, model=model)
+        embeddings = get_embedding(states, model=self.embedding_model)
 
         p = embeddings.pop(0)
         y = embeddings.pop(0)
