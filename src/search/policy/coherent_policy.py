@@ -1,14 +1,12 @@
 """Class for the coherence policy."""
 import sys
 
-from abc import Callable
-from pathlib import Path
+from collections.abc import Callable
 
 import numpy as np
 from scipy.special import softmax
 
-sys.path.append(Path("src"))
-
+sys.path.append("src")
 from search.policy.reasoner_policy import ReasonerPolicy  # noqa:402
 
 
@@ -48,3 +46,8 @@ class CoherentPolicy(ReasonerPolicy):
             sim_scores = state.similarity(trial_states)
             new_priors = softmax(sim_scores / self.temperature * priors)
             return actions, new_priors
+
+
+if __name__ == "__main__":
+    p = CoherentPolicy(0.4)
+    print(p)
