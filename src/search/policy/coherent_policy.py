@@ -5,6 +5,7 @@ from abc import Callable
 from pathlib import Path
 
 import numpy as np
+from scipy.special import softmax
 
 sys.path.append(Path("src"))
 
@@ -16,6 +17,7 @@ class CoherentPolicy(ReasonerPolicy):
 
     def __init__(
         self,
+        temperature=0.6,
         include_property_types: list[str] = None,
         exclude_property_types: list[str] = None,
         relationship_to_candidate_list_types: list[str] = None,
@@ -30,6 +32,7 @@ class CoherentPolicy(ReasonerPolicy):
             catalyst_label_types,
             try_oxides,
         )
+        self.temperature = temperature
 
         def get_actions(
             self, state: object
@@ -41,3 +44,7 @@ class CoherentPolicy(ReasonerPolicy):
             trial_states = []
             for a in actions:
                 trial_states.append(a(state, trial=True))
+
+            sim_scores = state.similarity(trial_states)
+            new_priors = softmax(sim_scores / self.temperature * priors)
+            return actions, new_priors
