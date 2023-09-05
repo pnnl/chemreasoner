@@ -202,14 +202,6 @@ class ReasonerPolicy:
                 else:
                     self.weights[i] = 1
 
-    def get_action(self, state):
-        """Return an action and prior_logit for given state."""
-        random_index = np.random.choice(range(len(self.actions)), p=self.weights)
-        return (
-            self.actions[random_index],
-            self.weights[random_index] / np.sum(self.weights),
-        )
-
     def get_actions(
         self, state: object
     ) -> tuple[list[Callable[object, object]], np.array]:
