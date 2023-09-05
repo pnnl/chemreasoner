@@ -38,11 +38,12 @@ class IncludePropertyAdder:
         """Save the property name."""
         self.property_name = property_name
 
-    def __call__(self, state):
+    def __call__(self, state, trial=False):
         """Add propery to the state."""
         new_state = state.return_next()
         _add_property(new_state.include_list, self.property_name)
-        new_state.query()
+        if not trial:
+            new_state.query()
         return new_state
 
 
@@ -53,11 +54,12 @@ class ExcludePropertyAdder:
         """Save the property name."""
         self.property_name = property_name
 
-    def __call__(self, state):
+    def __call__(self, state, trial=False):
         """Add propery to the state."""
         new_state = state.return_next()
         _add_property(new_state.exclude_list, self.property_name)
-        new_state.query()
+        if not trial:
+            new_state.query()
         return new_state
 
 
@@ -76,11 +78,12 @@ class RelationToCandidateListChanger:
         """Save the property name."""
         self.relationship_name = relationship_name
 
-    def __call__(self, state):
+    def __call__(self, state, trial=False):
         """Add propery to the state."""
         new_state = state.return_next()
         new_state.relation_to_candidate_list = self.relationship_name
-        new_state.query()
+        if not trial:
+            new_state.query()
         return new_state
 
 
@@ -99,7 +102,7 @@ class CatalystLabelChanger:
         """Save the property name."""
         self.catalyst_label_type = catalyst_label_type
 
-    def __call__(self, state):
+    def __call__(self, state, trial=False):
         """Add propery to the state."""
         new_state = state.return_next()
         if "oxide" in new_state.catalyst_label:
@@ -110,7 +113,7 @@ class CatalystLabelChanger:
         return new_state
 
 
-def toggle_oxide(state):
+def toggle_oxide(state, trial=False):
     """Toggle whether or not to target oxides."""
     new_state = state.return_next()
     if "oxide" in state.catalyst_label:
@@ -119,13 +122,15 @@ def toggle_oxide(state):
         new_state.catalyst_label = new_state.catalyst_label.replace(
             " catalysts", " oxide catalysts"
         )
-    new_state.query()
+    if not trial:
+        new_state.query()
     return new_state
 
 
 def _query_again(state):
     new_state = state.return_next()
-    new_state.query()
+    if not trial:
+        new_state.query()
     return new_state
 
 

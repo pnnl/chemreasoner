@@ -9,7 +9,11 @@ class BasePolicy(metaclass=ABCMeta):
 
     @abstractmethod
     def get_actions(
-        self, state: object, trial: Optional[bool] = False
+        self, state: object
     ) -> tuple[list[Callable[object, object]], np.array]:
         """Return the actions along with their priors."""
         ...
+
+    def early_stopping(self):
+        """Whether or not to stop the search early."""
+        return False

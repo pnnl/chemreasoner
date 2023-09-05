@@ -3,6 +3,8 @@ import datetime
 import logging
 import os
 
+from typing import Union
+
 import backoff
 
 import numpy as np
@@ -159,6 +161,22 @@ class QueryState:
         answer = run_query(prompt, model=model, system_prompt=system_prompt)
         self.num_queries += 1
         return answer
+
+    def similarity(
+        self, states: "list[QueryState]", model="text-embedding-ada-002"
+    ) -> float:
+        """Calculate a similarity score of this state with a list of trial states."""
+        relevant_strings = [self.prompt, self.answer]
+        for state in states:
+            relevant_strings.append(state.prompt)
+            relevant_strings.append(state.answer)
+        embeddings = get_embedding(states, model=model)
+
+        p = embeddings.pop(0)
+        y = embeddings.pop(0)
+        p_y = p + y
+        while len(embeddings) > 0:
+            sim = cosine_similarity(embeddings.pop(0), p_y)
 
 
 _reward_system_prompt = "You are a helpful catalysis expert with extensive knowledge \
