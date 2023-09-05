@@ -32,22 +32,22 @@ class CoherentPolicy(ReasonerPolicy):
         )
         self.temperature = temperature
 
-        def get_actions(
-            self, state: object
-        ) -> tuple[list[Callable[object, object]], np.array]:
-            """Return the actions along with their priors."""
-            actions, priors = super().get_actions(state)
+    def get_actions(
+        self, state: object
+    ) -> tuple[list[Callable[object, object]], np.array]:
+        """Return the actions along with their priors."""
+        actions, priors = super().get_actions(state)
 
-            # generate the trial states
-            trial_states = []
-            for a in actions:
-                trial_states.append(a(state, trial=True))
+        # generate the trial states
+        trial_states = []
+        for a in actions:
+            trial_states.append(a(state, trial=True))
 
-            sim_scores = state.similarity(trial_states)
-            print(sim_scores)
-            print("\n\n\nhere\n\n\n")
-            new_priors = softmax(sim_scores / self.temperature * priors)
-            return actions, new_priors
+        sim_scores = state.similarity(trial_states)
+        print(sim_scores)
+        print("\n\n\nhere\n\n\n")
+        new_priors = softmax(sim_scores / self.temperature * priors)
+        return actions, new_priors
 
 
 if __name__ == "__main__":
