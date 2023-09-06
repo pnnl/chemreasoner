@@ -52,9 +52,11 @@ class StructureReward(BaseReward):
                 slab_name = self.reduce_candidate_symbols(slab_syms)
                 slab_ats = self.adsorption_calculator.get_slab(slab_name)
                 if slab_ats is None:
-                    slab_samples = ase_interface.symbols_list_to_bulk(
-                        slab_syms, num_samples=self.num_slab_samples
-                    )
+                    slab_samples = [
+                        ase_interface.symbols_list_to_bulk(
+                            slab_syms for _ in range(self.num_slab_samples)
+                        )
+                    ]
                     slab_ats = self.adsorption_calculator.choose_slab(
                         slab_samples, slab_name
                     )
