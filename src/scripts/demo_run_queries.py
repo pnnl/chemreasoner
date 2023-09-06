@@ -124,11 +124,24 @@ if __name__ == "__main__":
     args = {
         "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
         "savedir": str(Path("data", "output_data", "demo", "oc", "oc_input_0")),
-        "methods": ["beam_search"],
+        "--llm": "gpt-3.5-turbo",
+        "--search-methods": ["beam_search"],
         "--reward-function": "llm-adsorption-energy",
+        "--policy": "reasoner-policy",
         "--debug": True,
     }
     args = SimpleNamespace(**args)
+    # parsed, unknown = parser.parse_known_args() # this is an 'internal' method
+    # # which returns 'parsed', the same as what parse_args() would return
+    # # and 'unknown', the remainder of that
+    # # the difference to parse_args() is that it does not exit when it finds redundant arguments
+
+    # for arg in unknown:
+    #     if arg.startswith(("-", "--")):
+    #         # you can pass any arguments to add_argument
+    #         parser.add_argument(arg.split('=')[0], type=<your type>, ...)
+
+    # args = parser.parse_args()
     Path("data", "output_data", "demo", "biofuels", "biofuels_input_0").mkdir(
         parents=True, exist_ok=True
     )
