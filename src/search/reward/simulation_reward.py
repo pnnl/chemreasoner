@@ -39,32 +39,29 @@ class StructureReward(BaseReward):
             else:
                 struct = syms
             slabs.append(struct)
-        ads = [
-            ase_interface.ads_symbols_to_structure(ads_syms) for ads_syms in ads_list
-        ]
-
-        adslab_combinations = []
-        for i, s in enumerate(slabs):
-            for j, a in enumerate(ads):
-                adslab_combinations.append((candidates_list[i], ads_list[j]))
 
         adslab_ats = []  # List to store initial adslabs and indices
         name_candidate_mapping = (
             {}
         )  # dictionary to get from database names to candidates
-        for s_syms, a_syms in adslab_combinations:
-
-            if s_syms is not None:
-                s_name = self.reduce_candidate_symbols(s_syms)
-                slab_ats = self.adsorption_calculator.check_slab_name(s_name)
+        for i, slab_syms in enumerate(slabs):
+            if slab_syms is not None:
+                slab_name = self.reduce_candidate_symbols(slab_syms)
+                slab_ats = self.adsorption_calculator.get_slab(slab_name)
                 if slab_ats is None:
                     slab_samples = ase_interface.symbols_list_to_bulk(
-                        s_syms, num_samples=self.num_slab_samples
+                        slab_syms, num_samples=self.num_slab_samples
                     )
+                    slab_ats = self.adsorption_calculator.choose_slab(
+                        slab_samples, slab_name
+                    )
+                for ads_syms in ads_list:
 
-                    name = f"{s_name}_{a_syms}"
-                    adslab_ats += self.sample_adslabs(s, a, name)
-                    name_candidate_mapping[name] = combo[0]
+                    ads_ats = ase_interface.ads_symbols_to_structure(ads_syms)
+                    name = f"{slab_name}_{ads_syms}"
+                    adslab_ats += self.sample_adslabs(slab_ats, ads_ats, name)
+                    name_candidate_mapping[name] = candidates_list[i]
+
         adslabs_and_energies = self.create_batches_and_calculate(
             adslab_ats,
         )
