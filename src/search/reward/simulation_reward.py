@@ -31,8 +31,8 @@ class StructureReward(BaseReward):
         candidates_list = s.candidates
         ads_list = s.ads_symbols
         slab_syms = (
-            candidates_list  # ase_interface.llm_answer_to_symbols(candidates_list)
-        )
+            candidates_list  # ase_interface.llm_answer_to_symbols(candidates_list) 
+        )#TODO: uncomment the ase interface function
         slabs = []
         for syms in slab_syms:
             if syms is not None:
@@ -47,19 +47,21 @@ class StructureReward(BaseReward):
         adslab_combinations = []
         for i, s in enumerate(slabs):
             for j, a in enumerate(ads):
-                adslab_combinations.append((candidates_list[i], s, ads_list[j], a))
+                adslab_combinations.append((candidates_list[i], ads_list[j]))
 
         adslab_ats = []  # List to store initial adslabs and indices
         name_candidate_mapping = (
             {}
         )  # dictionary to get from database names to candidates
-        for combo in adslab_combinations:
-            if combo[1] is not None:
-                s = combo[1]
-                a = combo[3]
-                name = f"{self.reduce_metal_symbols(s)}_{combo[2]}"
-                adslab_ats += self.sample_adslabs(s, a, name)
-                name_candidate_mapping[name] = combo[0]
+        for s_syms, a_syms in adslab_combinations:
+            if s_syms is not None:
+                s_name = self.reduce_candidate_symbols(s_syms)
+                slab_ats = ase_interface.symbols_list_to_bulk(s_syms)
+                if combo[1] is not None:
+                    s_name = 
+                    name = f"{self.reduce_metal_symbols(s)}_{combo[2]}"
+                    adslab_ats += self.sample_adslabs(s, a, name)
+                    name_candidate_mapping[name] = combo[0]
         adslabs_and_energies = self.create_batches_and_calculate(
             adslab_ats,
         )
@@ -184,7 +186,7 @@ class StructureReward(BaseReward):
                 syms_count[sym] += 1
             else:
                 syms_count[sym] = 1
-
+        
         if len(syms_count) == 2:
             k1, k2 = syms_count.keys()
             if syms_count[k1] > syms_count[k2]:
@@ -192,9 +194,27 @@ class StructureReward(BaseReward):
             else:
                 name_syms = [k2, k1]
         else:
+            
             name_syms = sorted(list(syms_count.keys()))
 
         formula = "".join(name_syms)
+        return formula
+
+
+    @staticmethod
+    def reduce_candidate_symbols(candidate_syms: list[str]):
+        """Reduce the symbols of metal symbols to a basic form.
+
+        If there are two metals, the more prominant metal is listed first. If there are
+        three, the metals are listed in alphabetical order.
+        """
+        if len(candidate_syms) == 1:
+            formula = candidate_syms[0]
+        if len(candidate_syms) == 2:
+            formula = "".join(candidate_syms)
+        else:
+            formula = candidate_syms[0] + "".join(sorted(list(candidate_syms)[1:]))
+
         return formula
 
 
