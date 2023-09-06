@@ -3,7 +3,6 @@ import json
 import math
 import sys
 
-from functools import reduce
 from pathlib import Path
 
 import numpy as np
@@ -115,23 +114,10 @@ class StructureReward(BaseReward):
             else:
                 idx = str(fname.stem)
                 name = str(fname.parent)
-                if (
-                    self.adsorption_calculator.traj_dir / name / "adsorption.json"
-                ).exists():
-                    with open(
-                        self.adsorption_calculator.traj_dir / name / "adsorption.json",
-                        "r",
-                    ) as f:
-                        data = json.load(f)
-                        if (
-                            idx in data.keys()
-                            and "adsorption_energy" in data[idx].keys()
-                        ):
-                            ads_energy = data[idx]["adsorption_energy"]
-                            results.append((idx, name, ads_energy))
-                        else:
-                            adslab_batch.append(adslab)
-                            fname_batch.append(str(fname))
+                # Get pre calculated values if they exists. Otherwise, create batch
+                ads_calc = self.adsorption_calculator.get_prediction(name, idx)
+                if ads_calc is not None:
+                    results.append((idx, name, ads_calc))
                 else:
                     adslab_batch.append(adslab)
                     fname_batch.append(str(fname))

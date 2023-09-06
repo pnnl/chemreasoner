@@ -320,6 +320,28 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         with open(fname, "w") as f:
             json.dump(data, f)
 
+    def prediction_path(self, adslab_name):
+        """Reutn the adsorption path for the given adslab."""
+        return self.traj_dir / adslab_name / "adsorption.json"
+
+    def get_prediction(self, adslab_name, idx) -> Optional[float, None]:
+        """Get the adsorption energy from adslab_name for given idx.
+
+        If the calculation has not been done, returns None."""
+        if self.adsorption_path(adslab_name).exists():
+            with open(
+                self.adsorption_path(adslab_name),
+                "r",
+            ) as f:
+                data = json.load(f)
+            if idx in data.keys() and "adsorption_energy" in data[idx].keys():
+                ads_energy = data[idx]["adsorption_energy"]
+                return ads_energy
+            else:
+                return None
+        else:
+            return None
+
 
 def order_of_magnitude(number):
     """Get order of magnitude of a number."""
