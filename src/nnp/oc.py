@@ -356,7 +356,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Return the path to the slab file for slab_name."""
         slab_dir = self.traj_dir / "slabs"
         slab_dir.mkdir(parents=True, exist_ok=True)
-        return slab_dir(slab_name + ".xyz")
+        return slab_dir / (slab_name + ".xyz")
 
     def get_slab(self, slab_name: str) -> Optional[float, None]:
         """Get the slab configuration for the given slab_name.
