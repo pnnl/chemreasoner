@@ -36,7 +36,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     model_weights_paths = Path("data", "model_weights")
     model_weights_paths.mkdir(parents=True, exist_ok=True)
     model_configs_paths = Path("ext", "ocp", "configs", "s2ef", "all")
-    model_configs_paths.mkdir(parents=True, exist_ok=True)
 
     # (8/18/2023) reference values from:
     # https://arxiv.org/abs/2010.09990
