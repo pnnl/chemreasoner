@@ -19,13 +19,16 @@ from search.reward.base_reward import BaseReward  # noqa: E402
 class StructureReward(BaseReward):
     """Calculate the reward for answers based on adsorption simulations."""
 
-    def __init__(self, nnp_class="oc", num_slab_samples=8, **nnp_kwargs):
+    def __init__(
+        self, nnp_class="oc", num_slab_samples=8, num_adslab_samples=8, **nnp_kwargs
+    ):
         """Select the class of nnp for the reward function."""
         if nnp_class == "oc":
             self.adsorption_calculator = oc.OCAdsorptionCalculator(**nnp_kwargs)
         else:
             raise NotImplementedError(f"No such nnp class {nnp_class}.")
         self.num_slab_samples = num_slab_samples
+        self.num_adslab_samples = num_adslab_samples
 
     def __call__(self, s: query.QueryState):
         """Return the calculated adsorption energy from the predicted catalysts."""
@@ -162,11 +165,10 @@ class StructureReward(BaseReward):
         )
         return batch_adsorption_energies
 
-    @staticmethod
-    def sample_adslabs(slab, ads, name, num_samples=8):
+    def sample_adslabs(self, slab, ads, name):
         """Sample possible adsorbate+slab combinations."""
         adslabs = []
-        for i in range(num_samples):
+        for i in range(self.num_adslab_samples):
             adslab = ase_interface.combine_adsorbate_slab(slab, ads)
             adslabs.append((i, name, adslab))
         return adslabs

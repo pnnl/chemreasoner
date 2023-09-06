@@ -82,7 +82,7 @@ def generate_bulk_ads_pairs(
     bulk: Atoms,
     sites: Union[str, list[str]] = None,
     height=3.0,
-    random_rotate=True,
+    random_change=True,
 ) -> Union[Atoms, list[Atoms]]:
     """Add adsorbate to a bulk in the given locations."""
     return_value = False
@@ -97,8 +97,21 @@ def generate_bulk_ads_pairs(
         num_tries = 0
         valid = False  # Indicate whether generated structure is valid
         while not valid:
+            new_bulk = bulk.copy()
             new_ads = ads.copy()
-            if random_rotate:
+            if random_change:
+                # randomly select the binding location
+                site_name = random.choice(
+                    list(new_bulk.info["adsorbate_info"]["sites"])
+                )
+                position = new_bulk.info["adsorbate_info"]["sites"][site_name]
+                # randomly set the binding atom
+                bulk_z = set(bulk.get_atomic_numbers())
+                binding_z = np.random.choice(bulk_z)
+                binding_idx = get_top_atom_index(new_bulk, position)
+                numbers = new_bulk.get_atomic_numbers()
+                numbers[binding_idx] = binding_z
+                new_bulk.set_atomic_numbers(numbers)
                 # randomly sample rotation angles
                 z_rot = random.uniform(0, 360)
                 x_rot = random.uniform(0, 15)
@@ -109,7 +122,7 @@ def generate_bulk_ads_pairs(
                 new_ads.rotate("y", y_rot)
             # Apply adsorbate to new_bullk
             new_bulk = combine_adsorbate_slab(
-                bulk,
+                new_bulk,
                 new_ads,
                 height=height + 0.1 * num_tries,
             )
@@ -128,6 +141,52 @@ def generate_bulk_ads_pairs(
         return bulk_ads_pairs[0]
     else:
         return bulk_ads_pairs
+
+
+def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, location=None) -> Atoms:
+    """Attach an adsorbate to a slab adsorption site."""
+    slab = slab.copy()
+    ads = ads.copy()
+    if location is None:
+        location = random.choice(list(slab.info["adsorbate_info"]["sites"]))
+        coords = slab.info["adsorbate_info"]["sites"][location]
+
+    binding_molecules = ads.info.get("binding_sites", np.array([0]))
+
+    if len(binding_molecules) == 2:
+        disp = -np.diff(ads.get_positions()[binding_molecules])
+        coords -= disp[0:2] / 2  # displace position in the xy-plane
+    elif len(binding_molecules) != 1:
+        raise AdsorbatePlacementError(
+            f"Unable to add adsorbate with {len(binding_molecules)} binding molecules."
+        )
+    build.add_adsorbate(slab, ads, 3, position=coords, mol_index=binding_molecules[0])
+    return slab
+
+
+def get_top_atom_index(slab: Atoms, position) -> int:
+    """Get the index of the adsorbate binding location on the slab.
+
+    The code to get the z corrdinate from:
+    https://wiki.fysik.dtu.dk/ase/_modules/ase/build/surface.html#add_adsorbate."""
+    # start of code from ase
+    info = slab.info.get("adsorbate_info", {})
+    # Get the z-coordinate:
+    if "top layer atom index" in info:
+        a = info["top layer atom index"]
+    else:
+        a = slab.positions[:, 2].argmax()
+        if "adsorbate_info" not in slab.info:
+            slab.info["adsorbate_info"] = {}
+        slab.info["adsorbate_info"]["top layer atom index"] = a
+    # end of code from ase
+    z = slab.positions[a, 2]
+
+    coords = np.array(list(position) + z)
+    distances = np.linalg.norm(slab.get_positions() - coords, axis=1)
+    min_idx = np.argmin(distances)  # get the closes atom
+
+    return min_idx
 
 
 def convert_alloy(bulk, other_symbols=Union[str, list[str]]):
@@ -243,31 +302,11 @@ def ads_symbols_to_structure(syms: str):
     return ats
 
 
-def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, location=None) -> Atoms:
-    """Attach an adsorbate to a slab adsorption site."""
-    slab = slab.copy()
-    ads = ads.copy()
-    if location is None:
-        location = random.choice(list(slab.info["adsorbate_info"]["sites"]))
-        coords = slab.info["adsorbate_info"]["sites"][location]
-
-    binding_molecules = ads.info.get("binding_sites", np.array([0]))
-
-    if len(binding_molecules) == 2:
-        disp = -np.diff(ads.get_positions()[binding_molecules])
-        coords -= disp[0:2] / 2  # displace position in the xy-plane
-    elif len(binding_molecules) != 1:
-        raise AdsorbatePlacementError(
-            f"Unable to add adsorbate with {len(binding_molecules)} binding molecules."
-        )
-    build.add_adsorbate(slab, ads, 3, position=coords, mol_index=binding_molecules[0])
-    return slab
-
-
 if __name__ == "__main__":
     # print(reference_states)
     # ads = Atoms("CO", positions=[[0, 0, 0], [1.12, 0, 0]])
-    # pt = create_bulk("Pt")
+    pt = create_bulk("Pt")
+    print(pt.info)
     # pt = add_adsorbates(ads, pt, "on-top")
     # print(pt.info)
     # save_xyz("fcc.xyz", pt)
@@ -304,13 +343,13 @@ if __name__ == "__main__":
     #         ]
     #     )
     # )
-    print("\n\n")
-    ads = ads_symbols_to_structure("CO2")
-    ads = ads_symbols_to_structure("CO")
-    print(ads)
-    print(ads.info)
-    print(ads.get_atomic_numbers())
-    print(ads.get_positions())
+    # print("\n\n")
+    # ads = ads_symbols_to_structure("CO2")
+    # ads = ads_symbols_to_structure("CO")
+    # print(ads)
+    # print(ads.info)
+    # print(ads.get_atomic_numbers())
+    # print(ads.get_positions())
 
     # adslab = combine_adsorbate_slab(pt, ads)
     # print(adslab)
