@@ -183,7 +183,11 @@ class StructureReward(BaseReward):
 
     @staticmethod
     def reduce_metal_symbols(metal_ats: Atoms):
-        """Reduce the symbols of metal symbols to a basic form."""
+        """Reduce the symbols of metal symbols to a basic form.
+
+        If there are two metals, the more prominant metal is listed first. If there are
+        three, the metals are listed in alphabetical order.
+        """
         numbers = metal_ats.get_atomic_numbers()
         syms_count = {}
         for num in numbers:
@@ -192,10 +196,17 @@ class StructureReward(BaseReward):
                 syms_count[sym] += 1
             else:
                 syms_count[sym] = 1
-        gcd = reduce(math.gcd, list(syms_count.values()))
-        formula = ""
-        for s, count in sorted(syms_count.items(), key=lambda item: item[0]):
-            formula += f"{s}{count//gcd}"
+
+        if len(syms_count) == 2:
+            k1, k2 = syms_count.keys()
+            if syms_count[k1] > syms_count[k2]:
+                name_syms = [k1, k2]
+            else:
+                name_syms = [k2, k1]
+        else:
+            name_syms = sorted(list(syms_count.keys()))
+
+        formula = "".join(name_syms)
         return formula
 
 
