@@ -114,6 +114,7 @@ class StructureReward(BaseReward):
             else:
                 idx = str(fname.stem)
                 name = str(fname.parent)
+
                 # Get pre calculated values if they exists. Otherwise, create batch
                 ads_calc = self.adsorption_calculator.get_prediction(name, idx)
                 if ads_calc is not None:
@@ -122,12 +123,13 @@ class StructureReward(BaseReward):
                     adslab_batch.append(adslab)
                     fname_batch.append(str(fname))
 
+            # dispatch the batch
             if len(adslab_batch) == self.adsorption_calculator.batch_size:
                 batch_results = self.calculate_batch(adslab_batch, fname_batch)
                 results += self.unpack_batch_results(batch_results, fname_batch)
                 adslab_batch = []
                 fname_batch = []
-
+        # dispatch the remaining batch
         if len(adslab_batch) > 0:
             batch_results = self.calculate_batch(adslab_batch, fname_batch)
             results += self.unpack_batch_results(batch_results, fname_batch)
