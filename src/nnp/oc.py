@@ -14,7 +14,7 @@ import numpy as np
 
 from ase import Atoms
 from ase.constraints import FixAtoms
-from ase.io import Trajectory, write
+from ase.io import Trajectory, read, write
 from ase.optimize import BFGS
 
 from ocpmodels.common.relaxation.ase_utils import OCPCalculator, batch_to_atoms
@@ -96,27 +96,35 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             r_pbc=True,
         )
 
-    def get_ase_calculator(self, device=None):
+        self.ase_calc = None
+        self.torch_calc = None
+
+    @property
+    def get_ase_calculator(self):
+        """Return an ase calculator for self.
+
+        Specifying device overrides self.device.
+        """
+        if self.ase_calc is None:
+            # set up calculator for ase relaxations
+            self.ase_calc = OCPCalculator(
+                config_yml=str(self.config_path),
+                checkpoint_path=str(self.model_path),
+                cpu=self.device == "cpu",
+            )
+        return self.ase_calc
+
+    @property
+    def get_torch_model(self):
         """Return an ase calculator for self.
 
         Specifying device overrides self.device.
         """
         # set up calculator for ase relaxations
-        ase_calc = OCPCalculator(
-            config_yml=str(self.config_path),
-            checkpoint_path=str(self.model_path),
-            cpu=self.device == "cpu" if device is None else device == "cpu",
-        )
-        return ase_calc
-
-    def get_torch_model(self, device=None):
-        """Return an ase calculator for self.
-
-        Specifying device overrides self.device.
-        """
-        # set up calculator for ase relaxations
-        ase_calc = self.get_ase_calculator(device=device)
-        return ase_calc.trainer
+        if self.torch_calc is None:
+            ase_calc = self.get_ase_calculator
+            self.torch_calc = ase_calc.trainer
+        return self.torch_calc
 
     def relax_atoms_ase(
         self,
@@ -322,6 +330,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def prediction_path(self, adslab_name):
         """Reutn the adsorption path for the given adslab."""
+        (self.traj_dir / adslab_name).mkdir(parents=True, exist_ok=True)
         return self.traj_dir / adslab_name / "adsorption.json"
 
     def get_prediction(self, adslab_name, idx) -> Optional[float, None]:
@@ -341,6 +350,32 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 return None
         else:
             return None
+
+    def slab_path(self, slab_name: str) -> Path:
+        """Return the path to the slab file for slab_name."""
+        (self.traj_dir / "slabs").mkdir(parents=True, exist_ok=True)
+        return self.traj_dir / "slabs" / (slab_name + ".xyz")
+
+    def get_slab(self, slab_name: str) -> Optional[float, None]:
+        """Get the slab configuration for the given slab_name.
+
+        If the calculation has not been done, returns None."""
+        if self.slab_path(slab_name).exists():
+            return read(self.slab_path(slab_name))
+        else:
+            return None
+
+    def choose_slab(self, slab_samples: list[Atoms], slab_name=None) -> Atoms:
+        """Choose the minimum slab from a given set of slabs."""
+        atoms = self.copy_atoms_list(atoms)
+        batch = Batch.from_data_list(self.ats_to_graphs.convert_all(bulk_atoms))
+        batch = batch.to(device if device is not None else self.device)
+
+        calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
+
+    def save_slab(self, slab_name: str, slab: Path):
+        """Save the given slab."""
+        write(self.slab_path(slab_name), slab)
 
 
 def order_of_magnitude(number):

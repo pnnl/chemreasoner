@@ -19,20 +19,19 @@ from search.reward.base_reward import BaseReward  # noqa: E402
 class StructureReward(BaseReward):
     """Calculate the reward for answers based on adsorption simulations."""
 
-    def __init__(self, nnp_class="oc", **nnp_kwargs):
+    def __init__(self, nnp_class="oc", num_slab_samples=8, **nnp_kwargs):
         """Select the class of nnp for the reward function."""
         if nnp_class == "oc":
             self.adsorption_calculator = oc.OCAdsorptionCalculator(**nnp_kwargs)
         else:
             raise NotImplementedError(f"No such nnp class {nnp_class}.")
+        self.num_slab_samples = num_slab_samples
 
     def __call__(self, s: query.QueryState):
         """Return the calculated adsorption energy from the predicted catalysts."""
         candidates_list = s.candidates
         ads_list = s.ads_symbols
-        slab_syms = (
-            candidates_list  # ase_interface.llm_answer_to_symbols(candidates_list) 
-        )#TODO: uncomment the ase interface function
+        slab_syms = candidates_list  # ase_interface.llm_answer_to_symbols(candidates_list)  # TODO: uncomment the ase interface function
         slabs = []
         for syms in slab_syms:
             if syms is not None:
@@ -54,18 +53,22 @@ class StructureReward(BaseReward):
             {}
         )  # dictionary to get from database names to candidates
         for s_syms, a_syms in adslab_combinations:
+
             if s_syms is not None:
                 s_name = self.reduce_candidate_symbols(s_syms)
-                slab_ats = ase_interface.symbols_list_to_bulk(s_syms)
-                if combo[1] is not None:
-                    s_name = 
-                    name = f"{self.reduce_metal_symbols(s)}_{combo[2]}"
+                slab_ats = self.adsorption_calculator.check_slab_name(s_name)
+                if slab_ats is None:
+                    slab_samples = ase_interface.symbols_list_to_bulk(
+                        s_syms, num_samples=self.num_slab_samples
+                    )
+
+                    name = f"{s_name}_{a_syms}"
                     adslab_ats += self.sample_adslabs(s, a, name)
                     name_candidate_mapping[name] = combo[0]
         adslabs_and_energies = self.create_batches_and_calculate(
             adslab_ats,
         )
-        # Pase our the rewards into candidate/adsorbate
+        # Parse out the rewards into candidate/adsorbate
         reward_values = {}
         for idx, name, energy in adslabs_and_energies:
             cand = name_candidate_mapping[name]
@@ -186,7 +189,7 @@ class StructureReward(BaseReward):
                 syms_count[sym] += 1
             else:
                 syms_count[sym] = 1
-        
+
         if len(syms_count) == 2:
             k1, k2 = syms_count.keys()
             if syms_count[k1] > syms_count[k2]:
@@ -194,12 +197,11 @@ class StructureReward(BaseReward):
             else:
                 name_syms = [k2, k1]
         else:
-            
+
             name_syms = sorted(list(syms_count.keys()))
 
         formula = "".join(name_syms)
         return formula
-
 
     @staticmethod
     def reduce_candidate_symbols(candidate_syms: list[str]):
