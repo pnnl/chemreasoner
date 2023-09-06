@@ -115,14 +115,18 @@ def main(args):
             raise NotImplementedError(
                 f"Search method {args.method} is not implemented."
             )
+        if args.debug:
+            return 0
 
 
 if __name__ == "__main__":
 
     args = {
         "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-        "savedir": str(Path("data", "output_data", "demo", "oc", "biofuels_input_0")),
+        "savedir": str(Path("data", "output_data", "demo", "oc", "oc_input_0")),
         "methods": ["beam_search"],
+        "--reward-function": "llm-adsorption-energy",
+        "--debug": True,
     }
     args = SimpleNamespace(**args)
     Path("data", "output_data", "demo", "biofuels", "biofuels_input_0").mkdir(
