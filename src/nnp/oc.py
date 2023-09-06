@@ -330,8 +330,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def prediction_path(self, adslab_name):
         """Reutn the adsorption path for the given adslab."""
-        (self.traj_dir / adslab_name).mkdir(parents=True, exist_ok=True)
-        return self.traj_dir / adslab_name / "adsorption.json"
+        adslab_dir = self.traj_dir / adslab_name
+        adslab_dir.mkdir(parents=True, exist_ok=True)
+        return adslab_dir / "adsorption.json"
 
     def get_prediction(self, adslab_name, idx) -> Optional[float, None]:
         """Get the adsorption energy from adslab_name for given idx.
@@ -353,8 +354,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def slab_path(self, slab_name: str) -> Path:
         """Return the path to the slab file for slab_name."""
-        (self.traj_dir / "slabs").mkdir(parents=True, exist_ok=True)
-        return self.traj_dir / "slabs" / (slab_name + ".xyz")
+        slab_dir = self.traj_dir / "slabs"
+        slab_dir.mkdir(parents=True, exist_ok=True)
+        return slab_dir(slab_name + ".xyz")
 
     def get_slab(self, slab_name: str) -> Optional[float, None]:
         """Get the slab configuration for the given slab_name.
@@ -367,11 +369,16 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def choose_slab(self, slab_samples: list[Atoms], slab_name=None) -> Atoms:
         """Choose the minimum slab from a given set of slabs."""
-        atoms = self.copy_atoms_list(atoms)
-        batch = Batch.from_data_list(self.ats_to_graphs.convert_all(bulk_atoms))
-        batch = batch.to(device if device is not None else self.device)
+        atoms = self.copy_atoms_list(slab_samples)
+        batch = Batch.from_data_list(self.ats_to_graphs.convert_all(atoms))
+        batch = batch.to(self.device)
 
         calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
+        calculated_slabs = batch_to_atoms(calculated_batch)
+        min_idx = np.argmin([s.get_potential_energy() for s in calculated_slabs])
+        if slab_name is not None:
+            self.save_slab(slab_name, calculated_slabs[min_idx])
+        return calculated_slabs[min_idx]
 
     def save_slab(self, slab_name: str, slab: Path):
         """Save the given slab."""
