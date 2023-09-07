@@ -193,7 +193,7 @@ class MonteCarloTree:
     def pickle(self, fname: Path):
         """Save beam search to pickle file."""
         pickle_data = self.get_processed_data()
-        with open(fname, "rb") as f:
+        with open(fname, "wb") as f:
             pickle.dump(pickle_data, f)
 
     def step_save(self, fname):

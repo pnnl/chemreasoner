@@ -51,11 +51,14 @@ class CoherentPolicy(ReasonerPolicy):
         print("here")
         # generate the trial states
         trial_states = []
-        for a in actions:
-            trial_states.append(a(state, trial=True))
+        for i, a in enumerate(actions):
+            if priors[i] > 0:
+                trial_states.append(a(state, trial=True))
 
         sim_scores = state.similarity(trial_states)
-        new_priors = softmax((sim_scores / self.temperature * priors).astype(float))
+        new_priors = softmax(
+            (sim_scores / self.temperature * priors[np.nonzero(priors)]).astype(float)
+        )
         return actions, new_priors
 
 

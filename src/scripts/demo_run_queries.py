@@ -106,8 +106,8 @@ def main(args):
                 data=starting_state,
                 policy=policy,
                 reward_fn=reward,
-                num_generate=12,
-                num_keep=6,
+                num_generate=3,
+                num_keep=2,
             )
             tree.start_timer()
             num_levels = 6
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     #         parser.add_argument(arg.split('=')[0], type=<your type>, ...)
 
     # args = parser.parse_args()
-    Path("data", "output_data", "demo", "biofuels", "biofuels_input_0").mkdir(
+    Path("data", "output_data", "demo", "oc", "oc_input_0").mkdir(
         parents=True, exist_ok=True
     )
     main(args)

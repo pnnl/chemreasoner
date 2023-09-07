@@ -174,18 +174,23 @@ class QueryState:
 
         for state in states:
             relevant_strings.append(state.prompt)
-            relevant_strings.append(state.answer)
         embeddings = run_get_embeddings(relevant_strings, model=self.embedding_model)
 
         p = embeddings.pop(0)
         y = embeddings.pop(0)
-        p_y = p + y
+        p_y = np.array(p) + np.array(y)
         similarities = []
         while len(embeddings) > 0:
             similarities.append(cosine_similarity(embeddings.pop(0), p_y))
 
         similarities = np.array(similarities)
         return similarities * self.reward + (1 - similarities) * (1 - self.reward)
+
+    def set_reward(self, r: float, metadata: dict = None):
+        """Set the reward for this state."""
+        self.reward = r
+        if metadata is not None:
+            self.info["reward"] = metadata
 
 
 _reward_system_prompt = "You are a helpful catalysis expert with extensive knowledge \
@@ -332,8 +337,7 @@ tok_recieved = 0
 @backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=60)
 def run_get_embeddings(strings, model="text-embedding-ada-002"):
     """Query language model for a list of k candidates."""
-    print(strings)
-    return get_embeddings(strings, model=model)
+    return get_embeddings(strings, engine=model)
 
 
 @backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=60)
