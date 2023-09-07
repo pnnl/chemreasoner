@@ -3,6 +3,7 @@ import datetime
 import logging
 import os
 
+from copy import deepcopy
 from typing import Union
 
 import backoff
@@ -36,6 +37,8 @@ class QueryState:
         prediction_model: str = "gpt-3.5-turbo",
         reward_model: str = "gpt-3.5-turbo",
         embedding_model: str = "text-embedding-ada-002",
+        info: dict = {},
+        reward: float = None,
         **kwargs,
     ):
         """Initialize the object."""
@@ -57,6 +60,8 @@ class QueryState:
         self.prediction_model = prediction_model
         self.reward_model = reward_model
         self.embedding_model = embedding_model
+        self.info = info
+        self.reward = reward
 
     def copy(self):
         """Return a copy of self."""
@@ -75,6 +80,8 @@ class QueryState:
             prediction_model=self.prediction_model,
             reward_model=self.reward_model,
             embedding_model=self.embedding_model,
+            info=deepcopy(self.info),
+            reward=self.reward,
         )
 
     def return_next(self):
