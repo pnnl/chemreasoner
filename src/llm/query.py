@@ -10,7 +10,7 @@ import backoff
 import numpy as np
 
 import openai
-from openai.embeddings_utils import get_embedding, cosine_similarity
+from openai.embeddings_utils import get_embeddings, cosine_similarity
 
 
 logging.getLogger().setLevel(logging.INFO)
@@ -169,10 +169,13 @@ class QueryState:
     def similarity(self, states: "list[QueryState]") -> float:
         """Calculate a similarity score of this state with a list of trial states."""
         relevant_strings = [self.prompt, self.answer]
+        if any([s is None for s in relevant_strings]):
+            return np.ones(len(states), dtype=float)
+
         for state in states:
             relevant_strings.append(state.prompt)
             relevant_strings.append(state.answer)
-        embeddings = run_get_embedding(relevant_strings, model=self.embedding_model)
+        embeddings = run_get_embeddings(relevant_strings, model=self.embedding_model)
 
         p = embeddings.pop(0)
         y = embeddings.pop(0)
@@ -327,9 +330,10 @@ tok_recieved = 0
 
 
 @backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=60)
-def run_get_embedding(strings, model="text-embedding-ada-002"):
+def run_get_embeddings(strings, model="text-embedding-ada-002"):
     """Query language model for a list of k candidates."""
-    return get_embedding(strings, model=model)
+    print(strings)
+    return get_embeddings(strings, model=model)
 
 
 @backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=60)
