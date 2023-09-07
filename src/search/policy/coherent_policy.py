@@ -32,12 +32,23 @@ class CoherentPolicy(ReasonerPolicy):
         )
         self.temperature = temperature
 
+    @classmethod
+    @staticmethod
+    def from_reasoner_policy(
+        reasoner_policy: ReasonerPolicy, temperature: float = 0.6
+    ) -> "CoherentPolicy":
+        """Construct a coherent policy from a reasoner poliy."""
+        p = CoherentPolicy()
+        p.actions = reasoner_policy.actions.copy()
+        p.init_weights()
+        return p
+
     def get_actions(
         self, state: object
     ) -> tuple[list[Callable[object, object]], np.array]:
         """Return the actions along with their priors."""
         actions, priors = super().get_actions(state)
-
+        print("here")
         # generate the trial states
         trial_states = []
         for a in actions:

@@ -111,7 +111,8 @@ class CatalystLabelChanger:
             new_state.catalyst_label = f"{self.catalyst_label_type} oxide cayalysts"
         else:
             new_state.catalyst_label = f"{self.catalyst_label_type} catalysts"
-        new_state.query()
+        if not trial:
+            new_state.query()
         return new_state
 
 

@@ -13,6 +13,7 @@ import pandas as pd
 sys.path.append("src")
 from llm import automate_prompts  # noqa: E402
 from search.reward import llm_reward  # noqa: E402
+from search.policy.coherent_policy import CoherentPolicy
 from search.methods.tree_search import mcts, beam_search  # noqa: E402
 
 # from search.methods.sampling import single_shot, multi_shot  # noqa: E402
@@ -67,10 +68,12 @@ def main(args):
         starting_state, policy = state_policy_generator(
             prompt, "gpt-3.5-turbo", "gpt-3.5-turbo"
         )
-        if "single_shot" in args.methods:
+        if args.policy == "coherent-policy":
+            policy = CoherentPolicy.from_reasoner_policy(policy)
+        if "single_shot" in args.search_methods:
             single_shot(starting_state.copy(), Path(args.savedir), f"{fname}_{i}.pkl")
 
-        if "multi_shot" in args.methods:
+        if "multi_shot" in args.search_methods:
             multi_shot(
                 starting_state.copy(),
                 Path(args.savedir),
@@ -78,7 +81,7 @@ def main(args):
                 num_trials=10,
             )
 
-        if "mcts" in args.methods:
+        if "mcts" in args.search_methods:
             # Do single shot and multi shot querying.
             single_shot(starting_state, Path(args.savedir), f"{fname}_{i}.pkl")
 
@@ -97,7 +100,7 @@ def main(args):
                 print(f"---- {i} ----")
                 tree.step_save(Path(args.savedir) / f"mcts_{fname}_{i}.pkl")
 
-        if "beam_search" in args.methods:
+        if "beam_search" in args.search_methods:
             reward = llm_reward.llm_adsorption_energy_reward
             tree = beam_search.BeamSearchTree(
                 data=starting_state,
@@ -124,11 +127,11 @@ if __name__ == "__main__":
     args = {
         "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
         "savedir": str(Path("data", "output_data", "demo", "oc", "oc_input_0")),
-        "--llm": "gpt-3.5-turbo",
-        "--search-methods": ["beam_search"],
-        "--reward-function": "llm-adsorption-energy",
-        "--policy": "reasoner-policy",
-        "--debug": True,
+        "llm": "gpt-3.5-turbo",
+        "search_methods": ["beam_search"],
+        "reward_function": "llm-adsorption-energy",
+        "policy": "coherent-policy",
+        "debug": True,
     }
     args = SimpleNamespace(**args)
     # parsed, unknown = parser.parse_known_args() # this is an 'internal' method

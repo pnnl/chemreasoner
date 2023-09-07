@@ -357,7 +357,6 @@ def run_query(query, model="gpt-3.5-turbo", system_prompt=None, **gpt_kwargs):
         output = openai.ChatCompletion.create(
             model=model, messages=messages, **gpt_kwargs
         )
-        print(output)
         answer = output["choices"][0]["message"]["content"]
 
     logging.info(f"--------------------\nQ: {query}\n--------------------")
