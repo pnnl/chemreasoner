@@ -82,7 +82,6 @@ def generate_bulk_ads_pairs(
     bulk: Atoms,
     sites: Union[str, list[str]] = None,
     height=3.0,
-    random_change=True,
 ) -> Union[Atoms, list[Atoms]]:
     """Add adsorbate to a bulk in the given locations."""
     return_value = False
@@ -99,27 +98,24 @@ def generate_bulk_ads_pairs(
         while not valid:
             new_bulk = bulk.copy()
             new_ads = ads.copy()
-            if random_change:
-                # randomly select the binding location
-                site_name = random.choice(
-                    list(new_bulk.info["adsorbate_info"]["sites"])
-                )
-                position = new_bulk.info["adsorbate_info"]["sites"][site_name]
-                # randomly set the binding atom
-                bulk_z = set(bulk.get_atomic_numbers())
-                binding_z = np.random.choice(bulk_z)
-                binding_idx = get_top_atom_index(new_bulk, position)
-                numbers = new_bulk.get_atomic_numbers()
-                numbers[binding_idx] = binding_z
-                new_bulk.set_atomic_numbers(numbers)
-                # randomly sample rotation angles
-                z_rot = random.uniform(0, 360)
-                x_rot = random.uniform(0, 15)
-                y_rot = random.uniform(0, 15)
-                # Do in-plane rotations first
-                new_ads.rotate("z", z_rot)
-                new_ads.rotate("x", x_rot)
-                new_ads.rotate("y", y_rot)
+            # randomly select the binding location
+            site_name = random.choice(list(new_bulk.info["adsorbate_info"]["sites"]))
+            position = new_bulk.info["adsorbate_info"]["sites"][site_name]
+            # randomly set the binding atom
+            bulk_z = set(bulk.get_atomic_numbers())
+            binding_z = np.random.choice(bulk_z)
+            binding_idx = get_top_atom_index(new_bulk, position)
+            numbers = new_bulk.get_atomic_numbers()
+            numbers[binding_idx] = binding_z
+            new_bulk.set_atomic_numbers(numbers)
+            # randomly sample rotation angles
+            z_rot = random.uniform(0, 360)
+            x_rot = random.uniform(0, 15)
+            y_rot = random.uniform(0, 15)
+            # Do in-plane rotations first
+            new_ads.rotate("z", z_rot)
+            new_ads.rotate("x", x_rot)
+            new_ads.rotate("y", y_rot)
             # Apply adsorbate to new_bullk
             new_bulk = combine_adsorbate_slab(
                 new_bulk,

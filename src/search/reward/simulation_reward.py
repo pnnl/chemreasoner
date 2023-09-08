@@ -174,7 +174,8 @@ class StructureReward(BaseReward):
         """Sample possible adsorbate+slab combinations."""
         adslabs = []
         for i in range(self.num_adslab_samples):
-            adslab = ase_interface.combine_adsorbate_slab(slab, ads)
+            print(slab.info)
+            adslab = ase_interface.generate_bulk_ads_pairs(slab, ads)
             adslabs.append((i, name, adslab))
         return adslabs
 
