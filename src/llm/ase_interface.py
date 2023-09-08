@@ -78,8 +78,8 @@ def create_bulk(name):
 
 
 def generate_bulk_ads_pairs(
-    ads: str,
     bulk: Atoms,
+    ads: str,
     sites: Union[str, list[str]] = None,
     height=3.0,
 ) -> Union[Atoms, list[Atoms]]:
