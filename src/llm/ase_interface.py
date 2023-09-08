@@ -179,7 +179,7 @@ def get_top_atom_index(slab: Atoms, position) -> int:
     # end of code from ase
     z = slab.positions[a, 2]
 
-    coords = np.array(list(position) + list(z))
+    coords = np.array(list(position) + [z])
     distances = np.linalg.norm(slab.get_positions() - coords, axis=1)
     min_idx = np.argmin(distances)  # get the closes atom
 
