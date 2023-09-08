@@ -125,6 +125,7 @@ def generate_bulk_ads_pairs(
                 new_bulk,
                 new_ads,
                 height=height + 0.1 * num_tries,
+                position=position,
             )
             new_bulk.center(vacuum=13.0, axis=2)
             ads_mask = np.argwhere(new_bulk.get_tags() == 0)
@@ -143,13 +144,13 @@ def generate_bulk_ads_pairs(
         return bulk_ads_pairs
 
 
-def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, location=None) -> Atoms:
+def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, position=None) -> Atoms:
     """Attach an adsorbate to a slab adsorption site."""
     slab = slab.copy()
     ads = ads.copy()
-    if location is None:
-        location = random.choice(list(slab.info["adsorbate_info"]["sites"]))
-        coords = slab.info["adsorbate_info"]["sites"][location]
+    if position is None:
+        position = random.choice(list(slab.info["adsorbate_info"]["sites"]))
+        coords = slab.info["adsorbate_info"]["sites"][position]
 
     binding_molecules = ads.info.get("binding_sites", np.array([0]))
 
