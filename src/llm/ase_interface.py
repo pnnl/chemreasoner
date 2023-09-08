@@ -224,6 +224,10 @@ def llm_answer_to_symbols(
 
     print(answer)
 
+    example_format = ""
+    for i, answer in enumerate(answer):
+        example_format += f"{answer}: [list_{i}]\n"
+
     answer_string = ", ".join(answer)
     prompt = (
         f"Consider the following list of catalysts:\n{answer_string}.\n\n"
@@ -232,10 +236,7 @@ def llm_answer_to_symbols(
         "If a catalyst is already a chemical formula, repeat the elements in the "
         "chemical formula.\n\n"
         "Format your list as:\n"
-        "{catalyst_1}: [list_1]\n"
-        "{catalyst_2}: [list_2]\n"
-        "{catalyst_3}: [list_3]\n"
-        "{catalyst_4}: ..."
+        f"{example_format}"
     )
 
     answer_parsed = run_query(
