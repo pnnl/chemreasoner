@@ -41,7 +41,7 @@ class StructureReward(BaseReward):
             {}
         )  # dictionary to get from database names to candidates
         for i, slab_sym in enumerate(slab_syms):
-            if slab_sym is not None:
+            if slab_sym[0] is not None:
                 valid_slab_sym = True
                 slab_name = self.reduce_candidate_symbols(slab_sym)
                 slab_ats = self.adsorption_calculator.get_slab(slab_name)
@@ -51,10 +51,12 @@ class StructureReward(BaseReward):
                             ase_interface.symbols_list_to_bulk(slab_sym)
                             for _ in range(self.num_slab_samples)
                         ]
+                        print(slab_samples)
                     except ase_interface.StructureGenerationError as err:
                         slab_syms[i] = None
                         print(f"\n*\n*\n*\n{str(err)}\n*\n*\n*\n*")
                         valid_slab_sym = False
+
                     if valid_slab_sym:
                         slab_ats = self.adsorption_calculator.choose_slab(
                             slab_samples, slab_name
