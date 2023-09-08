@@ -222,6 +222,8 @@ def llm_answer_to_symbols(
         answer = [answer]
         return_value = True
 
+    print(answer)
+
     answer_string = ", ".join(answer)
     prompt = (
         f"Consider the following list of catalysts:\n{answer_string}.\n\n"

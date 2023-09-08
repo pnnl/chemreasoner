@@ -12,7 +12,7 @@ import pandas as pd
 
 sys.path.append("src")
 from llm import automate_prompts  # noqa: E402
-from search.reward import llm_reward  # noqa: E402
+from search.reward import simulation_reward  # noqa: E402
 from search.policy.coherent_policy import CoherentPolicy
 from search.methods.tree_search import mcts, beam_search  # noqa: E402
 
@@ -85,8 +85,13 @@ def main(args):
             # Do single shot and multi shot querying.
             single_shot(starting_state, Path(args.savedir), f"{fname}_{i}.pkl")
 
-            # Make a new starting state for the tree search
-            reward = llm_reward.llm_adsorption_energy_reward
+            if args.reward_function == "llm-reward":
+                reward = llm_reward.llm_adsorption_energy_reward
+            elif args.reward_function == "simulation-reward":
+                reward = simulation_reward.StructureReward(
+                    num_adslab_samples=2, num_slab_samples=2, device="cpu"
+                )
+
             tree = mcts.MonteCarloTree(
                 data=starting_state.copy(),
                 policy=policy,
@@ -101,7 +106,16 @@ def main(args):
                 tree.step_save(Path(args.savedir) / f"mcts_{fname}_{i}.pkl")
 
         if "beam_search" in args.search_methods:
-            reward = llm_reward.llm_adsorption_energy_reward
+            if args.reward_function == "llm-reward":
+                reward = llm_reward.llm_adsorption_energy_reward
+            elif args.reward_function == "simulation-reward":
+                reward = simulation_reward.StructureReward(
+                    num_adslab_samples=2,
+                    num_slab_samples=2,
+                    device="cpu",
+                    model="gemnet",
+                    traj_dir=Path("data/output_data/trajectories/pipeline_test"),
+                )
             tree = beam_search.BeamSearchTree(
                 data=starting_state,
                 policy=policy,
@@ -129,7 +143,7 @@ if __name__ == "__main__":
         "savedir": str(Path("data", "output_data", "demo", "oc", "oc_input_0")),
         "llm": "gpt-3.5-turbo",
         "search_methods": ["beam_search"],
-        "reward_function": "llm-adsorption-energy",
+        "reward_function": "simulation-reward",
         "policy": "coherent-policy",
         "debug": True,
     }

@@ -8,7 +8,7 @@ import yaml
 
 from collections import deque
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 
@@ -142,7 +142,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         atoms = atoms.copy()
         self.prepare_atoms(atoms)
 
-        atoms.set_calculator(self.get_ase_calculator(device=device))
+        atoms.set_calculator(self.get_ase_calculator)
         opt = BFGS(
             atoms, trajectory=self.traj_dir / fname if fname is not None else None
         )
@@ -169,7 +169,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         batch.sid = atoms_names
         batch = batch.to(device if device is not None else self.device)
 
-        trainer = self.get_torch_model(device=device)
+        trainer = self.get_torch_model
 
         try:
             relax_opt = self.config["task"]["relax_opt"]
@@ -254,7 +254,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def _batched_static_eval(self, batch):
         """Run static energy/force calculation on batch."""
-        calc = self.get_torch_model()
+        calc = self.get_torch_model
         predictions = calc.predict(batch, per_image=False, disable_tqdm=True)
         energy = predictions["energy"]
         forces = predictions["forces"]
@@ -334,7 +334,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         adslab_dir.mkdir(parents=True, exist_ok=True)
         return adslab_dir / "adsorption.json"
 
-    def get_prediction(self, adslab_name, idx) -> Optional[float, None]:
+    def get_prediction(self, adslab_name, idx) -> Optional[float]:
         """Get the adsorption energy from adslab_name for given idx.
 
         If the calculation has not been done, returns None."""
@@ -358,7 +358,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         slab_dir.mkdir(parents=True, exist_ok=True)
         return slab_dir / (slab_name + ".xyz")
 
-    def get_slab(self, slab_name: str) -> Optional[float, None]:
+    def get_slab(self, slab_name: str) -> Optional[float]:
         """Get the slab configuration for the given slab_name.
 
         If the calculation has not been done, returns None."""

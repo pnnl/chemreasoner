@@ -34,38 +34,38 @@ class StructureReward(BaseReward):
         """Return the calculated adsorption energy from the predicted catalysts."""
         candidates_list = s.candidates
         ads_list = s.ads_symbols
-        slab_syms = candidates_list  # ase_interface.llm_answer_to_symbols(candidates_list)  # TODO: uncomment the ase interface function
-        slabs = []
-        for syms in slab_syms:
-            if syms is not None:
-                struct = ase_interface.symbols_list_to_bulk(syms)
-            else:
-                struct = syms
-            slabs.append(struct)
+        slab_syms = ase_interface.llm_answer_to_symbols(candidates_list)
 
         adslab_ats = []  # List to store initial adslabs and indices
         name_candidate_mapping = (
             {}
         )  # dictionary to get from database names to candidates
-        for i, slab_syms in enumerate(slabs):
-            if slab_syms is not None:
-                slab_name = self.reduce_candidate_symbols(slab_syms)
+        for i, slab_sym in enumerate(slab_syms):
+            if slab_sym is not None:
+                valid_slab_sym = True
+                slab_name = self.reduce_candidate_symbols(slab_sym)
                 slab_ats = self.adsorption_calculator.get_slab(slab_name)
                 if slab_ats is None:
-                    slab_samples = [
-                        ase_interface.symbols_list_to_bulk(
-                            slab_syms for _ in range(self.num_slab_samples)
+                    try:
+                        slab_samples = [
+                            ase_interface.symbols_list_to_bulk(slab_sym)
+                            for _ in range(self.num_slab_samples)
+                        ]
+                    except ase_interface.StructureGenerationError as err:
+                        slab_syms[i] = None
+                        print(f"\n*\n*\n*\n{str(err)}\n*\n*\n*\n*")
+                        valid_slab_sym = False
+                    if valid_slab_sym:
+                        slab_ats = self.adsorption_calculator.choose_slab(
+                            slab_samples, slab_name
                         )
-                    ]
-                    slab_ats = self.adsorption_calculator.choose_slab(
-                        slab_samples, slab_name
-                    )
-                for ads_syms in ads_list:
+                if slab_ats is not None:
+                    for ads_sym in ads_list:
 
-                    ads_ats = ase_interface.ads_symbols_to_structure(ads_syms)
-                    name = f"{slab_name}_{ads_syms}"
-                    adslab_ats += self.sample_adslabs(slab_ats, ads_ats, name)
-                    name_candidate_mapping[name] = candidates_list[i]
+                        ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
+                        name = f"{slab_name}_{ads_sym}"
+                        adslab_ats += self.sample_adslabs(slab_ats, ads_ats, name)
+                        name_candidate_mapping[name] = candidates_list[i]
 
         adslabs_and_energies = self.create_batches_and_calculate(
             adslab_ats,
@@ -211,6 +211,7 @@ class StructureReward(BaseReward):
         If there are two metals, the more prominant metal is listed first. If there are
         three, the metals are listed in alphabetical order.
         """
+        print(candidate_syms)
         if len(candidate_syms) == 1:
             formula = candidate_syms[0]
         if len(candidate_syms) == 2:

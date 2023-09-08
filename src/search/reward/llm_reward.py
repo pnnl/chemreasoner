@@ -11,8 +11,7 @@ def llm_adsorption_energy_reward(
     """Reward function to return adsorption energy of reactants.
 
     The calculated reward is stored in state.reward."""
-    s.set_reward(2)
-    return 2
+
     e = reward_limit + 1
     attempts = 0
     while e > reward_limit and attempts < max_attempts:
@@ -20,9 +19,9 @@ def llm_adsorption_energy_reward(
         attempts += 1
 
     if attempts == max_attempts:
-        s.reward = -10
+        s.set_reward(-10)
         return -10
 
-    s.reward = e
+    s.set_reward(e)
 
     return e
