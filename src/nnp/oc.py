@@ -388,6 +388,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             self.save_slab(slab_name, calculated_slabs[min_idx])
 
         calculated_slabs[min_idx].info.update(atoms[min_idx].info)
+        print(calculated_slabs[min_idx])
+        print(atoms[min_idx].info)
         return calculated_slabs[min_idx]
 
     def save_slab(self, slab_name: str, slab: Path):
