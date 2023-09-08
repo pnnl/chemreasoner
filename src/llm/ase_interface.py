@@ -102,8 +102,8 @@ def generate_bulk_ads_pairs(
             site_name = random.choice(list(new_bulk.info["adsorbate_info"]["sites"]))
             position = new_bulk.info["adsorbate_info"]["sites"][site_name]
             # randomly set the binding atom
-            bulk_z = set(bulk.get_atomic_numbers())
-            binding_z = np.random.choice(bulk_z)
+            bulk_z = list(set(bulk.get_atomic_numbers()))
+            binding_z = bulk_z[np.random.choice(len(bulk_z))]
             binding_idx = get_top_atom_index(new_bulk, position)
             numbers = new_bulk.get_atomic_numbers()
             numbers[binding_idx] = binding_z
