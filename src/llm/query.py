@@ -3,6 +3,7 @@ import datetime
 import logging
 import os
 
+from ast import literal_eval
 from copy import deepcopy
 from typing import Union
 
@@ -214,8 +215,8 @@ def generate_adsorption_energy_list_prompt(
             "Generate a list of adsorption energies, in eV, "
             f"for the adsorbate {adsorbate} to the surface of "
             f"each of the following catalysts: {', '.join(candidate_list)}. "
-            f"Return the adsorption energies as a list of only {len(candidate_list)} "
-            "numbers in the order specified."
+            f"Return your answer as a python dictionary mapping catalysts "
+            "tot ehir adsorption energies."
         )
     else:
         vals = {"adsorbate": adsorbate, "candidate_list": candidate_list}
@@ -275,59 +276,17 @@ def fstr(fstring_text, vals):
     return ret_val
 
 
-def generate_oc_prompt(
-    adsorbate: str,
-    catalyst_label: str,
-    num_answers: int,
-    candidate_list: list = [],
-    relation_to_candidate_list: str = None,
-    include_list: list = [],
-    exclude_list: list = [],
-):
-    """Generate prompt to query for adsorption energy."""
-    if len(candidate_list) != 0 and relation_to_candidate_list is not None:
-        candidate_list_statement = f"{relation_to_candidate_list} "
-        candidate_list_statement += ", ".join(candidate_list).strip() + " "
-    elif len(candidate_list) != 0 and relation_to_candidate_list is None:
-        raise ValueError(
-            f"Non-empty candidate list {candidate_list} given with "
-            "relation_to_candidate_list == None"
-        )
-    else:
-        candidate_list_statement = ""
-    if len(include_list) != 0:
-        include_statement = (
-            f"Include candidate{catalyst_label} with the following properties: "
-        )
-        include_statement += ", ".join(include_list)
-        include_statement += ". "
-    else:
-        include_statement = ""
-    if len(exclude_list) != 0:
-        exclude_statement = (
-            f"Exclude candidate{catalyst_label} with the following properties: "
-        )
-
-        exclude_statement += ", ".join(exclude_list)
-        exclude_statement += ". "
-    else:
-        exclude_statement = ""
-    prompt = (
-        f"Generate a list of candidate{catalyst_label} {candidate_list_statement}for "
-        f"the adsorption of {adsorbate}. {include_statement}{exclude_statement}"
-        "Let's think step-by-step and return a list of "
-        f"top {num_answers} answers and their explanations as a list of pairs."
-    )
-    return prompt
-
-
 def parse_answer(answer: str, num_expected=None):
     """Parse an answer into a list."""
     final_answer_location = answer.lower().find("final_answer")
-    list_location = answer.find("[", final_answer_location)
-    answer_list = answer[list_location + 1 : answer.find("]", list_location)]  # noqa
-    answer_list = [ans.replace("'", "") for ans in answer_list.split(",")]
-    return [ans.replace('"', "").strip() for ans in answer_list]
+    list_start = answer.find("[", final_answer_location)
+    list_end = answer.find("]", list_start)
+    try:
+        answer_list = literal_eval(answer[list_start : list_end + 1])  # noqa:E203
+    except Exception:
+        answer_list = answer[list_start + 1 : answer.find("]", list_start)]  # noqa:E203
+        answer_list = [ans.replace("'", "") for ans in answer_list.split(",")]
+    return [ans.replace('"', "").replace("'", "").strip() for ans in answer_list]
 
 
 def init_openai():
@@ -394,19 +353,6 @@ def run_query(query, model="gpt-3.5-turbo", system_prompt=None, **gpt_kwargs):
     logging.info(f"Total num tok recieved: {tok_recieved}\n\n")
 
     return answer
-
-
-def run_embedding_test():
-    """Test embedding with language model."""
-    str1 = "platinum"
-    str2 = "cobalt"
-    str3 = "wood"
-    emb1 = get_embedding(str1)
-    emb2 = get_embedding(str2)
-    emb3 = get_embedding(str3)
-    print(f"Cosine sim({str1}, {str2}): {cosine_similarity(emb1, emb2)}")
-    print(f"Cosine sim({str1}, {str3}): {cosine_similarity(emb1, emb3)}")
-    return
 
 
 init_openai()
