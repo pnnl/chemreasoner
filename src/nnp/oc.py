@@ -386,6 +386,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         min_idx = np.argmin([s.get_potential_energy() for s in calculated_slabs])
         if slab_name is not None:
             self.save_slab(slab_name, calculated_slabs[min_idx])
+
+        calculated_slabs[min_idx].info.update(atoms[min_idx].info)
         return calculated_slabs[min_idx]
 
     def save_slab(self, slab_name: str, slab: Path):
