@@ -225,8 +225,8 @@ def llm_answer_to_symbols(
     print(answer)
 
     example_format = ""
-    for i, answer in enumerate(answer):
-        example_format += f"{answer}: [list_{i}]\n"
+    for i, ans in enumerate(answer):
+        example_format += f"{ans}: [list_{i}]\n"
 
     answer_string = ", ".join(answer)
     prompt = (
@@ -240,7 +240,7 @@ def llm_answer_to_symbols(
     )
 
     answer_parsed = run_query(
-        query=prompt, model=model, **{"temperature": 0.0, "top_p": 0.2}
+        query=prompt, model=model, **{"temperature": 0.0, "top_p": 0}
     )
     answer_list_parsed = [None] * len(answer)
     for line in answer_parsed.split("\n"):
