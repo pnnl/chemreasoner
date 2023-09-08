@@ -40,8 +40,9 @@ class StructureReward(BaseReward):
         name_candidate_mapping = (
             {}
         )  # dictionary to get from database names to candidates
+        print(slab_syms)
         for i, slab_sym in enumerate(slab_syms):
-            if slab_sym[0] is not None:
+            if slab_sym is not None:
                 valid_slab_sym = True
                 slab_name = self.reduce_candidate_symbols(slab_sym)
                 slab_ats = self.adsorption_calculator.get_slab(slab_name)
