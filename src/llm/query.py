@@ -115,6 +115,17 @@ class QueryState:
             exclude_list=self.exclude_list,
         )
 
+    @property
+    def adsorption_energy_prompts(self):
+        """Return the prompt for this state."""
+        return [
+            generate_adsorption_energy_list_prompt(
+                ads,
+                self.candidates,
+            )
+            for ads in self.ads_symbols
+        ]
+
     def query(self):
         """Run a query to the LLM and change the state of self."""
         self.answer = self.send_query(self.prompt, model=self.prediction_model)
@@ -122,6 +133,7 @@ class QueryState:
     @property
     def candidates(self):
         """Return the candidate list of the current answer."""
+
         return (
             [] if self.answer is None else parse_answer(self.answer, self.num_answers)
         )
@@ -132,23 +144,17 @@ class QueryState:
         error = None
         while retries < 3:
             retries += 1
-            try:
+            try:  # Try parsing out the given answer
                 answers = []
-                for ads in self.ads_symbols:
-                    candidate_list = self.candidates
-
-                    prompt = generate_adsorption_energy_list_prompt(
-                        ads,
-                        candidate_list,
-                    )
+                for adsorption_energy_prompt in self.adsorption_energy_prompts:
                     answer = self.send_query(
-                        prompt,
+                        adsorption_energy_prompt,
                         model=self.reward_model,
                         system_prompt=_reward_system_prompt,
                     )
 
                     number_answers = [
-                        abs(float(ans.replace("eV", "")))
+                        abs(float(ans.lower().replace("(ev)", "").replace("ev", "")))
                         for ans in parse_answer(answer)
                     ]
                     answers.append(number_answers)
@@ -162,7 +168,9 @@ class QueryState:
                 return output
             except Exception as err:
                 error = err
-                logging.warning(f"Failed to parse answer with error: {err}.")
+                logging.warning(
+                    f"Failed to parse answer with error: {err}. Generating new answer."
+                )
                 self.query()
         raise error
 
