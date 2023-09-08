@@ -103,7 +103,7 @@ def generate_bulk_ads_pairs(
             position = new_bulk.info["adsorbate_info"]["sites"][site_name]
             # randomly set the binding atom
             bulk_z = list(set(bulk.get_atomic_numbers()))
-            binding_z = bulk_z[np.random.choice(len(bulk_z))]
+            binding_z = np.random.choice(list(bulk_z))
             binding_idx = get_top_atom_index(new_bulk, position)
             numbers = new_bulk.get_atomic_numbers()
             numbers[binding_idx] = binding_z
@@ -146,7 +146,7 @@ def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, position=None) -> 
     ads = ads.copy()
     if position is None:
         position = random.choice(list(slab.info["adsorbate_info"]["sites"]))
-        coords = slab.info["adsorbate_info"]["sites"][position]
+        position = slab.info["adsorbate_info"]["sites"][position]
 
     binding_molecules = ads.info.get("binding_sites", np.array([0]))
 
