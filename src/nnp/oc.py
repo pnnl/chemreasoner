@@ -303,13 +303,19 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         return Batch.from_data_list(evaluated_batches)
 
     @staticmethod
-    def prepare_atoms(adslab: Atoms, constraints: bool = True) -> None:
+    def prepare_atoms(atoms: Atoms, constraints: bool = True) -> None:
         """Prepare an atoms object for simulation."""
         if constraints:
-            cons = FixAtoms(indices=[atom.index for atom in adslab if (atom.tag > 1)])
-            adslab.set_constraint(cons)
-        adslab.center(vacuum=13.0, axis=2)
-        adslab.set_pbc(True)
+            cons = FixAtoms(indices=[atom.index for atom in atoms if (atom.tag > 1)])
+            atoms.set_constraint(cons)
+        atoms.center(vacuum=13.0, axis=2)
+        atoms.set_pbc(True)
+
+    @staticmethod
+    def prepare_atoms_list(atoms_list: Atoms, constraints: bool = True) -> None:
+        """Prepare an atoms object for simulation."""
+        for ats in atoms_list:
+            OCAdsorptionCalculator.prepare_atoms(ats, constraints=constraints)
 
     @staticmethod
     def copy_atoms_list(atoms_list: list[Atoms]) -> list[Atoms]:
@@ -370,7 +376,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def choose_slab(self, slab_samples: list[Atoms], slab_name=None) -> Atoms:
         """Choose the minimum slab from a given set of slabs."""
-        atoms = [self.prepare_atoms(s.copy(), constraints=False) for s in slab_samples]
+        atoms = self.copy_atoms_list(slab_samples)
+        self.prepare_atoms_list(atoms)
         batch = Batch.from_data_list(self.ats_to_graphs.convert_all(atoms))
         batch = batch.to(self.device)
 
