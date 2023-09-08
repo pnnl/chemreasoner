@@ -239,7 +239,7 @@ def llm_answer_to_symbols(
     )
 
     answer_parsed = run_query(
-        query=prompt, model=model, **{"temperature": 0.6, "top_p": 0.2}
+        query=prompt, model=model, **{"temperature": 0.0, "top_p": 0.2}
     )
     answer_list_parsed = [None] * len(answer)
     for line in answer_parsed.split("\n"):
