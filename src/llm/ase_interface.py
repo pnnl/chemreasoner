@@ -152,12 +152,12 @@ def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, position=None) -> 
 
     if len(binding_molecules) == 2:
         disp = -np.diff(ads.get_positions()[binding_molecules])
-        coords -= disp[0:2] / 2  # displace position in the xy-plane
+        position -= disp[0:2] / 2  # displace position in the xy-plane
     elif len(binding_molecules) != 1:
         raise AdsorbatePlacementError(
             f"Unable to add adsorbate with {len(binding_molecules)} binding molecules."
         )
-    build.add_adsorbate(slab, ads, 3, position=coords, mol_index=binding_molecules[0])
+    build.add_adsorbate(slab, ads, 3, position=position, mol_index=binding_molecules[0])
     return slab
 
 
