@@ -12,8 +12,8 @@ import pandas as pd
 
 sys.path.append("src")
 from llm import automate_prompts  # noqa: E402
-from search.reward import simulation_reward  # noqa: E402
-from search.policy.coherent_policy import CoherentPolicy
+from search.reward import simulation_reward, llm_reward  # noqa: E402
+from search.policy.coherent_policy import CoherentPolicy, ReasonerPolicy  # noqa: E402
 from search.methods.tree_search import mcts, beam_search  # noqa: E402
 
 # from search.methods.sampling import single_shot, multi_shot  # noqa: E402
@@ -143,7 +143,7 @@ if __name__ == "__main__":
         "savedir": str(Path("data", "output_data", "demo", "oc", "oc_input_0")),
         "llm": "gpt-3.5-turbo",
         "search_methods": ["beam_search"],
-        "reward_function": "simulation-reward",
+        "reward_function": "llm-reward",
         "policy": "coherent-policy",
         "debug": True,
     }

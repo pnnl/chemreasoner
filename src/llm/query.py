@@ -2,6 +2,7 @@
 import datetime
 import logging
 import os
+import re
 
 from ast import literal_eval
 from copy import deepcopy
@@ -116,6 +117,24 @@ class QueryState:
         )
 
     @property
+    def system_prompt_generation(self):
+        """Return the system prompt for the generation prompt."""
+        return (
+            "You are a helpful chemistry expert with extensive knowledge of catalysis. "
+            "You will give recommendations for catalysts, including chemically "
+            "accurate descriptions of interaction between the catalysts and adsorbates."
+        )
+
+    @property
+    def system_prompt_reward(self):
+        """Return the prompt for this state."""
+        return (
+            "You are a helpful chemistry expert with extensive knowledge of catalysis. "
+            "Particularly, given a catalyst and adsorbate, you can give a reasonable "
+            "approximate of the adsorption energy, in eV."
+        )
+
+    @property
     def adsorption_energy_prompts(self):
         """Return the prompt for this state."""
         return [
@@ -128,7 +147,15 @@ class QueryState:
 
     def query(self):
         """Run a query to the LLM and change the state of self."""
-        self.answer = self.send_query(self.prompt, model=self.prediction_model)
+        # self.answer = self.send_query(
+        #     self.prompt,
+        #     system_prompt=self.system_prompt_generation,
+        #     model=self.prediction_model,
+        # )
+        self.answer = (
+            "Step 2: Return the final answer as a Python list."
+            "final_answer = ['Platinum (Pt)', 'Palladium (Pd)', 'Silver (Ag)', 'Copper (Cu)', 'Gold (Au)']"
+        )
 
     @property
     def candidates(self):
@@ -140,6 +167,7 @@ class QueryState:
 
     def query_adsorption_energy_list(self, catalyst_slice=slice(None, None)):
         """Run a query to the LLM and change the state of self."""
+        return np.random.rand(10)[0]
         retries = 0
         error = None
         while retries < 3:
@@ -150,13 +178,30 @@ class QueryState:
                     answer = self.send_query(
                         adsorption_energy_prompt,
                         model=self.reward_model,
-                        system_prompt=_reward_system_prompt,
+                        system_prompt=self.system_prompt_reward,
                     )
+                    number_answers = []
+                    for line in answer.split("\n"):
+                        if ":" in line:
+                            _, number = line.split(":")
+                            number = (
+                                number.lower()
+                                .replace("(ev)", "")
+                                .replace("ev", "")
+                                .replace(",", "")
+                                .strip()
+                            )
+                            if (
+                                re.match(r"^-?\d+(?:\.\d+)$", number) is not None
+                                or number != ""
+                            ):
+                                number_answers.append(abs(float(number)))
+                    if not len(number_answers) == len(self.candidates):
+                        raise ValueError(
+                            f"Found {len(number_answers)} adsorption energies. "
+                            f"Expected {len(self.candidates)}."
+                        )
 
-                    number_answers = [
-                        abs(float(ans.lower().replace("(ev)", "").replace("ev", "")))
-                        for ans in parse_answer(answer)
-                    ]
                     answers.append(number_answers)
 
                 output = np.mean(
@@ -209,9 +254,9 @@ class QueryState:
             self.info["reward"] = metadata
 
 
-_reward_system_prompt = "You are a helpful catalysis expert with extensive knowledge \
-    of the adsorption of atoms and molecules. You can offer an approximate value of \
-    adsorption energies of various adsorbates to various catalysts."
+# _reward_system_prompt = "You are a helpful catalysis expert with extensive knowledge "
+#     "of the adsorption of atoms and molecules. You can offer an approximate value of "
+#     "adsorption energies of various adsorbates to various catalysts."
 
 
 def generate_adsorption_energy_list_prompt(

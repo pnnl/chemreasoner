@@ -49,16 +49,34 @@ class CoherentPolicy(ReasonerPolicy):
         """Return the actions along with their priors."""
         actions, priors = super().get_actions(state)
         print("here")
+        print(priors)
+        print(state.prev_candidate_list)
         # generate the trial states
         trial_states = []
+        idx_trial_states = []  # mask for iompossible trial states
         for i, a in enumerate(actions):
             if priors[i] > 0:
                 trial_states.append(a(state, trial=True))
+                idx_trial_states.append(i)
 
         sim_scores = state.similarity(trial_states)
-        new_priors = softmax(
-            (sim_scores / self.temperature * priors[np.nonzero(priors)]).astype(float)
-        )
+
+        full_sim_scores = np.zeros_like(priors)
+        full_sim_scores[np.array(idx_trial_states)] = np.array(sim_scores)
+        print(state.reward)
+        if state.reward is not None:
+            reward_adjustment = full_sim_scores * (state.reward) + (
+                1 - full_sim_scores
+            ) * (1 - state.reward)
+        else:
+            reward_adjustment = full_sim_scores
+
+        new_priors = softmax((reward_adjustment / 0.2).astype(float)) * priors
+        new_priors = new_priors / np.sum(new_priors)  # re-normalize
+        print(state.candidates)
+        print(full_sim_scores)
+        print(new_priors)
+        print(priors)
         return actions, new_priors
 
 
