@@ -147,14 +147,10 @@ class QueryState:
 
     def query(self):
         """Run a query to the LLM and change the state of self."""
-        # self.answer = self.send_query(
-        #     self.prompt,
-        #     system_prompt=self.system_prompt_generation,
-        #     model=self.prediction_model,
-        # )
-        self.answer = (
-            "Step 2: Return the final answer as a Python list."
-            "final_answer = ['Platinum (Pt)', 'Palladium (Pd)', 'Silver (Ag)', 'Copper (Cu)', 'Gold (Au)']"
+        self.answer = self.send_query(
+            self.prompt,
+            system_prompt=self.system_prompt_generation,
+            model=self.prediction_model,
         )
 
     @property
@@ -167,7 +163,6 @@ class QueryState:
 
     def query_adsorption_energy_list(self, catalyst_slice=slice(None, None)):
         """Run a query to the LLM and change the state of self."""
-        return np.random.rand(10)[0]
         retries = 0
         error = None
         while retries < 3:

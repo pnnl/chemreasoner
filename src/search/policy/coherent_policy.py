@@ -48,9 +48,6 @@ class CoherentPolicy(ReasonerPolicy):
     ) -> tuple[list[Callable[object, object]], np.array]:
         """Return the actions along with their priors."""
         actions, priors = super().get_actions(state)
-        print("here")
-        print(priors)
-        print(state.prev_candidate_list)
         # generate the trial states
         trial_states = []
         idx_trial_states = []  # mask for iompossible trial states
@@ -63,7 +60,6 @@ class CoherentPolicy(ReasonerPolicy):
 
         full_sim_scores = np.zeros_like(priors)
         full_sim_scores[np.array(idx_trial_states)] = np.array(sim_scores)
-        print(state.reward)
         if state.reward is not None:
             reward_adjustment = full_sim_scores * (state.reward) + (
                 1 - full_sim_scores
@@ -73,10 +69,6 @@ class CoherentPolicy(ReasonerPolicy):
 
         new_priors = softmax((reward_adjustment / 0.2).astype(float)) * priors
         new_priors = new_priors / np.sum(new_priors)  # re-normalize
-        print(state.candidates)
-        print(full_sim_scores)
-        print(new_priors)
-        print(priors)
         return actions, new_priors
 
 
