@@ -35,6 +35,7 @@ class QueryState:
         include_list: list[str] = [],
         exclude_list: list[str] = [],
         answer: str = None,
+        embeddings: dict = {},
         num_queries: int = 0,
         prediction_model: str = "gpt-3.5-turbo",
         reward_model: str = "gpt-3.5-turbo",
@@ -58,6 +59,7 @@ class QueryState:
         self.include_list = include_list.copy()
         self.exclude_list = exclude_list.copy()
         self.answer = answer
+        self.embeddings = embeddings
         self.num_queries = num_queries
         self.prediction_model = prediction_model
         self.reward_model = reward_model
@@ -81,6 +83,7 @@ class QueryState:
             include_list=self.include_list.copy(),
             exclude_list=self.exclude_list.copy(),
             answer=self.answer,
+            embeddings=self.embeddings.copy(),
             num_queries=self.num_queries,
             prediction_model=self.prediction_model,
             reward_model=self.reward_model,
@@ -100,6 +103,7 @@ class QueryState:
             include_list=self.include_list.copy(),
             exclude_list=self.exclude_list.copy(),
             answer=None,
+            embeddings={},
             num_queries=0,
             prediction_model=self.prediction_model,
             reward_model=self.reward_model,
@@ -167,6 +171,12 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
             "answer": self.answer,
             "candidates_list": self.candidates,
         }
+        # embeddings = run_get_embeddings(
+        #     [self.prompt, self.answer], model=self.embedding_model
+        # )
+        embeddings = [np.random.rand(356) for _ in range(2)]
+        self.embeddings.update({"prompt": embeddings[0], "answer": embeddings[1]})
+        print(list(self.embeddings.keys()))
 
     @property
     def candidates(self):
@@ -176,22 +186,26 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
             [] if self.answer is None else parse_answer(self.answer, self.num_answers)
         )
 
-    def query_adsorption_energy_list(self, catalyst_slice=slice(None, None)):
+    def query_adsorption_energy_list(
+        self, catalyst_slice=slice(None, None), info_field: str = None
+    ):
         """Run a query to the LLM and change the state of self."""
-        r = np.random.rand(1)[0]
-        self.info["reward"] = [
-            {
-                "prompt": self.adsorption_energy_prompts,
-                "system_prompt": self.system_prompt_reward,
-                "answer": ["ans"] * len(self.adsorption_energy_prompts),
-            }
-        ]
-        return r
+        self.info["llm-reward"] = {"attempted_prompts": []}
+
         retries = 0
         error = None
         while retries < 3:
             retries += 1
             try:  # Try parsing out the given answer
+                self.info["llm-reward"]["attempted_prompts"].append(
+                    {
+                        "prompt": self.adsorption_energy_prompts,
+                        "system_prompt": self.system_prompt_reward,
+                        "answer": ["ans"] * len(self.adsorption_energy_prompts),
+                    }
+                )
+                r = np.random.rand(1)[0]
+                return r
                 answers = []
                 for adsorption_energy_prompt in self.adsorption_energy_prompts:
                     answer = self.send_query(
@@ -248,18 +262,24 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
 
     def similarity(self, states: "list[QueryState]") -> float:
         """Calculate a similarity score of this state with a list of trial states."""
-        relevant_strings = [self.prompt, self.answer]
-        if any([s is None for s in relevant_strings]):
+        if (
+            "prompt" not in self.embeddings.keys()
+            or "answer" not in self.embeddings.keys()
+        ):
             return np.ones(len(states), dtype=float)
+        else:
+            relevant_strings = [self.embeddings["prompt"], self.embeddings["answer"]]
 
         for state in states:
             relevant_strings.append(state.prompt)
         # embeddings = run_get_embeddings(relevant_strings, model=self.embedding_model)
         embeddings = [np.random.rand(356) for _ in range(len(relevant_strings))]
-        self.info["priors"].update({"embeddings": embeddings.copy()})
+
         p = embeddings.pop(0)
         y = embeddings.pop(0)
         p_y = np.array(p) + np.array(y)
+
+        self.info["priors"].update({"embeddings": embeddings.copy()})
         similarities = []
         while len(embeddings) > 0:
             similarities.append(cosine_similarity(embeddings.pop(0), p_y))
@@ -268,12 +288,15 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
         self.info["priors"].update({"similarities": similarities})
         return similarities + (1 - similarities)
 
-    def set_reward(self, r: float, metadata: dict = None):
+    def set_reward(self, r: float, primary_reward: bool = True, info_field: str = None):
         """Set the reward for this state."""
-        self.reward = r
-        self.info["reward"][-1].update({"value": r})
-        if metadata is not None:
-            self.info["reward"][-1].update(metadata)
+        if primary_reward is None:
+            self.reward = r
+        if info_field is not None:
+            if info_field in self.info.keys():
+                self.info[info_field]["value"] = r
+            else:
+                self.info[info_field] = {"value": r}
 
 
 # _reward_system_prompt = "You are a helpful catalysis expert with extensive knowledge "
