@@ -105,26 +105,26 @@ class BeamSearchTree:
 
     def get_processed_data(self) -> dict:
         """Turn beam search tree into dictionary for saving."""
-        beam_search_daata = dict()
-        beam_search_daata["nodes"] = []
+        beam_search_data = dict()
+        beam_search_data["nodes"] = []
         for list_nodes in self.nodes:
-            beam_search_daata["nodes"].append([vars(n) for n in list_nodes])
-        beam_search_daata["node_rewards"] = self.node_rewards
-        beam_search_daata["parent_idx"] = self.parent_idx
+            beam_search_data["nodes"].append([vars(n) for n in list_nodes])
+        beam_search_data["node_rewards"] = self.node_rewards
+        beam_search_data["parent_idx"] = self.parent_idx
 
-        beam_search_daata["generated_nodes"] = []
+        beam_search_data["generated_nodes"] = []
         for list_nodes in self.generated_nodes:
-            beam_search_daata["generated_nodes"].append([vars(n) for n in list_nodes])
-        beam_search_daata["generated_node_rewards"] = self.generated_node_rewards
-        beam_search_daata["generated_parent_idx"] = self.generated_parent_idx
+            beam_search_data["generated_nodes"].append([vars(n) for n in list_nodes])
+        beam_search_data["generated_node_rewards"] = self.generated_node_rewards
+        beam_search_data["generated_parent_idx"] = self.generated_parent_idx
 
-        beam_search_daata["num_generate"] = self.num_generate
-        beam_search_daata["num_keep"] = self.num_keep
+        beam_search_data["num_generate"] = self.num_generate
+        beam_search_data["num_keep"] = self.num_keep
 
-        beam_search_daata["start_time"] = self.start_time
-        beam_search_daata["end_time"] = self.end_time
+        beam_search_data["start_time"] = self.start_time
+        beam_search_data["end_time"] = self.end_time
 
-        return beam_search_daata
+        return beam_search_data
 
     def pickle(self, fname: Path):
         """Save beam search to pickle file."""

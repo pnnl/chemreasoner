@@ -65,7 +65,7 @@ class QueryState:
         if info is not None:
             self.info = info
         else:
-            self.info = {"reward": [], "generation": {}, "prior": {}}
+            self.info = {"reward": [], "generation": {}, "priors": {}}
         self.reward = reward
 
     def copy(self):
@@ -187,7 +187,6 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
                 "prompt": self.adsorption_energy_prompts,
                 "system_prompt": self.system_prompt_reward,
                 "answer": ["ans"] * len(self.adsorption_energy_prompts),
-                "value": r,
             }
         ]
         return r
@@ -260,7 +259,8 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
             relevant_strings.append(state.prompt)
         # embeddings = run_get_embeddings(relevant_strings, model=self.embedding_model)
         embeddings = [np.random.rand(356) for _ in range(len(relevant_strings))]
-        self.info["priors"] = {"embeddings": embeddings}
+        self.info["priors"].update({"embeddings": embeddings})
+        print(vars(self)["info"]["priors"])
         p = embeddings.pop(0)
         y = embeddings.pop(0)
         p_y = np.array(p) + np.array(y)
@@ -276,7 +276,7 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
         """Set the reward for this state."""
         self.reward = r
         if metadata is not None:
-            self.info["reward"] = metadata
+            self.info["reward"].update({"value": metadata})
 
 
 # _reward_system_prompt = "You are a helpful catalysis expert with extensive knowledge "
@@ -433,4 +433,4 @@ def run_query(query, model="gpt-3.5-turbo", system_prompt=None, **gpt_kwargs):
     return answer
 
 
-init_openai()
+# init_openai()
