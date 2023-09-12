@@ -39,7 +39,7 @@ class QueryState:
         prediction_model: str = "gpt-3.5-turbo",
         reward_model: str = "gpt-3.5-turbo",
         embedding_model: str = "text-embedding-ada-002",
-        info: dict = {},
+        info: dict = None,
         reward: float = None,
         **kwargs,
     ):
@@ -62,7 +62,10 @@ class QueryState:
         self.prediction_model = prediction_model
         self.reward_model = reward_model
         self.embedding_model = embedding_model
-        self.info = info
+        if info is not None:
+            self.info = info
+        else:
+            self.info = {"reward": [], "generation": {}, "prior": {}}
         self.reward = reward
 
     def copy(self):
@@ -147,11 +150,26 @@ class QueryState:
 
     def query(self):
         """Run a query to the LLM and change the state of self."""
-        self.answer = self.send_query(
-            self.prompt,
-            system_prompt=self.system_prompt_generation,
-            model=self.prediction_model,
-        )
+        self.info["generation"] = {
+            "prompt": self.prompt,
+            "system_prompt": self.system_prompt_generation,
+        }
+        # self.answer = self.send_query(
+        #     self.prompt,
+        #     system_prompt=self.system_prompt_generation,
+        #     model=self.prediction_model,
+        # )
+        self.answer = """5. Zinc oxide (ZnO):
+Zinc oxide is another metal oxide catalyst that can effectively adsorb CHOHCH2. It has a high surface area and can form hydrogen bonds with CHOHCH2, facilitating its adsorption. Zinc oxide catalysts are also cost-effective and commonly used in various catalytic processes.
+
+Finally, here is the Python list final_answer of the top-5 catalysts for the adsorption of CHOHCH2:
+
+final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (Fe2O3)", "Zinc oxide (ZnO)"]"""
+        self.info["generation"] = {
+            "prompt": self.prompt,
+            "system_prompt": self.system_prompt_generation,
+            "answer": self.answer,
+        }
 
     @property
     def candidates(self):
@@ -163,6 +181,16 @@ class QueryState:
 
     def query_adsorption_energy_list(self, catalyst_slice=slice(None, None)):
         """Run a query to the LLM and change the state of self."""
+        r = np.random.rand(1)[0]
+        self.info["reward"] = [
+            {
+                "prompt": self.adsorption_energy_prompts,
+                "system_prompt": self.system_prompt_reward,
+                "answer": ["ans"] * len(self.adsorption_energy_prompts),
+                "value": r,
+            }
+        ]
+        return r
         retries = 0
         error = None
         while retries < 3:
@@ -230,8 +258,9 @@ class QueryState:
 
         for state in states:
             relevant_strings.append(state.prompt)
-        embeddings = run_get_embeddings(relevant_strings, model=self.embedding_model)
-
+        # embeddings = run_get_embeddings(relevant_strings, model=self.embedding_model)
+        embeddings = [np.random.rand(356) for _ in range(len(relevant_strings))]
+        self.info["priors"] = {"embeddings": embeddings}
         p = embeddings.pop(0)
         y = embeddings.pop(0)
         p_y = np.array(p) + np.array(y)
@@ -240,7 +269,8 @@ class QueryState:
             similarities.append(cosine_similarity(embeddings.pop(0), p_y))
 
         similarities = np.array(similarities)
-        return similarities * self.reward + (1 - similarities) * (1 - self.reward)
+        self.info["priors"].update({"similarities": similarities})
+        return similarities + (1 - similarities)
 
     def set_reward(self, r: float, metadata: dict = None):
         """Set the reward for this state."""

@@ -67,8 +67,15 @@ class CoherentPolicy(ReasonerPolicy):
         else:
             reward_adjustment = full_sim_scores
 
-        new_priors = softmax((reward_adjustment / 0.2).astype(float)) * priors
+        state["priors"].update(
+            {"reward_adjusted_similarities": list(reward_adjustment)}
+        )
+
+        new_priors = (
+            softmax((reward_adjustment / self.temperature).astype(float)) * priors
+        )
         new_priors = new_priors / np.sum(new_priors)  # re-normalize
+        state["priors"].update({"values": list(new_priors)})
         return actions, new_priors
 
 

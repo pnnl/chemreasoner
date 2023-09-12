@@ -127,7 +127,7 @@ def main(args):
             num_levels = 6
             for i in range(num_levels):
                 print(f"---- {i} ----")
-                tree.step_save(Path(args.savedir) / f"beam_search_{fname}_{i}.pkl")
+                tree.step_save(Path(args.savedir) / f"beam_search_{fname}.pkl")
         else:
             raise NotImplementedError(
                 f"Search method {args.method} is not implemented."
@@ -140,7 +140,7 @@ if __name__ == "__main__":
 
     args = {
         "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-        "savedir": str(Path("data", "output_data", "demo", "oc", "oc_input_0")),
+        "savedir": str(Path("data", "output_data", "demo", "oc", "generated_output")),
         "llm": "gpt-3.5-turbo",
         "search_methods": ["beam_search"],
         "reward_function": "llm-reward",
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     #         parser.add_argument(arg.split('=')[0], type=<your type>, ...)
 
     # args = parser.parse_args()
-    Path("data", "output_data", "demo", "oc", "oc_input_0").mkdir(
+    Path("data", "output_data", "demo", "oc", "generated_output").mkdir(
         parents=True, exist_ok=True
     )
     main(args)
