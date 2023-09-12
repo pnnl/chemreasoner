@@ -57,6 +57,7 @@ class CoherentPolicy(ReasonerPolicy):
                 idx_trial_states.append(i)
 
         sim_scores = state.similarity(trial_states)
+        print(state.info["priors"])
 
         full_sim_scores = np.zeros_like(priors)
         full_sim_scores[np.array(idx_trial_states)] = np.array(sim_scores)
@@ -67,15 +68,14 @@ class CoherentPolicy(ReasonerPolicy):
         else:
             reward_adjustment = full_sim_scores
 
-        state.info["priors"].update(
-            {"reward_adjusted_similarities": reward_adjustment}
-        )
+        state.info["priors"].update({"reward_adjusted_similarities": reward_adjustment})
 
         new_priors = (
             softmax((reward_adjustment / self.temperature).astype(float)) * priors
         )
         new_priors = new_priors / np.sum(new_priors)  # re-normalize
         state.info["priors"].update({"values": new_priors})
+
         return actions, new_priors
 
 

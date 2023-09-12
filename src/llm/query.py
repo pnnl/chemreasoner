@@ -150,10 +150,6 @@ class QueryState:
 
     def query(self):
         """Run a query to the LLM and change the state of self."""
-        self.info["generation"] = {
-            "prompt": self.prompt,
-            "system_prompt": self.system_prompt_generation,
-        }
         # self.answer = self.send_query(
         #     self.prompt,
         #     system_prompt=self.system_prompt_generation,
@@ -169,6 +165,7 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
             "prompt": self.prompt,
             "system_prompt": self.system_prompt_generation,
             "answer": self.answer,
+            "candidates_list": self.candidates,
         }
 
     @property
@@ -259,8 +256,7 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
             relevant_strings.append(state.prompt)
         # embeddings = run_get_embeddings(relevant_strings, model=self.embedding_model)
         embeddings = [np.random.rand(356) for _ in range(len(relevant_strings))]
-        self.info["priors"].update({"embeddings": embeddings})
-        print(vars(self)["info"]["priors"])
+        self.info["priors"].update({"embeddings": embeddings.copy()})
         p = embeddings.pop(0)
         y = embeddings.pop(0)
         p_y = np.array(p) + np.array(y)
@@ -275,8 +271,9 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
     def set_reward(self, r: float, metadata: dict = None):
         """Set the reward for this state."""
         self.reward = r
+        self.info["reward"][-1].update({"value": r})
         if metadata is not None:
-            self.info["reward"].update({"value": metadata})
+            self.info["reward"][-1].update(metadata)
 
 
 # _reward_system_prompt = "You are a helpful catalysis expert with extensive knowledge "
