@@ -101,8 +101,8 @@ def main(args):
             )
             tree.start_timer()
             max_steps = 250
-            for i in range(max_steps):
-                print(f"---- {i} ----")
+            for j in range(max_steps):
+                print(f"---- {j} ----")
                 tree.step_save(Path(args.savedir) / f"mcts_{fname}_{i}.pkl")
 
         if "beam_search" in args.search_methods:
@@ -120,18 +120,14 @@ def main(args):
                 data=starting_state,
                 policy=policy,
                 reward_fn=reward,
-                num_generate=3,
-                num_keep=2,
+                num_generate=12,
+                num_keep=6,
             )
             tree.start_timer()
-            num_levels = 6
-            for i in range(num_levels):
-                print(f"---- {i} ----")
-                tree.step_save(Path(args.savedir) / f"beam_search_{fname}.pkl")
-        else:
-            raise NotImplementedError(
-                f"Search method {args.method} is not implemented."
-            )
+            num_levels = 7
+            for j in range(num_levels):
+                print(f"---- {j} ----")
+                tree.step_save(Path(args.savedir) / f"beam_search_{fname}_{i}.pkl")
         if args.debug:
             return 0
 
@@ -144,7 +140,7 @@ if __name__ == "__main__":
         "llm": "gpt-3.5-turbo",
         "search_methods": ["beam_search"],
         "reward_function": "llm-reward",
-        "policy": "coherent-policy",
+        "policy": "reasoner-policy",
         "debug": True,
     }
     args = SimpleNamespace(**args)

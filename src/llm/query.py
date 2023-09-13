@@ -42,6 +42,7 @@ class QueryState:
         embedding_model: str = "text-embedding-ada-002",
         info: dict = None,
         reward: float = None,
+        debug=False,
         **kwargs,
     ):
         """Initialize the object."""
@@ -67,8 +68,9 @@ class QueryState:
         if info is not None:
             self.info = info
         else:
-            self.info = {"reward": [], "generation": {}, "priors": {}}
+            self.info = {"generation": {}, "priors": {}}
         self.reward = reward
+        self.debug = debug
 
     def copy(self):
         """Return a copy of self."""
@@ -90,6 +92,7 @@ class QueryState:
             embedding_model=self.embedding_model,
             info=deepcopy(self.info),
             reward=self.reward,
+            debug=self.debug,
         )
 
     def return_next(self):
@@ -108,6 +111,7 @@ class QueryState:
             prediction_model=self.prediction_model,
             reward_model=self.reward_model,
             embedding_model=self.embedding_model,
+            debug=self.debug,
         )
 
     @property
@@ -154,12 +158,18 @@ class QueryState:
 
     def query(self):
         """Run a query to the LLM and change the state of self."""
-        # self.answer = self.send_query(
-        #     self.prompt,
-        #     system_prompt=self.system_prompt_generation,
-        #     model=self.prediction_model,
-        # )
-        self.answer = """5. Zinc oxide (ZnO):
+        if not self.debug:
+            self.answer = self.send_query(
+                self.prompt,
+                system_prompt=self.system_prompt_generation,
+                model=self.prediction_model,
+            )
+            embeddings = run_get_embeddings(
+                [self.prompt, self.answer], model=self.embedding_model
+            )
+        else:
+            embeddings = [np.random.rand(356) for _ in range(2)]
+            self.answer = """5. Zinc oxide (ZnO):
 Zinc oxide is another metal oxide catalyst that can effectively adsorb CHOHCH2. It has a high surface area and can form hydrogen bonds with CHOHCH2, facilitating its adsorption. Zinc oxide catalysts are also cost-effective and commonly used in various catalytic processes.
 
 Finally, here is the Python list final_answer of the top-5 catalysts for the adsorption of CHOHCH2:
@@ -171,12 +181,8 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
             "answer": self.answer,
             "candidates_list": self.candidates,
         }
-        # embeddings = run_get_embeddings(
-        #     [self.prompt, self.answer], model=self.embedding_model
-        # )
-        embeddings = [np.random.rand(356) for _ in range(2)]
+
         self.embeddings.update({"prompt": embeddings[0], "answer": embeddings[1]})
-        print(list(self.embeddings.keys()))
 
     @property
     def candidates(self):
@@ -201,41 +207,48 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
                     {
                         "prompt": self.adsorption_energy_prompts,
                         "system_prompt": self.system_prompt_reward,
-                        "answer": ["ans"] * len(self.adsorption_energy_prompts),
+                        "answer": [],
                     }
                 )
-                r = np.random.rand(1)[0]
-                return r
                 answers = []
                 for adsorption_energy_prompt in self.adsorption_energy_prompts:
-                    answer = self.send_query(
-                        adsorption_energy_prompt,
-                        model=self.reward_model,
-                        system_prompt=self.system_prompt_reward,
-                    )
-                    number_answers = []
-                    for line in answer.split("\n"):
-                        if ":" in line:
-                            _, number = line.split(":")
-                            number = (
-                                number.lower()
-                                .replace("(ev)", "")
-                                .replace("ev", "")
-                                .replace(",", "")
-                                .strip()
-                            )
-                            if (
-                                re.match(r"^-?\d+(?:\.\d+)$", number) is not None
-                                or number != ""
-                            ):
-                                number_answers.append(abs(float(number)))
-                    if not len(number_answers) == len(self.candidates):
-                        raise ValueError(
-                            f"Found {len(number_answers)} adsorption energies. "
-                            f"Expected {len(self.candidates)}."
+                    if self.debug:
+                        self.info["llm-reward"]["attempted_prompts"][retries - 1][
+                            "answer"
+                        ].append("ans")
+                        answers.append(list(np.random.rand(3)))
+                    else:
+                        answer = self.send_query(
+                            adsorption_energy_prompt,
+                            model=self.reward_model,
+                            system_prompt=self.system_prompt_reward,
                         )
+                        self.info["llm-reward"]["attempted_prompts"][retries - 1][
+                            "answer"
+                        ].append(answer)
+                        number_answers = []
+                        for line in answer.split("\n"):
+                            if ":" in line:
+                                _, number = line.split(":")
+                                number = (
+                                    number.lower()
+                                    .replace("(ev)", "")
+                                    .replace("ev", "")
+                                    .replace(",", "")
+                                    .strip()
+                                )
+                                if (
+                                    re.match(r"^-?\d+(?:\.\d+)$", number) is not None
+                                    or number != ""
+                                ):
+                                    number_answers.append(abs(float(number)))
+                        if not len(number_answers) == len(self.candidates):
+                            raise ValueError(
+                                f"Found {len(number_answers)} adsorption energies. "
+                                f"Expected {len(self.candidates)}."
+                            )
 
-                    answers.append(number_answers)
+                        answers.append(number_answers)
 
                 output = np.mean(
                     [
@@ -250,6 +263,10 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
                     f"Failed to parse answer with error: {err}. Generating new answer."
                 )
                 self.query()
+        logging.warning(
+            f"Failed to parse answer with error: {error}. Returning a penalty value."
+        )
+        return -10
         raise error
 
     def send_query(self, prompt, model=None, system_prompt=None):
@@ -272,7 +289,10 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
 
         for state in states:
             relevant_strings.append(state.prompt)
-        # embeddings = run_get_embeddings(relevant_strings, model=self.embedding_model)
+        if self.debug:
+            embeddings = run_get_embeddings(
+                relevant_strings, model=self.embedding_model
+            )
         embeddings = [np.random.rand(356) for _ in range(len(relevant_strings))]
 
         p = embeddings.pop(0)
@@ -453,4 +473,4 @@ def run_query(query, model="gpt-3.5-turbo", system_prompt=None, **gpt_kwargs):
     return answer
 
 
-# init_openai()
+init_openai()
