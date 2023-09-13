@@ -140,7 +140,7 @@ if __name__ == "__main__":
         args = {
             "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
             "savedir": str(
-                Path("data", "output_data", "demo", "oc", "generated_output")
+                Path("data", "output_data", "demo", "oc", "preliminary_output")
             ),
             "llm": "gpt-3.5-turbo",
             "search_methods": ["beam_search"],
@@ -156,7 +156,7 @@ if __name__ == "__main__":
         args = {
             "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
             "savedir": str(
-                Path("data", "output_data", "demo", "oc", "generated_output")
+                Path("data", "output_data", "demo", "oc", "preliminary_output")
             ),
             "llm": "gpt-3.5-turbo",
             "search_methods": ["beam_search"],
@@ -172,7 +172,7 @@ if __name__ == "__main__":
         args = {
             "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
             "savedir": str(
-                Path("data", "output_data", "demo", "oc", "generated_output")
+                Path("data", "output_data", "demo", "oc", "preliminary_output")
             ),
             "llm": "gpt-3.5-turbo",
             "search_methods": ["mcts"],
@@ -188,7 +188,7 @@ if __name__ == "__main__":
         args = {
             "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
             "savedir": str(
-                Path("data", "output_data", "demo", "oc", "generated_output")
+                Path("data", "output_data", "demo", "oc", "preliminary_output")
             ),
             "llm": "gpt-3.5-turbo",
             "search_methods": ["mcts"],
