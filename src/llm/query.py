@@ -193,7 +193,7 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
     def query_adsorption_energy_list(
         self, catalyst_slice=slice(None, None), info_field: str = None
     ):
-        """Run a query to the LLM and change the state of self."""
+        """Run a query with the LLM and change the state of self."""
         self.info["llm-reward"] = {"attempted_prompts": []}
 
         retries = 0
@@ -443,7 +443,7 @@ def run_get_embeddings(strings, model="text-embedding-ada-002"):
 def run_query(query, model="gpt-3.5-turbo", system_prompt=None, **gpt_kwargs):
     """Query language model for a list of k candidates."""
     gpt_kwargs["temperature"] = gpt_kwargs.get("temperature", 0.6)
-    gpt_kwargs["top_p"] = gpt_kwargs.get("top_p", 1.0)
+    gpt_kwargs["top_p"] = gpt_kwargs.get("top_p", 0.3)
     gpt_kwargs["max_tokens"] = gpt_kwargs.get("max_tokens", 1300)
     now = datetime.datetime.now()
     logging.info(f"New query at time: {now}")

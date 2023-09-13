@@ -21,11 +21,12 @@ def find_all(string, sub):
 
 def get_initial_state_oc(adsorbate: str, prediction_model, reward_model):
     """Get initial state for LLM query from adsorbate string."""
-    adsorbate = adsorbate.replace("*", "")
     template = (
         "Generate a list of top-5 {catalyst_label} "
         f"for the adsorption of {adsorbate}."
         "{include_statement}{exclude_statement}"
+        "Provide scientific explanations for each of the catalysts. "
+        "Finally, return a python list named final_answer which contains the top-5 catalysts. "
         "{candidate_list_statement}"
         r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
     )
@@ -33,6 +34,14 @@ def get_initial_state_oc(adsorbate: str, prediction_model, reward_model):
         template=template,
         reward_template=None,
         ads_symbols=[adsorbate],
+        prev_candidate_list=[
+            "Platinum (Pt)",
+            "Palladium (Pd)",
+            "Copper (Cu)",
+            "Ruthenium (Ru)",
+            "Nickel (Ni)",
+        ],
+        relation_to_candidate_list="include elements similar to",
         ads_preferences=[1],
         num_answers=5,
         prediction_model=prediction_model,
