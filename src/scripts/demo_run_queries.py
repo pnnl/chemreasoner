@@ -135,7 +135,9 @@ def main(args, policy):
 
 
 if __name__ == "__main__":
-
+    Path("data", "output_data", "demo", "oc", "preliminary_output").mkdir(
+        parents=True, exist_ok=True
+    )
     try:
         args = {
             "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
@@ -148,7 +150,8 @@ if __name__ == "__main__":
             "policy": "reasoner-policy",
             "debug": True,
         }
-        args = SimpleNamespace(**args, policy="reasoner")
+        args = SimpleNamespace(**args)
+        main(args, policy="reasoner")
     except Exception:
         pass
 
@@ -164,7 +167,8 @@ if __name__ == "__main__":
             "policy": "coherent-policy",
             "debug": True,
         }
-        args = SimpleNamespace(**args, policy="coherent")
+        args = SimpleNamespace(**args)
+        main(args, policy="coherent")
     except Exception:
         pass
 
@@ -180,7 +184,8 @@ if __name__ == "__main__":
             "policy": "reasoner-policy",
             "debug": True,
         }
-        args = SimpleNamespace(**args, policy="reasoner")
+        args = SimpleNamespace(**args)
+        main(args, policy="reasoner")
     except Exception:
         pass
 
@@ -196,7 +201,8 @@ if __name__ == "__main__":
             "policy": "coherent-policy",
             "debug": True,
         }
-        args = SimpleNamespace(**args, policy="coherent")
+        args = SimpleNamespace(**args)
+        main(args, policy="coherent")
     except Exception:
         pass
     # parsed, unknown = parser.parse_known_args() # this is an 'internal' method
