@@ -47,7 +47,7 @@ def multi_shot(starting_state, directory: Path, fname, num_trials=10):
             pickle.dump(saving_data, f)
 
 
-def main(args):
+def main(args, policy):
     """Run the search on desired inputs."""
     if "oc" in Path(args.input).stem:
         adsorbates = np.loadtxt(args.input, dtype=str)
@@ -103,7 +103,7 @@ def main(args):
             max_steps = 250
             for j in range(max_steps):
                 print(f"---- {j} ----")
-                tree.step_save(Path(args.savedir) / f"mcts_{fname}_{i}.pkl")
+                tree.step_save(Path(args.savedir) / f"mcts_{policy}_{fname}_{i}.pkl")
 
         if "beam_search" in args.search_methods:
             if args.reward_function == "llm-reward":
@@ -127,23 +127,78 @@ def main(args):
             num_levels = 7
             for j in range(num_levels):
                 print(f"---- {j} ----")
-                tree.step_save(Path(args.savedir) / f"beam_search_{fname}_{i}.pkl")
+                tree.step_save(
+                    Path(args.savedir) / f"beam_search_{policy}_{fname}_{i}.pkl"
+                )
         if args.debug:
             return 0
 
 
 if __name__ == "__main__":
 
-    args = {
-        "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-        "savedir": str(Path("data", "output_data", "demo", "oc", "generated_output")),
-        "llm": "gpt-3.5-turbo",
-        "search_methods": ["beam_search"],
-        "reward_function": "llm-reward",
-        "policy": "reasoner-policy",
-        "debug": True,
-    }
-    args = SimpleNamespace(**args)
+    try:
+        args = {
+            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
+            "savedir": str(
+                Path("data", "output_data", "demo", "oc", "generated_output")
+            ),
+            "llm": "gpt-3.5-turbo",
+            "search_methods": ["beam_search"],
+            "reward_function": "llm-reward",
+            "policy": "reasoner-policy",
+            "debug": True,
+        }
+        args = SimpleNamespace(**args, policy="reasoner")
+    except Exception:
+        pass
+
+    try:
+        args = {
+            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
+            "savedir": str(
+                Path("data", "output_data", "demo", "oc", "generated_output")
+            ),
+            "llm": "gpt-3.5-turbo",
+            "search_methods": ["beam_search"],
+            "reward_function": "llm-reward",
+            "policy": "coherent-policy",
+            "debug": True,
+        }
+        args = SimpleNamespace(**args, policy="coherent")
+    except Exception:
+        pass
+
+    try:
+        args = {
+            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
+            "savedir": str(
+                Path("data", "output_data", "demo", "oc", "generated_output")
+            ),
+            "llm": "gpt-3.5-turbo",
+            "search_methods": ["mcts"],
+            "reward_function": "llm-reward",
+            "policy": "reasoner-policy",
+            "debug": True,
+        }
+        args = SimpleNamespace(**args, policy="reasoner")
+    except Exception:
+        pass
+
+    try:
+        args = {
+            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
+            "savedir": str(
+                Path("data", "output_data", "demo", "oc", "generated_output")
+            ),
+            "llm": "gpt-3.5-turbo",
+            "search_methods": ["mcts"],
+            "reward_function": "llm-reward",
+            "policy": "coherent-policy",
+            "debug": True,
+        }
+        args = SimpleNamespace(**args, policy="coherent")
+    except Exception:
+        pass
     # parsed, unknown = parser.parse_known_args() # this is an 'internal' method
     # # which returns 'parsed', the same as what parse_args() would return
     # # and 'unknown', the remainder of that
