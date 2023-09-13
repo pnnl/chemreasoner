@@ -23,12 +23,11 @@ def get_initial_state_oc(adsorbate: str, prediction_model, reward_model):
     """Get initial state for LLM query from adsorbate string."""
     adsorbate = adsorbate.replace("*", "")
     template = (
-        "Generate a list of top-5{catalyst_label} "
+        "Generate a list of top-5 {catalyst_label} "
         f"for the adsorption of {adsorbate}."
         "{include_statement}{exclude_statement}"
-        "Provide scientific explanations for each of the{catalyst_label}. Finally, "
-        "return a python list final_answer of the top-5{catalyst_label} Let's "
-        "think step-by-step."
+        "{candidate_list_statement}"
+        r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
     )
     starting_state = query.QueryState(
         template=template,

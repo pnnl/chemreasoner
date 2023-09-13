@@ -67,10 +67,10 @@ class ExcludePropertyAdder:
 
 
 _relationship_to_candidate_list_types = [
-    "including elements that are different from",
-    "including elements similar to",
-    "introducing new elements to",
-    "including elements from",
+    "include elements that are different from",
+    "include elements similar to",
+    "introduce new elements to",
+    "include elements from",
 ]
 
 
@@ -92,9 +92,9 @@ class RelationToCandidateListChanger:
 
 _catalyst_label_types = [
     "",
-    "unary",
-    "binary",
-    "ternary",
+    "unary ",
+    "binary ",
+    "ternary ",
 ]
 
 
@@ -109,9 +109,9 @@ class CatalystLabelChanger:
         """Add propery to the state."""
         new_state = state.return_next()
         if "oxide" in new_state.catalyst_label:
-            new_state.catalyst_label = f"{self.catalyst_label_type} oxide cayalysts"
+            new_state.catalyst_label = f"{self.catalyst_label_type}oxide cayalysts"
         else:
-            new_state.catalyst_label = f"{self.catalyst_label_type} catalysts"
+            new_state.catalyst_label = f"{self.catalyst_label_type}catalysts"
         if not trial:
             new_state.query()
         return new_state
@@ -121,10 +121,10 @@ def toggle_oxide(state, trial=False):
     """Toggle whether or not to target oxides."""
     new_state = state.return_next()
     if "oxide" in state.catalyst_label:
-        new_state.catalyst_label = new_state.catalyst_label.replace(" oxide", "")
+        new_state.catalyst_label = new_state.catalyst_label.replace("oxide ", "")
     else:  # Add in oxide to label
         new_state.catalyst_label = new_state.catalyst_label.replace(
-            " catalysts", " oxide catalysts"
+            "catalysts", "oxide catalysts"
         )
     if not trial:
         new_state.query()

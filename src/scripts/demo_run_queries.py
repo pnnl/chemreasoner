@@ -47,7 +47,7 @@ def multi_shot(starting_state, directory: Path, fname, num_trials=10):
             pickle.dump(saving_data, f)
 
 
-def main(args, policy):
+def main(args, policy_string):
     """Run the search on desired inputs."""
     if "oc" in Path(args.input).stem:
         adsorbates = np.loadtxt(args.input, dtype=str)
@@ -103,7 +103,9 @@ def main(args, policy):
             max_steps = 250
             for j in range(max_steps):
                 print(f"---- {j} ----")
-                tree.step_save(Path(args.savedir) / f"mcts_{policy}_{fname}_{i}.pkl")
+                tree.step_save(
+                    Path(args.savedir) / f"mcts_{policy_string}_{fname}_{i}.pkl"
+                )
 
         if "beam_search" in args.search_methods:
             if args.reward_function == "llm-reward":
@@ -128,39 +130,31 @@ def main(args, policy):
             for j in range(num_levels):
                 print(f"---- {j} ----")
                 tree.step_save(
-                    Path(args.savedir) / f"beam_search_{policy}_{fname}_{i}.pkl"
+                    Path(args.savedir) / f"beam_search_{policy_string}_{fname}_{i}.pkl"
                 )
         if args.debug:
             return 0
 
 
 if __name__ == "__main__":
-    Path("data", "output_data", "demo", "oc", "preliminary_output").mkdir(
-        parents=True, exist_ok=True
-    )
-    try:
-        args = {
-            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-            "savedir": str(
-                Path("data", "output_data", "demo", "oc", "preliminary_output")
-            ),
-            "llm": "gpt-3.5-turbo",
-            "search_methods": ["beam_search"],
-            "reward_function": "llm-reward",
-            "policy": "reasoner-policy",
-            "debug": True,
-        }
-        args = SimpleNamespace(**args)
-        main(args, policy="reasoner")
-    except Exception:
-        pass
+    Path("data", "output_data", "demo", "oc", "test").mkdir(parents=True, exist_ok=True)
+
+    args = {
+        "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
+        "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
+        "llm": "gpt-3.5-turbo",
+        "search_methods": ["beam_search"],
+        "reward_function": "llm-reward",
+        "policy": "reasoner-policy",
+        "debug": True,
+    }
+    args = SimpleNamespace(**args)
+    main(args, policy_string="reasoner")
 
     try:
         args = {
             "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-            "savedir": str(
-                Path("data", "output_data", "demo", "oc", "preliminary_output")
-            ),
+            "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
             "llm": "gpt-3.5-turbo",
             "search_methods": ["beam_search"],
             "reward_function": "llm-reward",
@@ -168,16 +162,14 @@ if __name__ == "__main__":
             "debug": True,
         }
         args = SimpleNamespace(**args)
-        main(args, policy="coherent")
+        main(args, policy_string="coherent")
     except Exception:
         pass
 
     try:
         args = {
             "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-            "savedir": str(
-                Path("data", "output_data", "demo", "oc", "preliminary_output")
-            ),
+            "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
             "llm": "gpt-3.5-turbo",
             "search_methods": ["mcts"],
             "reward_function": "llm-reward",
@@ -185,16 +177,14 @@ if __name__ == "__main__":
             "debug": True,
         }
         args = SimpleNamespace(**args)
-        main(args, policy="reasoner")
+        main(args, policy_string="reasoner")
     except Exception:
         pass
 
     try:
         args = {
             "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-            "savedir": str(
-                Path("data", "output_data", "demo", "oc", "preliminary_output")
-            ),
+            "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
             "llm": "gpt-3.5-turbo",
             "search_methods": ["mcts"],
             "reward_function": "llm-reward",
@@ -202,7 +192,7 @@ if __name__ == "__main__":
             "debug": True,
         }
         args = SimpleNamespace(**args)
-        main(args, policy="coherent")
+        main(args, policy_string="coherent")
     except Exception:
         pass
     # parsed, unknown = parser.parse_known_args() # this is an 'internal' method
@@ -219,4 +209,4 @@ if __name__ == "__main__":
     Path("data", "output_data", "demo", "oc", "generated_output").mkdir(
         parents=True, exist_ok=True
     )
-    main(args)
+    # main(args)

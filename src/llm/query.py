@@ -28,7 +28,7 @@ class QueryState:
         reward_template: str,
         ads_symbols: list[str],
         ads_preferences: list[float] = None,
-        catalyst_label: str = " catalysts",
+        catalyst_label: str = "catalysts",
         num_answers: int = 3,
         prev_candidate_list: list[str] = [],
         relation_to_candidate_list: str = None,
@@ -130,11 +130,7 @@ class QueryState:
     @property
     def system_prompt_generation(self):
         """Return the system prompt for the generation prompt."""
-        return (
-            "You are a helpful chemistry expert with extensive knowledge of catalysis. "
-            "You will give recommendations for catalysts, including chemically "
-            "accurate descriptions of interaction between the catalysts and adsorbates."
-        )
+        return "You are a helpful chemistry expert with extensive knowledge of catalysis. You will give recommendations for catalysts, including chemically accurate descriptions of the interaction between the catalysts and adsorbate(s). Make specific recommendations for catalysts, including their chemical composition. Make sure to follow the formatting instructions. Do not provide disclaimers or notes about your knowledge of catalysis."
 
     @property
     def system_prompt_reward(self):
@@ -142,7 +138,7 @@ class QueryState:
         return (
             "You are a helpful chemistry expert with extensive knowledge of catalysis. "
             "Particularly, given a catalyst and adsorbate, you can give a reasonable "
-            "approximate of the adsorption energy, in eV."
+            "approximation of the adsorption energy, in eV."
         )
 
     @property
@@ -158,6 +154,8 @@ class QueryState:
 
     def query(self):
         """Run a query to the LLM and change the state of self."""
+        print(self.prompt)
+        print(self.prev_candidate_list)
         if not self.debug:
             self.answer = self.send_query(
                 self.prompt,
@@ -181,7 +179,7 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
             "answer": self.answer,
             "candidates_list": self.candidates,
         }
-
+        print(self.candidates)
         self.embeddings.update({"prompt": embeddings[0], "answer": embeddings[1]})
 
     @property
@@ -334,7 +332,7 @@ def generate_adsorption_energy_list_prompt(
             f"for the adsorbate {adsorbate} to the surface of "
             f"each of the following catalysts: {', '.join(candidate_list)}. "
             f"Return your answer as a python dictionary mapping catalysts "
-            "tot ehir adsorption energies."
+            "to their adsorption energies."
         )
     else:
         vals = {"adsorbate": adsorbate, "candidate_list": candidate_list}
@@ -353,8 +351,22 @@ def generate_expert_prompt(
 ):
     """Generate prompt based on catalysis experts."""
     if len(candidate_list) != 0 and relation_to_candidate_list is not None:
-        candidate_list_statement = f"{relation_to_candidate_list} "
-        candidate_list_statement += ", ".join(candidate_list).strip() + " "
+        candidate_list_statement = "\n\nYou should start with the following list: "
+        candidate_list_statement += (
+            "["
+            + ", ".join(
+                [
+                    "'" + cand.replace("'", "").replace('"', "").strip() + "'"
+                    for cand in candidate_list
+                ]
+            )
+            + "]. "
+        )
+        candidate_list_statement += "The list that you return should probably not have the same catalysts as this list! "
+        candidate_list_statement += f"Your list of {catalyst_label} may {relation_to_candidate_list} those in the list. "
+        candidate_list_statement += (
+            "Please compare your list to some of the candidates in this list."
+        )
     elif len(candidate_list) != 0 and relation_to_candidate_list is None:
         raise ValueError(
             f"Non-empty candidate list {candidate_list} given with "
@@ -364,7 +376,8 @@ def generate_expert_prompt(
         candidate_list_statement = ""
     if len(include_list) != 0:
         include_statement = (
-            f"Include candidate{catalyst_label} with the following properties: "
+            f"You should include candidate {catalyst_label} "
+            "with the following properties: "
         )
         include_statement += ", ".join(include_list)
         include_statement += ". "
@@ -372,7 +385,8 @@ def generate_expert_prompt(
         include_statement = ""
     if len(exclude_list) != 0:
         exclude_statement = (
-            f"Exclude candidate{catalyst_label} with the following properties: "
+            f"You should exclude candidate {catalyst_label} "
+            "with the following properties: "
         )
 
         exclude_statement += ", ".join(exclude_list)
@@ -385,6 +399,7 @@ def generate_expert_prompt(
         "include_statement": include_statement,
         "exclude_statement": exclude_statement,
     }
+    print(fstr(template, vals))
     return fstr(template, vals)
 
 
