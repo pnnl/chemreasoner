@@ -34,7 +34,7 @@ class StructureReward(BaseReward):
         """Return the calculated adsorption energy from the predicted catalysts."""
         candidates_list = s.candidates
         ads_list = s.ads_symbols
-        slab_syms = ase_interface.llm_answer_to_symbols(candidates_list)
+        slab_syms = ase_interface.llm_answer_to_symbols(candidates_list, debug=s.debug)
 
         adslab_ats = []  # List to store initial adslabs and indices
         name_candidate_mapping = (

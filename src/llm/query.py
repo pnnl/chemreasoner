@@ -42,7 +42,7 @@ class QueryState:
         embedding_model: str = "text-embedding-ada-002",
         info: dict = None,
         reward: float = None,
-        debug=False,
+        debug=True,
         **kwargs,
     ):
         """Initialize the object."""

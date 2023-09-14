@@ -208,8 +208,20 @@ def convert_alloy(bulk, other_symbols=Union[str, list[str]]):
     return bulk
 
 
+typical_syms = {
+    "Platinum (Pt)": ["Pt"],
+    "Palladium (Pd)": ["Pd"],
+    "Copper (Cu)": ["Cu"],
+    "Iron oxide (Fe2O3)": ["Fe", "O"],
+    "Zinc oxide (ZnO)": ["Zn", "O"],
+    "MoS": ["Mo", "S"],
+}
+
+
 def llm_answer_to_symbols(
-    answer=Union[str, list[str]], model="gpt-3.5-turbo"
+    answer=Union[str, list[str]],
+    model="gpt-3.5-turbo",
+    debug=False,
 ) -> list[Union[str, None]]:
     """Turn an llm answer into a list of atomic symbols or None if not possible."""
     from llm.query import run_query  # noqa: E402
@@ -235,10 +247,13 @@ def llm_answer_to_symbols(
         "Format your list as:\n"
         f"{example_format}"
     )
-
-    answer_parsed = run_query(
-        query=prompt, model=model, **{"temperature": 0.0, "top_p": 0}
-    )
+    if not debug:
+        answer_parsed = run_query(
+            query=prompt, model=model, **{"temperature": 0.0, "top_p": 0}
+        )
+    else:
+        syms = [typical_syms[ans] for ans in answer]
+        return syms
     answer_list_parsed = [None] * len(answer)
     for line in answer_parsed.split("\n"):
         if ":" in line:

@@ -51,14 +51,15 @@ def non_rwgs_template_generator(question: str, prediction_model, reward_model):
     property_name = question.split("with ")[1].split(".")[0].lower()
 
     template = (
-        "What are the top-3{catalyst_label} {candidate_list_statement}that"
-        + "perform the"
+        "What are the top-3 {catalyst_label} that"
+        + "perform the "
         + f"{reaction_name} reaction and demonstrate higher adsorption energy for"
-        + "{adsorbate} (or facilitates {adsorbate} adsorption)?. "
+        + "{adsorbate}?. "
         + "{include_statement}{exclude_statement}"
-        + "Provide scientific explanations for each of the{catalyst_label}. Finally,"
-        + "return a python list final_answer of the top-3 {catalyst_label} catalysts"
-        + "Let's think step-by-step."
+        + "Provide scientific explanations for each of the catalysts. "
+        + "Finally, return a python list named final_answer which contains the top-5 catalysts. "
+        "{candidate_list_statement}"
+        r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
     )
 
     qs = query.QueryState(
@@ -116,11 +117,11 @@ def parse_rwgs_questions(question: str, prediction_model, reward_model):
     question = question.replace("top", "top-3")
     template = (
         f"{question} "
-        "Consider {catalyst_label} {candidate_list_statement}. "
         "{include_statement}{exclude_statement}"
-        "Provide scientific explanations for each of the{catalyst_label}. Finally, "
-        "return a python list final_answer of the top-3{catalyst_label} Let's "
-        "think step-by-step."
+        "Provide scientific explanations for each of the catalysts. "
+        "Finally, return a python list named final_answer which contains the top-3 catalysts. "
+        "{candidate_list_statement}"
+        r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
     )
     qs = query.QueryState(
         template=template,
