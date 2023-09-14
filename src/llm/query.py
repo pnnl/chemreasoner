@@ -154,8 +154,6 @@ class QueryState:
 
     def query(self):
         """Run a query to the LLM and change the state of self."""
-        print(self.prompt)
-        print(self.prev_candidate_list)
         if not self.debug:
             self.answer = self.send_query(
                 self.prompt,
@@ -399,7 +397,6 @@ def generate_expert_prompt(
         "include_statement": include_statement,
         "exclude_statement": exclude_statement,
     }
-    print(fstr(template, vals))
     return fstr(template, vals)
 
 
@@ -412,6 +409,10 @@ def fstr(fstring_text, vals):
 def parse_answer(answer: str, num_expected=None):
     """Parse an answer into a list."""
     final_answer_location = answer.lower().find("final_answer")
+    if final_answer_location == -1:
+        final_answer_location = answer.lower().find("final answer")
+    if final_answer_location == -1:
+        final_answer_location = answer.lower().find("final")  # last ditch effort
     list_start = answer.find("[", final_answer_location)
     list_end = answer.find("]", list_start)
     try:

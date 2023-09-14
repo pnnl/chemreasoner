@@ -122,8 +122,8 @@ def main(args, policy_string):
                 data=starting_state,
                 policy=policy,
                 reward_fn=reward,
-                num_generate=12,
-                num_keep=6,
+                num_generate=3,
+                num_keep=2,
             )
             tree.start_timer()
             num_levels = 7
@@ -139,17 +139,20 @@ def main(args, policy_string):
 if __name__ == "__main__":
     Path("data", "output_data", "demo", "oc", "test").mkdir(parents=True, exist_ok=True)
 
-    args = {
-        "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-        "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
-        "llm": "gpt-3.5-turbo",
-        "search_methods": ["beam_search"],
-        "reward_function": "llm-reward",
-        "policy": "reasoner-policy",
-        "debug": True,
-    }
-    args = SimpleNamespace(**args)
-    main(args, policy_string="reasoner")
+    try:
+        args = {
+            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
+            "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
+            "llm": "gpt-3.5-turbo",
+            "search_methods": ["beam_search"],
+            "reward_function": "llm-reward",
+            "policy": "reasoner-policy",
+            "debug": True,
+        }
+        args = SimpleNamespace(**args)
+        main(args, policy_string="reasoner")
+    except Exception as err:
+        print(str(err))
 
     try:
         args = {
@@ -163,8 +166,8 @@ if __name__ == "__main__":
         }
         args = SimpleNamespace(**args)
         main(args, policy_string="coherent")
-    except Exception:
-        pass
+    except Exception as err:
+        print(str(err))
 
     try:
         args = {
@@ -178,8 +181,8 @@ if __name__ == "__main__":
         }
         args = SimpleNamespace(**args)
         main(args, policy_string="reasoner")
-    except Exception:
-        pass
+    except Exception as err:
+        print(str(err))
 
     try:
         args = {
@@ -193,8 +196,8 @@ if __name__ == "__main__":
         }
         args = SimpleNamespace(**args)
         main(args, policy_string="coherent")
-    except Exception:
-        pass
+    except Exception as err:
+        print(str(err))
     # parsed, unknown = parser.parse_known_args() # this is an 'internal' method
     # # which returns 'parsed', the same as what parse_args() would return
     # # and 'unknown', the remainder of that
