@@ -34,13 +34,6 @@ def get_initial_state_oc(adsorbate: str, prediction_model, reward_model):
         template=template,
         reward_template=None,
         ads_symbols=[adsorbate],
-        prev_candidate_list=[
-            "Platinum (Pt)",
-            "Palladium (Pd)",
-            "Copper (Cu)",
-            "Ruthenium (Ru)",
-            "Nickel (Ni)",
-        ],
         relation_to_candidate_list="include elements similar to",
         ads_preferences=[1],
         num_answers=5,
@@ -64,7 +57,7 @@ def non_rwgs_template_generator(question: str, prediction_model, reward_model):
         + "{adsorbate} (or facilitates {adsorbate} adsorption)?. "
         + "{include_statement}{exclude_statement}"
         + "Provide scientific explanations for each of the{catalyst_label}. Finally,"
-        + "return a python list final_answer of the top-3{catalyst_label} catalysts"
+        + "return a python list final_answer of the top-3 {catalyst_label} catalysts"
         + "Let's think step-by-step."
     )
 
