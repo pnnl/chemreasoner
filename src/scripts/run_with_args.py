@@ -153,7 +153,6 @@ if __name__ == "__main__":
 
     Path("data", "output_data", "demo", "oc", "test").mkdir(parents=True, exist_ok=True)
 
-    args = SimpleNamespace(**args)
-    main(args, policy_string="reasoner")
+    main(args, policy_string=args.policy)
 
     
