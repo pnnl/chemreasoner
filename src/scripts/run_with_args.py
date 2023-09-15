@@ -115,7 +115,7 @@ def main(args, policy_string):
                         Path(args.savedir) / f"mcts_{policy_string}_{fname}_{i}.pkl"
                     )
 
-            if "beam_search" in args.search_method:
+            if "beam-search" in args.search_method:
                 if args.reward == "llm-reward":
                     reward = llm_reward.llm_adsorption_energy_reward
                 elif args.reward == "simulation-reward":
