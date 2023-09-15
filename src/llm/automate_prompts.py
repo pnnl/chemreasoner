@@ -61,9 +61,9 @@ def non_rwgs_template_generator(
     property_name = question.split("with ")[1].split(".")[0].lower()
 
     template = (
-        "What are the top-3 {catalyst_label} that"
+        "What are the top-3 {catalyst_label} that "
         + "perform the "
-        + f"{reaction_name} reaction and demonstrate higher adsorption energy for"
+        + f"{reaction_name} reaction and demonstrate higher adsorption energy for "
         + f"{adsorbate}?. "
         + "{include_statement}{exclude_statement}"
         + "Provide scientific explanations for each of the catalysts. "
@@ -97,7 +97,7 @@ def parse_rwgs_questions(
     """Parse the rwgs reaction questions."""
     catalyst_type, cheap_statement = parse_parameters_from_question(question)
     if catalyst_type is not None:
-        if catalyst_type != " catalysts":
+        if catalyst_type != "catalysts":
             catalyst_label_types = [catalyst_type[1:-1]]
         else:
             if simulation_reward:
