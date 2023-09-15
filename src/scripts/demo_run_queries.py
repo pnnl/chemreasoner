@@ -153,7 +153,7 @@ if __name__ == "__main__":
             "debug": True,
         }
         args = SimpleNamespace(**args)
-        main(args, policy_string="reasoner")
+        # main(args, policy_string="reasoner")
     except Exception as err:
         raise err
 
@@ -185,7 +185,7 @@ if __name__ == "__main__":
             "debug": True,
         }
         args = SimpleNamespace(**args)
-        # main(args, policy_string="reasoner")
+        main(args, policy_string="reasoner")
     except Exception as err:
         print(str(err))
 
@@ -202,7 +202,7 @@ if __name__ == "__main__":
             "debug": True,
         }
         args = SimpleNamespace(**args)
-        # main(args, policy_string="coherent")
+        main(args, policy_string="coherent")
     except Exception as err:
         print(str(err))
     # parsed, unknown = parser.parse_known_args() # this is an 'internal' method
