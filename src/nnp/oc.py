@@ -180,7 +180,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         final_batch = ml_relax(
             batch=[batch],  # ml_relax always uses batch[0]
             model=trainer,
-            steps=3,
+            steps=steps,
             fmax=fmax,
             relax_opt=relax_opt,
             save_full_traj=True,

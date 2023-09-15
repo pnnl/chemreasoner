@@ -86,13 +86,12 @@ def main(args, policy_string):
 
         if "mcts" in args.search_methods:
             # Do single shot and multi shot querying.
-            single_shot(starting_state, Path(args.savedir), f"{fname}_{i}.pkl")
 
             if args.reward_function == "llm-reward":
                 reward = llm_reward.llm_adsorption_energy_reward
             elif args.reward_function == "simulation-reward":
                 reward = simulation_reward.StructureReward(
-                    num_adslab_samples=2, num_slab_samples=2, device="cpu"
+                    num_adslab_samples=16, num_slab_samples=16, device="cuda:0"
                 )
 
             tree = mcts.MonteCarloTree(
@@ -115,9 +114,9 @@ def main(args, policy_string):
                 reward = llm_reward.llm_adsorption_energy_reward
             elif args.reward_function == "simulation-reward":
                 reward = simulation_reward.StructureReward(
-                    num_adslab_samples=2,
-                    num_slab_samples=2,
-                    device="cpu",
+                    num_adslab_samples=16,
+                    num_slab_samples=16,
+                    device="cuda:0",
                     model="gemnet",
                     traj_dir=Path("data/output_data/trajectories/pipeline_test"),
                 )
@@ -125,8 +124,8 @@ def main(args, policy_string):
                 data=starting_state,
                 policy=policy,
                 reward_fn=reward,
-                num_generate=3,
-                num_keep=2,
+                num_generate=12,
+                num_keep=6,
             )
             tree.start_timer()
             num_levels = 7
@@ -135,84 +134,26 @@ def main(args, policy_string):
                 tree.step_save(
                     Path(args.savedir) / f"beam_search_{policy_string}_{fname}_{i}.pkl"
                 )
-        if args.debug:
-            return 0
 
 
 if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--input", type=str)
+    parser.add_argument("--savedir", type=str)
+    parser.add_argument("--llm", type=str)
+    parser.add_argument("--search_method", type=str)
+    parser.add_argument("--policy", type=str)
+    parser.add_argument("--reward", type=str)
+
+    args = parser.parse_args()
+
+    savedir = Path(args.savedir).mkdir(exist_ok=True, parents=True)
+
     Path("data", "output_data", "demo", "oc", "test").mkdir(parents=True, exist_ok=True)
 
-    try:
-        args = {
-            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-            "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
-            "llm": "gpt-3.5-turbo",
-            "search_methods": ["beam_search"],
-            "reward_function": "simulation-reward",
-            "policy": "reasoner-policy",
-            "debug": False,
-        }
-        args = SimpleNamespace(**args)
-        main(args, policy_string="reasoner")
-    except Exception as err:
-        raise err
+    args = SimpleNamespace(**args)
+    main(args, policy_string="reasoner")
 
-    try:
-        args = {
-            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-            "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
-            "llm": "gpt-3.5-turbo",
-            "search_methods": ["beam_search"],
-            "reward_function": "simulation-reward",
-            "policy": "coherent-policy",
-            "debug": True,
-        }
-        args = SimpleNamespace(**args)
-        # main(args, policy_string="coherent")
-    except Exception as err:
-        print(str(err))
-
-    try:
-        args = {
-            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-            "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
-            "llm": "gpt-3.5-turbo",
-            "search_methods": ["mcts"],
-            "reward_function": "llm-reward",
-            "policy": "reasoner-policy",
-            "debug": True,
-        }
-        args = SimpleNamespace(**args)
-        # main(args, policy_string="reasoner")
-    except Exception as err:
-        print(str(err))
-
-    try:
-        args = {
-            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-            "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
-            "llm": "gpt-3.5-turbo",
-            "search_methods": ["mcts"],
-            "reward_function": "llm-reward",
-            "policy": "coherent-policy",
-            "debug": True,
-        }
-        args = SimpleNamespace(**args)
-        # main(args, policy_string="coherent")
-    except Exception as err:
-        print(str(err))
-    # parsed, unknown = parser.parse_known_args() # this is an 'internal' method
-    # # which returns 'parsed', the same as what parse_args() would return
-    # # and 'unknown', the remainder of that
-    # # the difference to parse_args() is that it does not exit when it finds redundant arguments
-
-    # for arg in unknown:
-    #     if arg.startswith(("-", "--")):
-    #         # you can pass any arguments to add_argument
-    #         parser.add_argument(arg.split('=')[0], type=<your type>, ...)
-
-    # args = parser.parse_args()
-    Path("data", "output_data", "demo", "oc", "generated_output").mkdir(
-        parents=True, exist_ok=True
-    )
-    # main(args)
+    

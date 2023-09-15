@@ -19,7 +19,9 @@ def find_all(string, sub):
         start += len(sub)  # use start += 1 to find overlapping matches
 
 
-def get_initial_state_oc(adsorbate: str, prediction_model, reward_model):
+def get_initial_state_oc(
+    adsorbate: str, prediction_model, reward_model, simulation_reward=False
+):
     """Get initial state for LLM query from adsorbate string."""
     template = (
         "Generate a list of top-5 {catalyst_label} "
@@ -40,11 +42,19 @@ def get_initial_state_oc(adsorbate: str, prediction_model, reward_model):
         prediction_model=prediction_model,
         reward_model=reward_model,
     )
-    policy = ReasonerPolicy()
+    if simulation_reward:
+        policy = ReasonerPolicy(
+            catalyst_label_types=["", "monometallic ", "bimetallic ", "trimetallic "],
+            try_oxides=False,
+        )
+    else:
+        policy = ReasonerPolicy()
     return starting_state, policy
 
 
-def non_rwgs_template_generator(question: str, prediction_model, reward_model):
+def non_rwgs_template_generator(
+    question: str, prediction_model, reward_model, simulation_reward=False
+):
     """Generate initial query for non RWGS reaction prompt."""
     adsorbate = question.split("bind ")[1].split(" in")[0]
     reaction_name = question.split("in ")[1].split(" reaction")[0]
@@ -71,18 +81,34 @@ def non_rwgs_template_generator(question: str, prediction_model, reward_model):
         prediction_model=prediction_model,
         reward_model=reward_model,
     )
-    this_policy = ReasonerPolicy()
+    if simulation_reward:
+        this_policy = ReasonerPolicy(
+            catalyst_label_types=["", "monometallic ", "bimetallic ", "trimetallic "],
+            try_oxides=False,
+        )
+    else:
+        this_policy = ReasonerPolicy()
     return qs, this_policy
 
 
-def parse_rwgs_questions(question: str, prediction_model, reward_model):
+def parse_rwgs_questions(
+    question: str, prediction_model, reward_model, simulation_reward=False
+):
     """Parse the rwgs reaction questions."""
     catalyst_type, cheap_statement = parse_parameters_from_question(question)
     if catalyst_type is not None:
         if catalyst_type != " catalysts":
             catalyst_label_types = [catalyst_type[1:-1]]
         else:
-            catalyst_label_types = None
+            if simulation_reward:
+                catalyst_label_types = [
+                    "",
+                    "monometallic ",
+                    "bimetallic ",
+                    "trimetallic ",
+                ]
+            else:
+                catalyst_label_types = None
         question = question.replace(catalyst_type, "{catalyst_label}")  # Remove {}
     else:
         catalyst_label_types = None
@@ -133,9 +159,14 @@ def parse_rwgs_questions(question: str, prediction_model, reward_model):
         prediction_model=prediction_model,
         reward_model=reward_model,
     )
-    this_policy = ReasonerPolicy(
-        catalyst_label_types=catalyst_label_types,
-    )
+    if simulation_reward:
+        this_policy = ReasonerPolicy(
+            catalyst_label_types=catalyst_label_types, try_oxides=False
+        )
+    else:
+        this_policy = ReasonerPolicy(
+            catalyst_label_types=catalyst_label_types,
+        )
     return qs, this_policy
 
 
@@ -153,7 +184,9 @@ def parse_parameters_from_question(question: str):
     return (catalyst_type, cheap_statement)
 
 
-def get_initial_state_biofuels(row, prediction_model, reward_model):
+def get_initial_state_biofuels(
+    row, prediction_model, reward_model, simulation_reward=False
+):
     """Get query state and policy from a row."""
     print("\n--------------\n")
     if row["Question"] in ["", "Non-RWGS", "RWGS"] or pd.isna(row)["Question"]:
@@ -164,7 +197,10 @@ def get_initial_state_biofuels(row, prediction_model, reward_model):
     ):
         print("clean_question")
         state_policy = non_rwgs_template_generator(
-            row["Question"], prediction_model, reward_model
+            row["Question"],
+            prediction_model,
+            reward_model,
+            simulation_reward=simulation_reward,
         )
     elif "crystal planes" in row["Question"]:
         print(f"SKIPPING: {row['Question']}")
@@ -176,7 +212,10 @@ def get_initial_state_biofuels(row, prediction_model, reward_model):
         state_policy = None
     else:
         state_policy = parse_rwgs_questions(
-            row["Question"], prediction_model, reward_model
+            row["Question"],
+            prediction_model,
+            reward_model,
+            simulation_reward=simulation_reward,
         )
 
     return state_policy
