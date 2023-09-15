@@ -125,8 +125,8 @@ def main(args, policy_string):
                 data=starting_state,
                 policy=policy,
                 reward_fn=reward,
-                num_generate=3,
-                num_keep=2,
+                num_generate=2,
+                num_keep=1,
             )
             tree.start_timer()
             num_levels = 4
@@ -190,6 +190,9 @@ if __name__ == "__main__":
         print(str(err))
 
     try:
+        Path("data", "output_data", "demo", "biofuels", "test").mkdir(
+            parents=True, exist_of=True
+        )
         args = {
             "input": str(
                 Path("data", "input_data", "biofuels", "biofuels_input_2.csv")
