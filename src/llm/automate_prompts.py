@@ -54,7 +54,7 @@ def non_rwgs_template_generator(question: str, prediction_model, reward_model):
         "What are the top-3 {catalyst_label} that"
         + "perform the "
         + f"{reaction_name} reaction and demonstrate higher adsorption energy for"
-        + "{adsorbate}?. "
+        + f"{adsorbate}?. "
         + "{include_statement}{exclude_statement}"
         + "Provide scientific explanations for each of the catalysts. "
         + "Finally, return a python list named final_answer which contains the top-5 catalysts. "

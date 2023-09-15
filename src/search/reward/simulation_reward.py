@@ -40,7 +40,6 @@ class StructureReward(BaseReward):
         name_candidate_mapping = (
             {}
         )  # dictionary to get from database names to candidates
-        print(slab_syms)
         for i, slab_sym in enumerate(slab_syms):
             if slab_sym is not None:
                 valid_slab_sym = True
@@ -52,7 +51,6 @@ class StructureReward(BaseReward):
                             ase_interface.symbols_list_to_bulk(slab_sym)
                             for _ in range(self.num_slab_samples)
                         ]
-                        print(slab_samples)
                     except ase_interface.StructureGenerationError as err:
                         slab_syms[i] = None
                         print(f"\n*\n*\n*\n{str(err)}\n*\n*\n*\n*")
@@ -69,7 +67,6 @@ class StructureReward(BaseReward):
                         name = f"{slab_name}_{ads_sym}"
                         adslab_ats += self.sample_adslabs(slab_ats, ads_ats, name)
                         name_candidate_mapping[name] = candidates_list[i]
-
         adslabs_and_energies = self.create_batches_and_calculate(
             adslab_ats,
         )
@@ -78,7 +75,6 @@ class StructureReward(BaseReward):
         for idx, name, energy in adslabs_and_energies:
             cand = name_candidate_mapping[name]
             ads = name.split("_")[-1]
-            return
             if cand in reward_values.keys():
                 if name.split("_")[-1] in reward_values[cand].keys():
                     reward_values[cand][ads] += [energy]
@@ -107,6 +103,7 @@ class StructureReward(BaseReward):
 
     def create_batches_and_calculate(self, adslabs):
         """Split adslabs into batches and run the simulations."""
+        print("\n\n\nCreate batches and calcualte\n\n\n")
         results = []
         adslab_batch = []
         fname_batch = []
@@ -119,6 +116,8 @@ class StructureReward(BaseReward):
             if not (
                 self.adsorption_calculator.traj_dir / (str(fname) + ".traj")
             ).exists():
+                print("****")
+                print(adslab)
                 adslab_batch.append(adslab)
                 fname_batch.append(str(fname))
             else:

@@ -122,8 +122,8 @@ def main(args, policy_string):
                 data=starting_state,
                 policy=policy,
                 reward_fn=reward,
-                num_generate=12,
-                num_keep=6,
+                num_generate=3,
+                num_keep=2,
             )
             tree.start_timer()
             num_levels = 7
@@ -152,7 +152,7 @@ if __name__ == "__main__":
         args = SimpleNamespace(**args)
         main(args, policy_string="reasoner")
     except Exception as err:
-        print(str(err))
+        raise err
 
     try:
         args = {
@@ -165,7 +165,7 @@ if __name__ == "__main__":
             "debug": True,
         }
         args = SimpleNamespace(**args)
-        main(args, policy_string="coherent")
+        # main(args, policy_string="coherent")
     except Exception as err:
         print(str(err))
 

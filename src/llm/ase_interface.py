@@ -80,64 +80,59 @@ def create_bulk(name):
 def generate_bulk_ads_pairs(
     bulk: Atoms,
     ads: str,
-    sites: Union[str, list[str]] = None,
+    site: Union[str, list[str]] = None,
     height=3.0,
 ) -> Union[Atoms, list[Atoms]]:
     """Add adsorbate to a bulk in the given locations."""
     return_value = False
-    if sites is None:
-        sites = list(bulk.info["adsorbate_info"]["sites"].keys())
-    elif isinstance(sites, str):
+    if site is None:
+        s = np.random.choice(list(bulk.info["adsorbate_info"]["sites"].keys()))
+    elif isinstance(site, str):
         return_value = True
-        sites = [sites]
+        s = site
 
     bulk_ads_pairs = []
-    for s in sites:
-        num_tries = 0
-        valid = False  # Indicate whether generated structure is valid
-        while not valid:
-            new_bulk = bulk.copy()
-            new_ads = ads.copy()
-            # randomly select the binding location
-            site_name = random.choice(list(new_bulk.info["adsorbate_info"]["sites"]))
-            position = new_bulk.info["adsorbate_info"]["sites"][site_name]
-            # randomly set the binding atom
-            bulk_z = list(set(bulk.get_atomic_numbers()))
-            binding_z = np.random.choice(list(bulk_z))
-            binding_idx = get_top_atom_index(new_bulk, position)
-            numbers = new_bulk.get_atomic_numbers()
-            numbers[binding_idx] = binding_z
-            new_bulk.set_atomic_numbers(numbers)
-            # randomly sample rotation angles
-            z_rot = random.uniform(0, 360)
-            x_rot = random.uniform(0, 15)
-            y_rot = random.uniform(0, 15)
-            # Do in-plane rotations first
-            new_ads.rotate("z", z_rot)
-            new_ads.rotate("x", x_rot)
-            new_ads.rotate("y", y_rot)
-            # Apply adsorbate to new_bullk
-            new_bulk = combine_adsorbate_slab(
-                new_bulk,
-                new_ads,
-                height=height + 0.1 * num_tries,
-                position=position,
-            )
-            new_bulk.center(vacuum=13.0, axis=2)
-            ads_mask = np.argwhere(new_bulk.get_tags() == 0)
-            distance_matrix = new_bulk.get_all_distances(mic=True)
-            if all(
-                distance_matrix[ads_mask, ~ads_mask] > 0.1
-            ):  # Check adsorbate distance to slab
-                valid = True
+    num_tries = 0
+    valid = False  # Indicate whether generated structure is valid
+    while not valid:
+        new_bulk = bulk.copy()
+        new_ads = ads.copy()
+        # randomly select the binding location
+        site_name = random.choice(list(new_bulk.info["adsorbate_info"]["sites"]))
+        position = new_bulk.info["adsorbate_info"]["sites"][site_name]
+        # randomly set the binding atom
+        bulk_z = list(set(bulk.get_atomic_numbers()))
+        binding_z = np.random.choice(list(bulk_z))
+        binding_idx = get_top_atom_index(new_bulk, position)
+        numbers = new_bulk.get_atomic_numbers()
+        numbers[binding_idx] = binding_z
+        new_bulk.set_atomic_numbers(numbers)
+        # randomly sample rotation angles
+        z_rot = random.uniform(0, 360)
+        x_rot = random.uniform(0, 15)
+        y_rot = random.uniform(0, 15)
+        # Do in-plane rotations first
+        new_ads.rotate("z", z_rot)
+        new_ads.rotate("x", x_rot)
+        new_ads.rotate("y", y_rot)
+        # Apply adsorbate to new_bullk
+        new_bulk = combine_adsorbate_slab(
+            new_bulk,
+            new_ads,
+            height=height + 0.1 * num_tries,
+            position=position,
+        )
+        new_bulk.center(vacuum=13.0, axis=2)
+        ads_mask = np.argwhere(new_bulk.get_tags() == 0)
+        distance_matrix = new_bulk.get_all_distances(mic=True)
+        if all(
+            distance_matrix[ads_mask, ~ads_mask] > 0.1
+        ):  # Check adsorbate distance to slab
+            valid = True
 
-            else:
-                num_tries += 1
-        bulk_ads_pairs.append(new_bulk)
-    if return_value:
-        return bulk_ads_pairs[0]
-    else:
-        return bulk_ads_pairs
+        else:
+            num_tries += 1
+    return new_bulk
 
 
 def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, position=None) -> Atoms:

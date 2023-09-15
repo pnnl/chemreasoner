@@ -3,6 +3,7 @@
 Must intsall the sub-module ocpmodels included in ext/ocp.
 """
 import json
+import pickle
 import wget
 import yaml
 
@@ -78,7 +79,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 print("Done!")
             self.config_path = (
                 self.model_configs_paths
-                / "gemnet"
+                / "equiformer_v2"
                 / "equiformer_v2_N@20_L@6_M@3_153M.yml"
             )
 
@@ -162,8 +163,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Relax the postitions of the given atoms. Setting device overrides self."""
         atoms = self.copy_atoms_list(atoms)
         # Set up calculation for oc
-        for ats in atoms:
-            self.prepare_atoms(ats)
+        self.prepare_atoms_list(atoms)
         # convert to torch geometric batch
         batch = Batch.from_data_list(self.ats_to_graphs.convert_all(atoms))
         batch.sid = atoms_names
@@ -180,14 +180,13 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         final_batch = ml_relax(
             batch=[batch],  # ml_relax always uses batch[0]
             model=trainer,
-            steps=steps,
+            steps=3,
             fmax=fmax,
             relax_opt=relax_opt,
             save_full_traj=True,
             device=trainer.device,
         )
         final_atoms = batch_to_atoms(final_batch)
-        final_atoms[0].get_potential_energy
         return final_atoms
 
     def batched_adsorption_calculation(
@@ -242,7 +241,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 json_fname,
                 {
                     json_ids[i]: {
-                        "adsorption_energy": adsorption_energy[i],
+                        "adsorption_energy": adslab_e[i],
                         "adslab_energy": adslab_e[i],
                         "ads_reference_energy": ads_ref[i],
                         "slab_reference_energy": slab_ref[i],
@@ -345,7 +344,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Get the adsorption energy from adslab_name for given idx.
 
         If the calculation has not been done, returns None."""
-        if self.adsorption_path(adslab_name).exists():
+        if self.adsorption_path(adslab_name).exists() or True:
             with open(
                 self.adsorption_path(adslab_name),
                 "r",
@@ -363,14 +362,15 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Return the path to the slab file for slab_name."""
         slab_dir = self.traj_dir / "slabs"
         slab_dir.mkdir(parents=True, exist_ok=True)
-        return slab_dir / (slab_name + ".xyz")
+        return slab_dir / (slab_name + ".pkl")
 
     def get_slab(self, slab_name: str) -> Optional[float]:
         """Get the slab configuration for the given slab_name.
 
         If the calculation has not been done, returns None."""
         if self.slab_path(slab_name).exists():
-            return read(self.slab_path(slab_name))
+            with open(self.slab_path(slab_name), "rb") as f:
+                return pickle.load(f)
         else:
             return None
 
@@ -393,7 +393,12 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def save_slab(self, slab_name: str, slab: Path):
         """Save the given slab."""
-        write(self.slab_path(slab_name), slab)
+        with open(self.slab_path(slab_name), "wb") as f:
+            pickle.dump(slab, f)
+
+    def adsorption_path(self, adslab_name):
+        """Retunr the path to the adsorption energy file for given adslab."""
+        return self.traj_dir / adslab_name / "adsorption.json"
 
 
 def order_of_magnitude(number):
