@@ -65,75 +65,77 @@ def main(args, policy_string):
 
     for i, prompt in prompt_iterator:
         print(prompt)
-        starting_state, policy = state_policy_generator(
+        state_policy = state_policy_generator(
             prompt,
             "gpt-3.5-turbo",
             "gpt-3.5-turbo",
             simulation_reward=args.reward == "simulation-reward",
         )
-        if args.policy == "coherent-policy":
-            policy = CoherentPolicy.from_reasoner_policy(policy)
-        if "single_shot" in args.search_methods:
-            single_shot(starting_state.copy(), Path(args.savedir), f"{fname}_{i}.pkl")
+        if state_policy is not None:
+            starting_state, policy = state_policy
+            if args.policy == "coherent-policy":
+                policy = CoherentPolicy.from_reasoner_policy(policy)
+            if "single_shot" in args.search_method:
+                single_shot(starting_state.copy(), Path(args.savedir), f"{fname}_{i}.pkl")
 
-        if "multi_shot" in args.search_methods:
-            multi_shot(
-                starting_state.copy(),
-                Path(args.savedir),
-                f"{fname}_{i}.pkl",
-                num_trials=10,
-            )
-
-        if "mcts" in args.search_methods:
-            # Do single shot and multi shot querying.
-
-            if args.reward == "llm-reward":
-                reward = llm_reward.llm_adsorption_energy_reward
-            elif args.reward == "simulation-reward":
-                reward = simulation_reward.StructureReward(
-                    num_adslab_samples=16, num_slab_samples=16, device="cuda:0"
+            if "multi_shot" in args.search_method:
+                multi_shot(
+                    starting_state.copy(),
+                    Path(args.savedir),
+                    f"{fname}_{i}.pkl",
+                    num_trials=10,
                 )
 
-            tree = mcts.MonteCarloTree(
-                data=starting_state.copy(),
-                policy=policy,
-                reward_fn=reward,
-                tradeoff=15,
-                discount_factor=0.9,
-            )
-            tree.start_timer()
-            max_steps = 300
-            for j in range(max_steps):
-                print(f"---- {j} ----")
-                tree.step_save(
-                    Path(args.savedir) / f"mcts_{policy_string}_{fname}_{i}.pkl"
-                )
+            if "mcts" in args.search_method:
+                # Do single shot and multi shot querying.
 
-        if "beam_search" in args.search_methods:
-            if args.reward == "llm-reward":
-                reward = llm_reward.llm_adsorption_energy_reward
-            elif args.reward == "simulation-reward":
-                reward = simulation_reward.StructureReward(
-                    num_adslab_samples=16,
-                    num_slab_samples=16,
-                    device="cuda:0",
-                    model="gemnet",
-                    traj_dir=Path("data/output_data/trajectories/pipeline_test"),
+                if args.reward == "llm-reward":
+                    reward = llm_reward.llm_adsorption_energy_reward
+                elif args.reward == "simulation-reward":
+                    reward = simulation_reward.StructureReward(
+                        num_adslab_samples=16, num_slab_samples=16, device="cuda:0"
+                    )
+
+                tree = mcts.MonteCarloTree(
+                    data=starting_state.copy(),
+                    policy=policy,
+                    reward_fn=reward,
+                    tradeoff=15,
+                    discount_factor=0.9,
                 )
-            tree = beam_search.BeamSearchTree(
-                data=starting_state,
-                policy=policy,
-                reward_fn=reward,
-                num_generate=12,
-                num_keep=6,
-            )
-            tree.start_timer()
-            num_levels = 7
-            for j in range(num_levels):
-                print(f"---- {j} ----")
-                tree.step_save(
-                    Path(args.savedir) / f"beam_search_{policy_string}_{fname}_{i}.pkl"
+                tree.start_timer()
+                max_steps = 300
+                for j in range(max_steps):
+                    print(f"---- {j} ----")
+                    tree.step_save(
+                        Path(args.savedir) / f"mcts_{policy_string}_{fname}_{i}.pkl"
+                    )
+
+            if "beam_search" in args.search_method:
+                if args.reward == "llm-reward":
+                    reward = llm_reward.llm_adsorption_energy_reward
+                elif args.reward == "simulation-reward":
+                    reward = simulation_reward.StructureReward(
+                        num_adslab_samples=16,
+                        num_slab_samples=16,
+                        device="cuda:0",
+                        model="gemnet",
+                        traj_dir=Path("data/output_data/trajectories/pipeline_test"),
+                    )
+                tree = beam_search.BeamSearchTree(
+                    data=starting_state,
+                    policy=policy,
+                    reward_fn=reward,
+                    num_generate=12,
+                    num_keep=6,
                 )
+                tree.start_timer()
+                num_levels = 7
+                for j in range(num_levels):
+                    print(f"---- {j} ----")
+                    tree.step_save(
+                        Path(args.savedir) / f"beam_search_{policy_string}_{fname}_{i}.pkl"
+                    )
 
 
 if __name__ == "__main__":
