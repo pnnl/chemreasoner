@@ -93,7 +93,11 @@ def main(args, policy_string):
                     reward = llm_reward.llm_adsorption_energy_reward
                 elif args.reward == "simulation-reward":
                     reward = simulation_reward.StructureReward(
-                        num_adslab_samples=16, num_slab_samples=16, device="cuda:0"
+                        num_adslab_samples=16,
+                        num_slab_samples=16,
+                        device="cuda:0",
+                        model="gemnet",
+                        traj_dir=Path("data/output_data/trajectories/pipeline_test"),
                     )
 
                 tree = mcts.MonteCarloTree(
