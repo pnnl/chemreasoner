@@ -129,7 +129,7 @@ def main(args, policy_string):
                 num_keep=2,
             )
             tree.start_timer()
-            num_levels = 7
+            num_levels = 4
             for j in range(num_levels):
                 print(f"---- {j} ----")
                 tree.step_save(
@@ -150,7 +150,7 @@ if __name__ == "__main__":
             "search_methods": ["beam_search"],
             "reward_function": "simulation-reward",
             "policy": "reasoner-policy",
-            "debug": False,
+            "debug": True,
         }
         args = SimpleNamespace(**args)
         main(args, policy_string="reasoner")
@@ -174,10 +174,12 @@ if __name__ == "__main__":
 
     try:
         args = {
-            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-            "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
+            "input": str(
+                Path("data", "input_data", "biofuels", "biofuels_input_0.txt")
+            ),
+            "savedir": str(Path("data", "output_data", "demo", "biofuels", "test")),
             "llm": "gpt-3.5-turbo",
-            "search_methods": ["mcts"],
+            "search_methods": ["beam_search"],
             "reward_function": "llm-reward",
             "policy": "reasoner-policy",
             "debug": True,
@@ -189,10 +191,12 @@ if __name__ == "__main__":
 
     try:
         args = {
-            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-            "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
+            "input": str(
+                Path("data", "input_data", "biofuels", "biofuels_input_2.txt")
+            ),
+            "savedir": str(Path("data", "output_data", "demo", "biofuels", "test")),
             "llm": "gpt-3.5-turbo",
-            "search_methods": ["mcts"],
+            "search_methods": ["beam_search"],
             "reward_function": "llm-reward",
             "policy": "coherent-policy",
             "debug": True,

@@ -180,7 +180,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         final_batch = ml_relax(
             batch=[batch],  # ml_relax always uses batch[0]
             model=trainer,
-            steps=steps,
+            steps=2,
             fmax=fmax,
             relax_opt=relax_opt,
             save_full_traj=True,
@@ -233,11 +233,13 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             (self.traj_dir / at_name).parent / "adsorption.json"
             for at_name in atoms_names
         ]
-        json_ids = [(self.traj_dir / at_name).stem for at_name in atoms_names]
+        json_ids = [
+            (self.traj_dir / at_name).stem.split("-")[0] for at_name in atoms_names
+        ]
 
         # save the results into files to avoid recalculations
         for i, json_fname in enumerate(json_fnames):
-            self.update_json(
+            self.write_json(
                 json_fname,
                 {
                     json_ids[i]: {
@@ -249,7 +251,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 },
             )
 
-        return adsorption_energy
+        return adslab_e
 
     def _batched_static_eval(self, batch):
         """Run static energy/force calculation on batch."""
@@ -322,17 +324,13 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         return [ats.copy() for ats in atoms_list]
 
     @staticmethod
-    def update_json(fname, update_dict):
-        """Update given json file with update_dict."""
-        if fname.exists():
-            with open(fname, "r") as f:
-                data = json.load(f)
-
-        else:
-            data = dict()
-        data.update(update_dict)
-        with open(fname, "w") as f:
-            json.dump(data, f)
+    def write_json(fname, data_dict):
+        """Write given data dict to json file with exclusive access."""
+        try:
+            with open(fname, "x") as f:
+                json.dump(data_dict, f)
+        except FileExistsError:
+            pass
 
     def prediction_path(self, adslab_name):
         """Reutn the adsorption path for the given adslab."""
@@ -344,7 +342,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Get the adsorption energy from adslab_name for given idx.
 
         If the calculation has not been done, returns None."""
-        if self.adsorption_path(adslab_name).exists() or True:
+        if self.adsorption_path(adslab_name).exists():
             with open(
                 self.adsorption_path(adslab_name),
                 "r",
@@ -365,7 +363,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         return slab_dir / (slab_name + ".pkl")
 
     def slab_samples_path(self, slab_name: str) -> Path:
-        """Return the path to the slab file for slab_name."""
+        """Return the path to the slab samples file for slab_name."""
         slab_dir = self.traj_dir / "slabs"
         slab_dir.mkdir(parents=True, exist_ok=True)
         return slab_dir / (slab_name + "_samples.pkl")

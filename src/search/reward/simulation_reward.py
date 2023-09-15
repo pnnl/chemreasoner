@@ -2,6 +2,7 @@
 import json
 import math
 import sys
+import uuid
 
 from pathlib import Path
 
@@ -140,7 +141,7 @@ class StructureReward(BaseReward):
                     results.append((idx, name, ads_calc))
                 else:
                     adslab_batch.append(adslab)
-                    fname_batch.append(str(fname))
+                    fname_batch.append(str(fname) + f"-{uuid.uuid4()}")
 
             # dispatch the batch
             if len(adslab_batch) == self.adsorption_calculator.batch_size:
@@ -162,7 +163,7 @@ class StructureReward(BaseReward):
         """Unpack a collection of batch results."""
         results = []
         for i, res in enumerate(batch_results):
-            idx = Path(fname_batch[i]).stem
+            idx = Path(fname_batch[i]).stem.split("-")[0]
             name = str(Path(fname_batch[i]).parent)
             results.append((idx, name, res))
         return results

@@ -466,7 +466,6 @@ def run_query(query, model="gpt-3.5-turbo", system_prompt=None, **gpt_kwargs):
             model=model, messages=messages, **gpt_kwargs
         )
         answer = output["choices"][0]["message"]["content"]
-
     logging.info(f"--------------------\nQ: {query}\n--------------------")
 
     global query_counter
