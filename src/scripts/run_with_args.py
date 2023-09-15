@@ -69,7 +69,7 @@ def main(args, policy_string):
             prompt,
             "gpt-3.5-turbo",
             "gpt-3.5-turbo",
-            simulation_reward=args.reward_function == "simulation-reward",
+            simulation_reward=args.reward == "simulation-reward",
         )
         if args.policy == "coherent-policy":
             policy = CoherentPolicy.from_reasoner_policy(policy)
@@ -87,9 +87,9 @@ def main(args, policy_string):
         if "mcts" in args.search_methods:
             # Do single shot and multi shot querying.
 
-            if args.reward_function == "llm-reward":
+            if args.reward == "llm-reward":
                 reward = llm_reward.llm_adsorption_energy_reward
-            elif args.reward_function == "simulation-reward":
+            elif args.reward == "simulation-reward":
                 reward = simulation_reward.StructureReward(
                     num_adslab_samples=16, num_slab_samples=16, device="cuda:0"
                 )
@@ -110,9 +110,9 @@ def main(args, policy_string):
                 )
 
         if "beam_search" in args.search_methods:
-            if args.reward_function == "llm-reward":
+            if args.reward == "llm-reward":
                 reward = llm_reward.llm_adsorption_energy_reward
-            elif args.reward_function == "simulation-reward":
+            elif args.reward == "simulation-reward":
                 reward = simulation_reward.StructureReward(
                     num_adslab_samples=16,
                     num_slab_samples=16,
