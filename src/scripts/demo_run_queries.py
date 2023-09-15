@@ -175,7 +175,7 @@ if __name__ == "__main__":
     try:
         args = {
             "input": str(
-                Path("data", "input_data", "biofuels", "biofuels_input_0.txt")
+                Path("data", "input_data", "biofuels", "biofuels_input_0.csv")
             ),
             "savedir": str(Path("data", "output_data", "demo", "biofuels", "test")),
             "llm": "gpt-3.5-turbo",
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     try:
         args = {
             "input": str(
-                Path("data", "input_data", "biofuels", "biofuels_input_2.txt")
+                Path("data", "input_data", "biofuels", "biofuels_input_2.csv")
             ),
             "savedir": str(Path("data", "output_data", "demo", "biofuels", "test")),
             "llm": "gpt-3.5-turbo",
