@@ -97,6 +97,7 @@ class StructureReward(BaseReward):
                 )
             else:  # Handle default here TODO: determine some logic/pentaly for this
                 print(cand)
+                rewards.append(-10)
         final_reward = np.mean(rewards)
         s.reward = final_reward
         return final_reward  # return mean over candidates
