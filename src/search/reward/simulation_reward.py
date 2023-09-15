@@ -52,7 +52,7 @@ class StructureReward(BaseReward):
                             ase_interface.symbols_list_to_bulk(slab_sym)
                             for _ in range(self.num_slab_samples)
                         ]
-                    except ase_interface.StructureGenerationError as err:
+                    except ase_interface.StructureGenerationError:
                         slab_syms[i] = None
                         valid_slab_sym = False
 

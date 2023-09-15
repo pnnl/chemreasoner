@@ -364,6 +364,12 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         slab_dir.mkdir(parents=True, exist_ok=True)
         return slab_dir / (slab_name + ".pkl")
 
+    def slab_samples_path(self, slab_name: str) -> Path:
+        """Return the path to the slab file for slab_name."""
+        slab_dir = self.traj_dir / "slabs"
+        slab_dir.mkdir(parents=True, exist_ok=True)
+        return slab_dir / (slab_name + "_samples.pkl")
+
     def get_slab(self, slab_name: str) -> Optional[float]:
         """Get the slab configuration for the given slab_name.
 
@@ -387,14 +393,23 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
         calculated_slabs[min_idx].info.update(atoms[min_idx].info)
         if slab_name is not None:
-            self.save_slab(slab_name, calculated_slabs[min_idx])
+            self.save_slab(
+                slab_name, calculated_slabs[min_idx], slab_samples=slab_samples
+            )
+            return self.get_slab(slab_name=slab_name)
+        else:
+            return calculated_slabs[min_idx]
 
-        return calculated_slabs[min_idx]
-
-    def save_slab(self, slab_name: str, slab: Path):
+    def save_slab(self, slab_name: str, slab: Path, slab_samples=None):
         """Save the given slab."""
-        with open(self.slab_path(slab_name), "wb") as f:
-            pickle.dump(slab, f)
+        try:
+            with open(self.slab_path(slab_name), "xb") as f:
+                pickle.dump(slab, f)
+            if slab_samples is not None:
+                with open(self.slab_samples_path(slab_name), "wb"):
+                    pickle.dump(slab_samples, f)
+        except FileExistsError:
+            print("Unable to save slab as a slab already exists.")
 
     def adsorption_path(self, adslab_name):
         """Retunr the path to the adsorption energy file for given adslab."""
