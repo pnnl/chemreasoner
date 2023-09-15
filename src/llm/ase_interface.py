@@ -186,6 +186,14 @@ def convert_alloy(bulk, other_symbols=Union[str, list[str]]):
     if isinstance(other_symbols, str):
         other_symbols = [other_symbols]
 
+    for other_symbol in other_symbols:
+        if reference_states[atomic_numbers[other_symbol]]["symmetry"] not in [
+            "fcc",
+            "bcc",
+            "hcp",
+        ]:
+            raise StructureGenerationError(f"Invalide alloy element {other_symbol}.")
+
     bulk = bulk.copy()
 
     ind = list(range(len(bulk)))

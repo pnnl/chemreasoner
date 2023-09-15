@@ -14,6 +14,7 @@ sys.path.append("src")
 from llm import query, ase_interface  # noqa: E402
 from nnp import oc  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
+from search.reward.llm_reward import llm_adsorption_energy_reward  # noqa: E402
 
 
 class StructureReward(BaseReward):
@@ -53,7 +54,6 @@ class StructureReward(BaseReward):
                         ]
                     except ase_interface.StructureGenerationError as err:
                         slab_syms[i] = None
-                        print(f"\n*\n*\n*\n{str(err)}\n*\n*\n*\n*")
                         valid_slab_sym = False
 
                     if valid_slab_sym:
@@ -99,12 +99,21 @@ class StructureReward(BaseReward):
                 print(cand)
                 rewards.append(-10)
         final_reward = np.mean(rewards)
-        s.reward = final_reward
+        s.set_reward(final_reward, info_field="simulation-reward")
+        s.info["simulation-reward"].update(
+            {"slab_syms": slab_syms, "value": final_reward}
+        )
+
+        s.set_reward(
+            llm_adsorption_energy_reward(
+                s,
+                primary_reward=False,
+            )
+        )
         return final_reward  # return mean over candidates
 
     def create_batches_and_calculate(self, adslabs):
         """Split adslabs into batches and run the simulations."""
-        print("\n\n\nCreate batches and calcualte\n\n\n")
         results = []
         adslab_batch = []
         fname_batch = []
