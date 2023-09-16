@@ -229,6 +229,31 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
         adsorption_energy = adslab_e - slab_ref - ads_ref
 
+        json_fnames_ids = dict()
+        for at_name in atoms_names:
+            json_fname = str((self.traj_dir / at_name).parent / "adsorption.json")
+            json_id = (self.traj_dir / at_name).stem.split("-")[0]
+            if json_fname in json_fnames_ids.keys():
+                json_fnames_ids[json_fname].update(
+                    {
+                        json_id: {
+                            "adsorption_energy": adslab_e[i],
+                            "adslab_energy": adslab_e[i],
+                            "ads_reference_energy": ads_ref[i],
+                            "slab_reference_energy": slab_ref[i],
+                        }
+                    }
+                )
+            else:
+                json_fnames_ids[json_fname] = {
+                    json_id: {
+                        "adsorption_energy": adslab_e[i],
+                        "adslab_energy": adslab_e[i],
+                        "ads_reference_energy": ads_ref[i],
+                        "slab_reference_energy": slab_ref[i],
+                    }
+                }
+
         json_fnames = [
             (self.traj_dir / at_name).parent / "adsorption.json"
             for at_name in atoms_names
@@ -326,11 +351,26 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     @staticmethod
     def write_json(fname, data_dict):
         """Write given data dict to json file with exclusive access."""
-        try:
-            with open(fname, "x") as f:
-                json.dump(data_dict, f)
-        except FileExistsError:
-            pass
+        written = False
+        while not written:
+            try:
+                with open(str(fname) + "-lock", "x") as f:
+                    try:
+                        with open(fname, "r"):
+                            file_data = json.load(f)
+                        for k, v in file_data.items():
+                            if k in data_dict.keys():
+                                data_dict[k] = v
+                        with open(fname, "w"):
+                            json.dump(data_dict, f)
+
+                    except BaseException as err:
+                        f.unlink()
+                        raise err
+                f.unlink()
+                written = True
+            except FileExistsError:
+                pass
 
     def prediction_path(self, adslab_name):
         """Reutn the adsorption path for the given adslab."""

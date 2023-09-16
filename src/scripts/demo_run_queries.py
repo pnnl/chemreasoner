@@ -1,5 +1,6 @@
 """Functions to run mcts."""
 import argparse
+import json
 import pickle
 import sys
 import time
@@ -47,6 +48,9 @@ def multi_shot(starting_state, directory: Path, fname, num_trials=10):
             pickle.dump(saving_data, f)
 
 
+json_prompts = []
+
+
 def main(args, policy_string):
     """Run the search on desired inputs."""
     if "oc" in Path(args.input).stem:
@@ -65,149 +69,242 @@ def main(args, policy_string):
 
     for i, prompt in prompt_iterator:
         print(prompt)
-        starting_state, policy = state_policy_generator(
+        state_policy = state_policy_generator(
             prompt,
             "gpt-3.5-turbo",
             "gpt-3.5-turbo",
             simulation_reward=args.reward_function == "simulation-reward",
         )
-        if args.policy == "coherent-policy":
-            policy = CoherentPolicy.from_reasoner_policy(policy)
-        if "single_shot" in args.search_methods:
-            single_shot(starting_state.copy(), Path(args.savedir), f"{fname}_{i}.pkl")
+        if state_policy is not None:
+            starting_state, policy = state_policy_generator(
+                prompt,
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo",
+                simulation_reward=args.reward_function == "simulation-reward",
+            )
+            print(starting_state.prompt)
+            json_prompts.append(
+                {
+                    "generation_prompt": {
+                        "system": starting_state.system_prompt_generation,
+                        "user": starting_state.prompt,
+                    }
+                }
+            )
+            starting_state.query()
+            starting_state
+            json_prompts[-1].update(
+                {
+                    "energy_calculation_prompt": {
+                        "system": starting_state.system_prompt_reward,
+                        "user": starting_state.adsorption_energy_prompts,
+                    }
+                }
+            )
+            example_format = ""
+            for i, ans in enumerate(starting_state.candidates):
+                example_format += f"{ans}: [list_{i}]\n"
 
-        if "multi_shot" in args.search_methods:
-            multi_shot(
-                starting_state.copy(),
-                Path(args.savedir),
-                f"{fname}_{i}.pkl",
-                num_trials=10,
+            answer_string = ", ".join(starting_state.candidates)
+            prompt = (
+                f"Consider the following list of catalysts:\n{answer_string}.\n\n"
+                "For each catalyst, return the list of chemical symbols that make up the "
+                "catalyst. If a catalyst does not have a chemical symbol, return None. "
+                "If a catalyst is already a chemical formula, repeat the elements in the "
+                "chemical formula.\n\n"
+                "Format your list as:\n"
+                f"{example_format}"
+            )
+            json_prompts[-1].update(
+                {
+                    "parsing_prompt": {
+                        "system": "",
+                        "user": prompt,
+                    }
+                }
             )
 
-        if "mcts" in args.search_methods:
-            # Do single shot and multi shot querying.
-            single_shot(starting_state, Path(args.savedir), f"{fname}_{i}.pkl")
-
-            if args.reward_function == "llm-reward":
-                reward = llm_reward.llm_adsorption_energy_reward
-            elif args.reward_function == "simulation-reward":
-                reward = simulation_reward.StructureReward(
-                    num_adslab_samples=2, num_slab_samples=2, device="cpu"
+            if args.policy == "coherent-policy":
+                policy = CoherentPolicy.from_reasoner_policy(policy)
+            if "single_shot" in args.search_methods:
+                single_shot(
+                    starting_state.copy(), Path(args.savedir), f"{fname}_{i}.pkl"
                 )
 
-            tree = mcts.MonteCarloTree(
-                data=starting_state.copy(),
-                policy=policy,
-                reward_fn=reward,
-                tradeoff=15,
-                discount_factor=0.9,
-            )
-            tree.start_timer()
-            max_steps = 300
-            for j in range(max_steps):
-                print(f"---- {j} ----")
-                tree.step_save(
-                    Path(args.savedir) / f"mcts_{policy_string}_{fname}_{i}.pkl"
+            if "multi_shot" in args.search_methods:
+                multi_shot(
+                    starting_state.copy(),
+                    Path(args.savedir),
+                    f"{fname}_{i}.pkl",
+                    num_trials=10,
                 )
 
-        if "beam_search" in args.search_methods:
-            if args.reward_function == "llm-reward":
-                reward = llm_reward.llm_adsorption_energy_reward
-            elif args.reward_function == "simulation-reward":
-                reward = simulation_reward.StructureReward(
-                    num_adslab_samples=2,
-                    num_slab_samples=2,
-                    device="cpu",
-                    model="gemnet",
-                    traj_dir=Path("data/output_data/trajectories/pipeline_test"),
+            if "mcts" in args.search_methods:
+                # Do single shot and multi shot querying.
+                single_shot(starting_state, Path(args.savedir), f"{fname}_{i}.pkl")
+
+                if args.reward_function == "llm-reward":
+                    reward = llm_reward.llm_adsorption_energy_reward
+                elif args.reward_function == "simulation-reward":
+                    reward = simulation_reward.StructureReward(
+                        num_adslab_samples=2, num_slab_samples=2, device="cpu"
+                    )
+
+                tree = mcts.MonteCarloTree(
+                    data=starting_state.copy(),
+                    policy=policy,
+                    reward_fn=reward,
+                    tradeoff=15,
+                    discount_factor=0.9,
                 )
-            tree = beam_search.BeamSearchTree(
-                data=starting_state,
-                policy=policy,
-                reward_fn=reward,
-                num_generate=2,
-                num_keep=1,
-            )
-            tree.start_timer()
-            num_levels = 4
-            for j in range(num_levels):
-                print(f"---- {j} ----")
-                tree.step_save(
-                    Path(args.savedir) / f"beam_search_{policy_string}_{fname}_{i}.pkl"
+                tree.start_timer()
+                max_steps = 300
+                for j in range(max_steps):
+                    print(f"---- {j} ----")
+                    tree.step_save(
+                        Path(args.savedir) / f"mcts_{policy_string}_{fname}_{i}.pkl"
+                    )
+
+            if "beam_search" in args.search_methods:
+                if args.reward_function == "llm-reward":
+                    reward = llm_reward.llm_adsorption_energy_reward
+                elif args.reward_function == "simulation-reward":
+                    reward = simulation_reward.StructureReward(
+                        num_adslab_samples=2,
+                        num_slab_samples=2,
+                        device="cpu",
+                        model="gemnet",
+                        traj_dir=Path("data/output_data/trajectories/pipeline_test"),
+                    )
+                tree = beam_search.BeamSearchTree(
+                    data=starting_state,
+                    policy=policy,
+                    reward_fn=reward,
+                    num_generate=2,
+                    num_keep=1,
                 )
-        if args.debug:
-            return 0
+                tree.start_timer()
+                num_levels = 4
+                for j in range(num_levels):
+                    print(f"---- {j} ----")
+                    tree.step_save(
+                        Path(args.savedir)
+                        / f"beam_search_{policy_string}_{fname}_{i}.pkl"
+                    )
+            if args.debug:
+                return 0
 
 
 if __name__ == "__main__":
     Path("data", "output_data", "demo", "oc", "test").mkdir(parents=True, exist_ok=True)
 
-    try:
-        args = {
-            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-            "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
-            "llm": "gpt-3.5-turbo",
-            "search_methods": ["beam_search"],
-            "reward_function": "llm-reward",
-            "policy": "reasoner-policy",
-            "debug": True,
-        }
-        args = SimpleNamespace(**args)
-        main(args, policy_string="reasoner")
-    except Exception as err:
-        raise err
+    for f in [
+        "oc_input_0.txt",
+        "oc_input_1.txt",
+        "oc_input_2.txt",
+        "oc_input_3.txt",
+        "biofuels_input_0.csv",
+        "biofuels_input_1.csv",
+        "biofuels_input_2.csv",
+        "biofuels_input_3.csv",
+    ]:
+        if "oc" in f:
+            args = {
+                "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
+                "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
+                "llm": "gpt-3.5-turbo",
+                "search_methods": ["beam_search"],
+                "reward_function": "llm-reward",
+                "policy": "reasoner-policy",
+                "debug": True,
+            }
+            args = SimpleNamespace(**args)
+            main(args, policy_string="reasoner")
 
-    try:
-        args = {
-            "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
-            "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
-            "llm": "gpt-3.5-turbo",
-            "search_methods": ["beam_search"],
-            "reward_function": "simulation-reward",
-            "policy": "coherent-policy",
-            "debug": True,
-        }
-        args = SimpleNamespace(**args)
-        # main(args, policy_string="coherent")
-    except Exception as err:
-        print(str(err))
+        elif "biofuels" in f:
+            args = {
+                "input": str(
+                    Path("data", "input_data", "biofuels", "biofuels_input_0.csv")
+                ),
+                "savedir": str(Path("data", "output_data", "demo", "biofuels", "test")),
+                "llm": "gpt-3.5-turbo",
+                "search_methods": ["beam_search"],
+                "reward_function": "llm-reward",
+                "policy": "reasoner-policy",
+                "debug": False,
+            }
+            args = SimpleNamespace(**args)
+            main(args, policy_string="reasoner")
 
-    try:
-        args = {
-            "input": str(
-                Path("data", "input_data", "biofuels", "biofuels_input_0.csv")
-            ),
-            "savedir": str(Path("data", "output_data", "demo", "biofuels", "test")),
-            "llm": "gpt-3.5-turbo",
-            "search_methods": ["beam_search"],
-            "reward_function": "llm-reward",
-            "policy": "reasoner-policy",
-            "debug": True,
-        }
-        args = SimpleNamespace(**args)
-        # main(args, policy_string="reasoner")
-    except Exception as err:
-        print(str(err))
+    print(len(json_prompts))
+    with open("json_database.json", "w") as f:
+        json.dump(json_prompts, f)
+    # try:
+    #     args = {
+    #         "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
+    #         "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
+    #         "llm": "gpt-3.5-turbo",
+    #         "search_methods": ["beam_search"],
+    #         "reward_function": "llm-reward",
+    #         "policy": "reasoner-policy",
+    #         "debug": True,
+    #     }
+    #     args = SimpleNamespace(**args)
+    #     main(args, policy_string="reasoner")
+    # except Exception as err:
+    #     raise err
 
-    try:
-        Path("data", "output_data", "demo", "biofuels", "test").mkdir(
-            parents=True, exist_of=True
-        )
-        args = {
-            "input": str(
-                Path("data", "input_data", "biofuels", "biofuels_input_2.csv")
-            ),
-            "savedir": str(Path("data", "output_data", "demo", "biofuels", "test")),
-            "llm": "gpt-3.5-turbo",
-            "search_methods": ["beam_search"],
-            "reward_function": "llm-reward",
-            "policy": "coherent-policy",
-            "debug": True,
-        }
-        args = SimpleNamespace(**args)
-        # main(args, policy_string="coherent")
-    except Exception as err:
-        print(str(err))
+    # try:
+    #     args = {
+    #         "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
+    #         "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
+    #         "llm": "gpt-3.5-turbo",
+    #         "search_methods": ["beam_search"],
+    #         "reward_function": "simulation-reward",
+    #         "policy": "coherent-policy",
+    #         "debug": True,
+    #     }
+    #     args = SimpleNamespace(**args)
+    #     # main(args, policy_string="coherent")
+    # except Exception as err:
+    #     print(str(err))
+
+    # try:
+    #     args = {
+    #         "input": str(
+    #             Path("data", "input_data", "biofuels", "biofuels_input_0.csv")
+    #         ),
+    #         "savedir": str(Path("data", "output_data", "demo", "biofuels", "test")),
+    #         "llm": "gpt-3.5-turbo",
+    #         "search_methods": ["beam_search"],
+    #         "reward_function": "llm-reward",
+    #         "policy": "reasoner-policy",
+    #         "debug": True,
+    #     }
+    #     args = SimpleNamespace(**args)
+    #     # main(args, policy_string="reasoner")
+    # except Exception as err:
+    #     print(str(err))
+
+    # try:
+    #     Path("data", "output_data", "demo", "biofuels", "test").mkdir(
+    #         parents=True, exist_ok=True
+    #     )
+    #     args = {
+    #         "input": str(
+    #             Path("data", "input_data", "biofuels", "biofuels_input_2.csv")
+    #         ),
+    #         "savedir": str(Path("data", "output_data", "demo", "biofuels", "test")),
+    #         "llm": "gpt-3.5-turbo",
+    #         "search_methods": ["beam_search"],
+    #         "reward_function": "llm-reward",
+    #         "policy": "coherent-policy",
+    #         "debug": True,
+    #     }
+    #     args = SimpleNamespace(**args)
+    #     # main(args, policy_string="coherent")
+    # except Exception as err:
+    #     print(str(err))
     # parsed, unknown = parser.parse_known_args() # this is an 'internal' method
     # # which returns 'parsed', the same as what parse_args() would return
     # # and 'unknown', the remainder of that
