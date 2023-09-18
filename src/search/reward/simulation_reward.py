@@ -135,7 +135,7 @@ class StructureReward(BaseReward):
                 print("****")
                 print(adslab)
                 adslab_batch.append(adslab)
-                fname_batch.append(str(fname))
+                fname_batch.append(str(fname) + f"-{uuid.uuid4()}")
             else:
                 idx = str(fname.stem)
                 name = str(fname.parent)
