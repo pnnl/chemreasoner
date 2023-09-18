@@ -228,9 +228,10 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         # adsorption_energy = adslab_e - slab_ref - ads_ref
 
         json_fnames_ids = dict()
-        for at_name in atoms_names:
+        for i, at_name in enumerate(atoms_names):
             json_fname = str((self.traj_dir / at_name).parent / "adsorption.json")
             json_id = (self.traj_dir / at_name).stem.split("-")[0]
+
             if json_fname in json_fnames_ids.keys():
                 json_fnames_ids[json_fname].update(
                     {
