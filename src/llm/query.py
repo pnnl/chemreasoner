@@ -434,13 +434,13 @@ tok_sent = 0
 tok_recieved = 0
 
 
-@backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=60)
+@backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=120)
 def run_get_embeddings(strings, model="text-embedding-ada-002"):
     """Query language model for a list of k candidates."""
     return get_embeddings(strings, engine=model)
 
 
-@backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=60)
+@backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=120)
 def run_query(query, model="gpt-3.5-turbo", system_prompt=None, **gpt_kwargs):
     """Query language model for a list of k candidates."""
     gpt_kwargs["temperature"] = gpt_kwargs.get("temperature", 0.6)
