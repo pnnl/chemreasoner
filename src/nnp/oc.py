@@ -363,7 +363,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                             json.dump(data_dict, f)
 
                     except BaseException as err:
-                        f.unlink()
+                        Path(str(fname) + "-lock").unlink()
                         raise err
                 Path(str(fname) + "-lock").unlink()
                 written = True
