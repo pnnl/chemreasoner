@@ -347,18 +347,22 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         return [ats.copy() for ats in atoms_list]
 
     @staticmethod
-    def write_json(fname, data_dict):
+    def write_json(fname: Path, data_dict: dict):
         """Write given data dict to json file with exclusive access."""
         written = False
         while not written:
             try:
                 with open(str(fname) + "-lock", "x") as f:
                     try:
-                        with open(fname, "r") as f:
-                            file_data = json.load(f)
-                        for k, v in file_data.items():
-                            if k in data_dict.keys():
-                                data_dict[k] = v
+                        if fname.exists():
+                            with open(fname, "r") as f:
+                                file_data = json.load(f)
+                        else:
+                            file_data = {}
+
+                        data_dict.update(
+                            file_data
+                        )  # Update with runs that have finished
                         with open(fname, "w") as f:
                             json.dump(data_dict, f)
 
