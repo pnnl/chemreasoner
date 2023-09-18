@@ -354,12 +354,12 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             try:
                 with open(str(fname) + "-lock", "x") as f:
                     try:
-                        with open(fname, "r"):
+                        with open(fname, "r") as f:
                             file_data = json.load(f)
                         for k, v in file_data.items():
                             if k in data_dict.keys():
                                 data_dict[k] = v
-                        with open(fname, "w"):
+                        with open(fname, "w") as f:
                             json.dump(data_dict, f)
 
                     except BaseException as err:
