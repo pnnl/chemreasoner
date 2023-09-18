@@ -16,6 +16,8 @@ from search.reward import simulation_reward, llm_reward  # noqa: E402
 from search.policy.coherent_policy import CoherentPolicy, ReasonerPolicy  # noqa: E402
 from search.methods.tree_search import mcts, beam_search  # noqa: E402
 
+np.random.seed(11)
+
 # from search.methods.sampling import single_shot, multi_shot  # noqa: E402
 
 
