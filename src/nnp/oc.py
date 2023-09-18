@@ -47,7 +47,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         8: -7.204,
     }
 
-    def __init__(self, model: str, traj_dir: Path, batch_size=64, device="cuda:0"):
+    def __init__(self, model: str, traj_dir: Path, batch_size=40, device="cuda:0"):
         """Createobject from model class (gemnet or equiformer).
 
         Downloads weights if they are not available.
