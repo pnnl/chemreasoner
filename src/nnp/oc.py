@@ -15,7 +15,7 @@ import numpy as np
 
 from ase import Atoms
 from ase.constraints import FixAtoms
-from ase.io import Trajectory, read, write
+from ase.io import Trajectory, write
 from ase.optimize import BFGS
 
 from ocpmodels.common.relaxation.ase_utils import OCPCalculator, batch_to_atoms
@@ -42,8 +42,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     # https://arxiv.org/abs/2010.09990
     ads_references = {
         1: -3.477,
-        5: -8.083,
         6: -7.282,
+        7: -8.083,
         8: -7.204,
     }
 
@@ -365,13 +365,13 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                     except BaseException as err:
                         f.unlink()
                         raise err
-                f.unlink()
+                Path(str(fname) + "-lock").unlink()
                 written = True
             except FileExistsError:
                 pass
 
     def prediction_path(self, adslab_name):
-        """Reutn the adsorption path for the given adslab."""
+        """Return the adsorption path for the given adslab."""
         adslab_dir = self.traj_dir / adslab_name
         adslab_dir.mkdir(parents=True, exist_ok=True)
         return adslab_dir / "adsorption.json"

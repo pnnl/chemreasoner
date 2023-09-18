@@ -124,9 +124,14 @@ class StructureReward(BaseReward):
             (self.adsorption_calculator.traj_dir / fname).parent.mkdir(
                 parents=True, exist_ok=True
             )
-            if not (
-                self.adsorption_calculator.traj_dir / (str(fname) + ".traj")
-            ).exists():
+            if (
+                len(
+                    list(
+                        self.adsorption_calculator.traj_dir.rglob(str(fname) + "*.traj")
+                    )
+                )
+                == 0
+            ):
                 print("****")
                 print(adslab)
                 adslab_batch.append(adslab)
