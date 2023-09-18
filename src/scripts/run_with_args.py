@@ -101,7 +101,7 @@ def main(args, policy_string):
                         num_slab_samples=16,
                         device="cuda:0",
                         model="gemnet",
-                        traj_dir=Path("data/output_data/trajectories/pipeline_test"),
+                        traj_dir=Path("data/output/trajectories/pipeline_test"),
                     )
 
                 tree = mcts.MonteCarloTree(
@@ -133,7 +133,7 @@ def main(args, policy_string):
                         num_slab_samples=16,
                         device="cuda:0",
                         model="gemnet",
-                        traj_dir=Path("data/output_data/trajectories/pipeline_test"),
+                        traj_dir=Path("data/output/trajectories/pipeline_test"),
                     )
                 tree = beam_search.BeamSearchTree(
                     data=starting_state,
