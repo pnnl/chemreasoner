@@ -9,7 +9,7 @@ import yaml
 
 from collections import deque
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 
@@ -180,7 +180,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         final_batch = ml_relax(
             batch=[batch],  # ml_relax always uses batch[0]
             model=trainer,
-            steps=2,
+            steps=steps,
             fmax=fmax,
             relax_opt=relax_opt,
             save_full_traj=True,
@@ -194,8 +194,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         atoms: list[Atoms],
         atoms_names,
         device=None,
-        fmax=0.005,
-        steps=100,
         **bfgs_kwargs,
     ):
         """Calculate adsorption energies from relaxed atomic positions."""
@@ -227,7 +225,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         ads_ref = np.array(ads_e)
         # calculate adsorption energy!
 
-        adsorption_energy = adslab_e - slab_ref - ads_ref
+        # adsorption_energy = adslab_e - slab_ref - ads_ref
 
         json_fnames_ids = dict()
         for at_name in atoms_names:
@@ -444,7 +442,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             with open(self.slab_path(slab_name), "xb") as f:
                 pickle.dump(slab, f)
             if slab_samples is not None:
-                with open(self.slab_samples_path(slab_name), "wb"):
+                with open(self.slab_samples_path(slab_name), "xb") as f:
                     pickle.dump(slab_samples, f)
         except FileExistsError:
             print("Unable to save slab as a slab already exists.")

@@ -109,11 +109,12 @@ def main(args, policy_string):
                 )
                 tree.start_timer()
                 max_steps = 300
-                for j in range(max_steps):
-                    print(f"---- {j} ----")
-                    tree.step_save(
-                        Path(args.savedir) / f"mcts_{policy_string}_{fname}_{i}.pkl"
-                    )
+                if not (Path(args.savedir) / f"mcts_{policy_string}_{fname}_{i}.pkl").exists():
+                    for j in range(max_steps):
+                        print(f"---- {j} ----")
+                        tree.step_save(
+                            Path(args.savedir) / f"mcts_{policy_string}_{fname}_{i}.pkl"
+                        )
 
             if "beam-search" in args.search_method:
                 if args.reward == "llm-reward":
@@ -135,11 +136,12 @@ def main(args, policy_string):
                 )
                 tree.start_timer()
                 num_levels = 7
-                for j in range(num_levels):
-                    print(f"---- {j} ----")
-                    tree.step_save(
-                        Path(args.savedir) / f"beam_search_{policy_string}_{fname}_{i}.pkl"
-                    )
+                if not (Path(args.savedir) / f"beam_search_{policy_string}_{fname}_{i}.pkl").exists():
+                    for j in range(num_levels):
+                        print(f"---- {j} ----")
+                        tree.step_save(
+                            Path(args.savedir) / f"beam_search_{policy_string}_{fname}_{i}.pkl"
+                        )
 
 
 if __name__ == "__main__":
