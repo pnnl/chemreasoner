@@ -283,7 +283,7 @@ if __name__ == "__main__":
     sr = StructureReward(
         **{
             "model": "gemnet",
-            "traj_dir": Path("data/output_data/trajectories/pipeline_test"),
+            "traj_dir": Path("data/output/trajectories/pipeline_test"),
         }
     )
     import time
