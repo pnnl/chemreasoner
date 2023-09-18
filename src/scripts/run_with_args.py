@@ -51,7 +51,7 @@ def main(args, policy_string):
     """Run the search on desired inputs."""
     if "oc" in Path(args.input).stem:
         adsorbates = np.loadtxt(args.input, dtype=str)
-        fname = "oc_db"
+        fname = Path(args.input).stem
 
         prompt_iterator = enumerate(adsorbates)
         state_policy_generator = automate_prompts.get_initial_state_oc
