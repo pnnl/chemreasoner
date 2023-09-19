@@ -19,6 +19,9 @@ with open(Path("data", "input_data", "oc", "oc_20_adsorbates.pkl"), "rb") as f:
         v[1]: (v[0], v[2:]) for k, v in oc_20_ads_structures.items()
     }
 
+with open(Path("data","input_data","oc")/"nist_adsorbates.pkl", "wb") as f:
+    nist_ads_structures = pickle.load(f)
+
 organized_structures = {"fcc": [], "bcc": [], "hcp": []}
 for symbol, z in atomic_numbers.items():
     if reference_states[z] is not None:
@@ -124,6 +127,10 @@ def generate_bulk_ads_pairs(
         )
         new_bulk.center(vacuum=13.0, axis=2)
         ads_mask = np.argwhere(new_bulk.get_tags() == 0)
+        if "translation" in new_ads.info.keys():
+            pos = new_bulk.get_positions()
+            pos[ads_mask] += new_ads.info["translation"]
+            new_bulk.set_positions(pos)
         distance_matrix = new_bulk.get_all_distances(mic=True)
         if all(
             distance_matrix[ads_mask, ~ads_mask] > 0.1
@@ -314,7 +321,14 @@ def ads_symbols_to_structure(syms: str):
         ats.info.update(
             {"binding_molecules": oc_20_ads_structures[syms][1][0].copy()}
         )  # get binding indices
-
+    elif syms.lower() == "ethanol":
+        return ads_symbols_to_structure("*OCH2CH3")
+    elif syms.lower() == "methanol":
+        return ads_symbols_to_structure("*OCH3")
+    elif syms.lower() == "methyl":
+        return ads_symbols_to_structure("*CH3")
+    elif syms.lower() in nist_ads_structures.keys():
+        return nist_ads_structures[syms.lower()]
     else:
         ats = build.molecule(syms)
     ats.info.update({"syms": syms})
