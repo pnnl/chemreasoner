@@ -215,7 +215,7 @@ if __name__ == "__main__":
                 "llm": "gpt-3.5-turbo",
                 "search_methods": ["beam_search"],
                 "reward_function": "llm-reward",
-                "policy": "reasoner-policy",
+                "policy": "coherent-policy",
                 "debug": True,
             }
             args = SimpleNamespace(**args)

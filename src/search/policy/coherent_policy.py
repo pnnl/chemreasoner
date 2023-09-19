@@ -5,6 +5,8 @@ from collections.abc import Callable
 
 import numpy as np
 from scipy.special import softmax
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.exceptions import NotFittedError
 
 sys.path.append("src")
 from search.policy.reasoner_policy import ReasonerPolicy  # noqa:402
@@ -31,6 +33,23 @@ class CoherentPolicy(ReasonerPolicy):
             try_oxides,
         )
         self.temperature = temperature
+        self.min_max = MinMaxScaler()
+
+    def set_min_max_data(self, x: np.ndarray):
+        """Set the min max function from data."""
+        self.min_max.fit(x)
+
+    def update_min_max_data(self, x: np.ndarray):
+        """Set the min max function from data."""
+        self.min_max.partial_fit(x)
+
+    def min_max(self, x: np.ndarray):
+        """Set the min max function from data."""
+        try:
+            self.min_max.transform(x)
+        except NotFittedError:
+            self.update_min_max_data(x)
+            self.min_max.transform(x)
 
     @classmethod
     @staticmethod
@@ -62,11 +81,13 @@ class CoherentPolicy(ReasonerPolicy):
         full_sim_scores = np.zeros_like(priors)
         full_sim_scores[np.array(idx_trial_states)] = np.array(sim_scores)
         if state.reward is not None:
-            reward_adjustment = full_sim_scores * (state.reward) + (
+            reward_adjustment = full_sim_scores * (self.min_max(state.reward)) + (
                 1 - full_sim_scores
-            ) * (1 - state.reward)
+            ) * (1 - self.min_max(state.reward))
         else:
             reward_adjustment = full_sim_scores
+
+        self.min_max
 
         state.info["priors"].update({"reward_adjusted_similarities": reward_adjustment})
 

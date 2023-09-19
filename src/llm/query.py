@@ -289,11 +289,12 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
 
         for state in states:
             relevant_strings.append(state.prompt)
-        if self.debug:
+        if not self.debug:
             embeddings = run_get_embeddings(
                 relevant_strings, model=self.embedding_model
             )
-        embeddings = [np.random.rand(356) for _ in range(len(relevant_strings))]
+        else:
+            embeddings = [np.random.rand(356) for _ in range(len(relevant_strings))]
 
         p = embeddings.pop(0)
         y = embeddings.pop(0)

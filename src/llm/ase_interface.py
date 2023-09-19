@@ -19,7 +19,7 @@ with open(Path("data", "input_data", "oc", "oc_20_adsorbates.pkl"), "rb") as f:
         v[1]: (v[0], v[2:]) for k, v in oc_20_ads_structures.items()
     }
 
-with open(Path("data","input_data","oc")/"nist_adsorbates.pkl", "wb") as f:
+with open(Path("data", "input_data", "oc") / "nist_adsorbates.pkl", "rb") as f:
     nist_ads_structures = pickle.load(f)
 
 organized_structures = {"fcc": [], "bcc": [], "hcp": []}
