@@ -18,7 +18,7 @@ def llm_adsorption_energy_reward(
     e = reward_limit + 1
     attempts = 0
     while e > reward_limit and attempts < max_attempts:
-        e = s.query_adsorption_energy_list()
+        e = s.query_adsorption_energy_list(allow_requery=primary_reward)
         attempts += 1
 
     if attempts == max_attempts:

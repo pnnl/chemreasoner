@@ -189,7 +189,10 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
         )
 
     def query_adsorption_energy_list(
-        self, catalyst_slice=slice(None, None), info_field: str = None
+        self,
+        catalyst_slice=slice(None, None),
+        info_field: str = None,
+        allow_requery=True,
     ):
         """Run a query with the LLM and change the state of self."""
         self.info["llm-reward"] = {"attempted_prompts": []}
@@ -258,7 +261,8 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
                 logging.warning(
                     f"Failed to parse answer with error: {err}. Generating new answer."
                 )
-                self.query()
+                if allow_requery:
+                    self.query()
         logging.warning(
             f"Failed to parse answer with error: {error}. Returning a penalty value."
         )
@@ -413,12 +417,14 @@ def parse_answer(answer: str, num_expected=None):
         final_answer_location = answer.lower().find("final answer")
     if final_answer_location == -1:
         final_answer_location = answer.lower().find("final")  # last ditch effort
+    if final_answer_location == -1:
+        final_answer_location = 0
     list_start = answer.find("[", final_answer_location)
     list_end = answer.find("]", list_start)
     try:
         answer_list = literal_eval(answer[list_start : list_end + 1])  # noqa:E203
     except Exception:
-        answer_list = answer[list_start + 1 : answer.find("]", list_start)]  # noqa:E203
+        answer_list = answer[list_start + 1 : list_end]  # noqa:E203
         answer_list = [ans.replace("'", "") for ans in answer_list.split(",")]
     return [ans.replace('"', "").replace("'", "").strip() for ans in answer_list]
 

@@ -184,7 +184,7 @@ def main(args, policy_string):
                     num_keep=1,
                 )
                 tree.start_timer()
-                num_levels = 4
+                num_levels = 7
                 for j in range(num_levels):
                     print(f"---- {j} ----")
                     tree.step_save(

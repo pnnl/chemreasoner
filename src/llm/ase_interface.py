@@ -251,41 +251,30 @@ def llm_answer_to_symbols(
         "Format your list as:\n"
         f"{example_format}"
     )
-    num_retries = 0
-    while num_retries < 3:
-        try:
-            if not debug:
-                answer_parsed = run_query(
-                    query=prompt, model=model, **{"temperature": 0.0, "top_p": 0}
-                )
-            else:
-                syms = [typical_syms[ans] for ans in answer]
-                return syms
-            answer_list_parsed = [None] * len(answer)
-            for line in answer_parsed.split("\n"):
-                if ":" in line:
-                    cat, syms = line.split(":")
-                    idx = answer.index(cat)  # ensure ording is preserved
-                    syms_list = list(
-                        {
-                            s.strip()
-                            for s in syms.strip().strip("[").strip("]").split(",")
-                        }
-                    )  # Use a set for unique elements only
-                    if syms_list == ["None"]:
-                        syms_list = None
-                    answer_list_parsed[idx] = syms_list
 
-            if return_value:
-                return answer_list_parsed[0]
-            else:
-                return answer_list_parsed
-        except Exception as err:
-            num_retries += 1
-            if num_retries == 3:
-                raise err
-            else:
-                print(f"Unable to parse answer with exception {err}.")
+    if not debug:
+        answer_parsed = run_query(
+            query=prompt, model=model, **{"temperature": 0.0, "top_p": 0}
+        )
+    else:
+        syms = [typical_syms[ans] for ans in answer]
+        return syms
+    answer_list_parsed = [None] * len(answer)
+    for line in answer_parsed.split("\n"):
+        if ":" in line:
+            cat, syms = line.split(":")
+            idx = answer.index(cat)  # ensure ording is preserved
+            syms_list = list(
+                {s.strip() for s in syms.strip().strip("[").strip("]").split(",")}
+            )  # Use a set for unique elements only
+            if syms_list == ["None"]:
+                syms_list = None
+            answer_list_parsed[idx] = syms_list
+
+    if return_value:
+        return answer_list_parsed[0]
+    else:
+        return answer_list_parsed
 
 
 def symbols_list_to_bulk(symbols_list):
