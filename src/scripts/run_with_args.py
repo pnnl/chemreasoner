@@ -100,7 +100,6 @@ def main(args, policy_string):
                 )
 
             if "mcts" in args.search_method:
-                # Do single shot and multi shot querying.
 
                 if args.reward == "llm-reward":
                     reward = llm_reward.llm_adsorption_energy_reward

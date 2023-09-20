@@ -1,6 +1,4 @@
 """Module for reward funciton by calculation of adsorption energies in simulation."""
-import json
-import math
 import sys
 import uuid
 

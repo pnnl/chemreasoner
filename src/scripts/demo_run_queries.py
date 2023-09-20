@@ -82,48 +82,7 @@ def main(args, policy_string):
                 "gpt-3.5-turbo",
                 simulation_reward=args.reward_function == "simulation-reward",
             )
-            print(starting_state.prompt)
-            json_prompts.append(
-                {
-                    "generation_prompt": {
-                        "system": starting_state.system_prompt_generation,
-                        "user": starting_state.prompt,
-                    }
-                }
-            )
-            starting_state.query()
-            starting_state
-            json_prompts[-1].update(
-                {
-                    "energy_calculation_prompt": {
-                        "system": starting_state.system_prompt_reward,
-                        "user": starting_state.adsorption_energy_prompts,
-                    }
-                }
-            )
-            example_format = ""
-            for i, ans in enumerate(starting_state.candidates):
-                example_format += f"{ans}: [list_{i}]\n"
-
-            answer_string = ", ".join(starting_state.candidates)
-            prompt = (
-                f"Consider the following list of catalysts:\n{answer_string}.\n\n"
-                "For each catalyst, return the list of chemical symbols that make up the "
-                "catalyst. If a catalyst does not have a chemical symbol, return None. "
-                "If a catalyst is already a chemical formula, repeat the elements in the "
-                "chemical formula.\n\n"
-                "Format your list as:\n"
-                f"{example_format}"
-            )
-            json_prompts[-1].update(
-                {
-                    "parsing_prompt": {
-                        "system": "",
-                        "user": prompt,
-                    }
-                }
-            )
-
+            starting_state.debug = args.debug
             if args.policy == "coherent-policy":
                 policy = CoherentPolicy.from_reasoner_policy(policy)
             if "single_shot" in args.search_methods:
@@ -140,8 +99,6 @@ def main(args, policy_string):
                 )
 
             if "mcts" in args.search_methods:
-                # Do single shot and multi shot querying.
-                single_shot(starting_state, Path(args.savedir), f"{fname}_{i}.pkl")
 
                 if args.reward_function == "llm-reward":
                     reward = llm_reward.llm_adsorption_energy_reward
@@ -193,6 +150,7 @@ def main(args, policy_string):
                         Path(args.savedir)
                         / f"beam_search_{policy_string}_{fname}_{i}.pkl"
                     )
+
             if args.debug:
                 return 0
 
@@ -202,25 +160,23 @@ if __name__ == "__main__":
 
     for f in [
         "oc_input_0.txt",
-        "oc_input_1.txt",
-        "oc_input_2.txt",
-        "oc_input_3.txt",
-        "biofuels_input_0.csv",
-        "biofuels_input_1.csv",
-        "biofuels_input_2.csv",
-        "biofuels_input_3.csv",
+        # "oc_input_1.txt",
+        # "oc_input_2.txt",
+        # "oc_input_3.txt",
+        # "biofuels_input_0.csv",
+        # "biofuels_input_1.csv",
+        # "biofuels_input_2.csv",
+        # "biofuels_input_3.csv",
     ]:
         if "oc" in f:
             args = {
-                "input": str(
-                    Path("data", "input_data", "biofuels", "biofuels_input_1.csv")
-                ),
+                "input": str(Path("data", "input_data", "oc", f)),
                 "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
                 "llm": "gpt-3.5-turbo",
                 "search_methods": ["beam_search"],
-                "reward_function": "simulation-reward",
+                "reward_function": "llm-reward",
                 "policy": "coherent-policy",
-                "debug": True,
+                "debug": False,
             }
             args = SimpleNamespace(**args)
             main(args, policy_string="reasoner")

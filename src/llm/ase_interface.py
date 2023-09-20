@@ -90,11 +90,7 @@ def generate_bulk_ads_pairs(
     return_value = False
     if site is None:
         s = np.random.choice(list(bulk.info["adsorbate_info"]["sites"].keys()))
-    elif isinstance(site, str):
-        return_value = True
-        s = site
 
-    bulk_ads_pairs = []
     num_tries = 0
     valid = False  # Indicate whether generated structure is valid
     while not valid:

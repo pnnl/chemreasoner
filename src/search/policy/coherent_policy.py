@@ -80,7 +80,6 @@ class CoherentPolicy(ReasonerPolicy):
                 idx_trial_states.append(i)
 
         sim_scores = state.similarity(trial_states)
-        print(state.info["priors"])
 
         full_sim_scores = np.zeros_like(priors)
         full_sim_scores[np.array(idx_trial_states)] = np.array(sim_scores)
