@@ -135,6 +135,7 @@ def main(args, policy_string):
                             pickle.dump(data_list, f)
                 except Exception as err:
                     data_list[-1] = (tree.get_processed_data(), str(err))
+                    print(str(err))
                     pass
 
             if "beam-search" in args.search_method:
@@ -170,6 +171,7 @@ def main(args, policy_string):
                             pickle.dump(data_list, f)
                 except Exception as err:
                     data_list[-1] = (tree.get_processed_data(), str(err))
+                    print(str(err))
                     pass
 
 
