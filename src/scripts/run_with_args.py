@@ -112,6 +112,7 @@ def main(args, policy_string):
                     tradeoff=15,
                     discount_factor=0.9,
                 )
+                data_list.append(None)
                 tree.start_timer()
                 max_steps = 300
                 if not (
@@ -120,10 +121,14 @@ def main(args, policy_string):
                 ).exists():
                     for j in range(max_steps):
                         print(f"---- {j} ----")
-                        tree.step_save(
+
+                        data_list[-1] = tree.step_return()
+                        with open(
                             Path(args.savedir)
-                            / f"mcts_{policy_string}_{args.reward}_{fname}_{i}.pkl"
-                        )
+                            / f"mcts_{policy_string}_{args.reward}_{fname}.pkl",
+                            "wb",
+                        ) as f:
+                            pickle.dump(ata_list, f)
 
             if "beam-search" in args.search_method:
                 if args.reward == "llm-reward":
@@ -145,16 +150,19 @@ def main(args, policy_string):
                 )
                 tree.start_timer()
                 num_levels = 7
+                data_list.append(None)
                 if not (
                     Path(args.savedir)
                     / f"beam_search_{policy_string}_{args.reward}_{fname}_{i}.pkl"
                 ).exists():
                     for j in range(num_levels):
                         print(f"---- {j} ----")
-                        tree.step_save(
+                        data_list[-1] = tree.step_return()
+                        with open(
                             Path(args.savedir)
                             / f"beam_search_{policy_string}_{args.reward}_{fname}_{i}.pkl"
-                        )
+                        ) as f:
+                            pickle.dumpt(data_list, f)
 
 
 if __name__ == "__main__":
