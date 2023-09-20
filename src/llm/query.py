@@ -245,6 +245,7 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
                                     or number != ""
                                 ):
                                     number_answers.append(abs(float(number)))
+                                key_answers.append(k)
                         self.info["llm-reward"]["attempted_prompts"][retries - 1][
                             "key_answers"
                         ].append(key_answers)
@@ -269,12 +270,12 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
             except Exception as err:
                 error = err
                 logging.warning(
-                    f"Failed to parse answer with error: {err}. Generating new answer."
+                    f"Failed to parse answer with error: {str(err)}. Generating new answer."
                 )
                 if allow_requery:
                     self.query()
         logging.warning(
-            f"Failed to parse answer with error: {error}. Returning a penalty value."
+            f"Failed to parse answer with error: {str(error)}. Returning a penalty value."
         )
         return -10
         raise error

@@ -65,7 +65,15 @@ def main(args, policy_string):
         prompt_iterator = df.iterrows()
         state_policy_generator = automate_prompts.get_initial_state_biofuels
 
-    data_list = []
+    results_file = (
+        Path(args.savedir)
+        / f"{args.search_method}_{policy_string}_{args.reward}_{fname}.pkl"
+    )
+    if results_file.exists():
+        with open(results_file, "rb") as f:
+            data_list = pickle.load(f)
+    else:
+        data_list = []
     for i, prompt in prompt_iterator:
         print(prompt)
         state_policy = state_policy_generator(
@@ -112,23 +120,18 @@ def main(args, policy_string):
                     tradeoff=15,
                     discount_factor=0.9,
                 )
-                data_list.append(None)
                 tree.start_timer()
                 max_steps = 300
-                if not (
-                    Path(args.savedir)
-                    / f"mcts_{policy_string}_{args.reward}_{fname}_{i}.pkl"
-                ).exists():
-                    for j in range(max_steps):
-                        print(f"---- {j} ----")
+                data_list.append(None)
+                for j in range(max_steps):
+                    print(f"---- {j} ----")
 
-                        data_list[-1] = tree.step_return()
-                        with open(
-                            Path(args.savedir)
-                            / f"mcts_{policy_string}_{args.reward}_{fname}.pkl",
-                            "wb",
-                        ) as f:
-                            pickle.dump(data_list, f)
+                    data_list[-1] = tree.step_return()
+                    with open(
+                        results_file,
+                        "wb",
+                    ) as f:
+                        pickle.dump(data_list, f)
 
             if "beam-search" in args.search_method:
                 if args.reward == "llm-reward":
@@ -151,18 +154,15 @@ def main(args, policy_string):
                 tree.start_timer()
                 num_levels = 7
                 data_list.append(None)
-                if not (
-                    Path(args.savedir)
-                    / f"beam_search_{policy_string}_{args.reward}_{fname}_{i}.pkl"
-                ).exists():
-                    for j in range(num_levels):
-                        print(f"---- {j} ----")
-                        data_list[-1] = tree.step_return()
-                        with open(
-                            Path(args.savedir)
-                            / f"beam_search_{policy_string}_{args.reward}_{fname}.pkl"
-                        ) as f:
-                            pickle.dumpt(data_list, f)
+                for j in range(num_levels):
+                    print(f"---- {j} ----")
+                    data_list[-1] = tree.step_return()
+                    with open(
+                        Path(args.savedir)
+                        / f"{args.search_method}_{policy_string}_{args.reward}_{fname}.pkl",
+                        "wb",
+                    ) as f:
+                        pickle.dump(data_list, f)
 
 
 if __name__ == "__main__":
