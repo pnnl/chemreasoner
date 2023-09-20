@@ -208,6 +208,8 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
                         "prompt": self.adsorption_energy_prompts,
                         "system_prompt": self.system_prompt_reward,
                         "answer": [],
+                        "key_answers": [],
+                        "number_answers": [],
                     }
                 )
                 answers = []
@@ -247,7 +249,7 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
                             "key_answers"
                         ].append(key_answers)
                         self.info["llm-reward"]["attempted_prompts"][retries - 1][
-                            "key_answers"
+                            "number_answers"
                         ].append(number_answers)
                         if not len(number_answers) == len(self.candidates):
                             raise ValueError(
