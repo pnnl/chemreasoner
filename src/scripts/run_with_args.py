@@ -128,7 +128,7 @@ def main(args, policy_string):
                             / f"mcts_{policy_string}_{args.reward}_{fname}.pkl",
                             "wb",
                         ) as f:
-                            pickle.dump(ata_list, f)
+                            pickle.dump(data_list, f)
 
             if "beam-search" in args.search_method:
                 if args.reward == "llm-reward":
@@ -160,7 +160,7 @@ def main(args, policy_string):
                         data_list[-1] = tree.step_return()
                         with open(
                             Path(args.savedir)
-                            / f"beam_search_{policy_string}_{args.reward}_{fname}_{i}.pkl"
+                            / f"beam_search_{policy_string}_{args.reward}_{fname}.pkl"
                         ) as f:
                             pickle.dumpt(data_list, f)
 
