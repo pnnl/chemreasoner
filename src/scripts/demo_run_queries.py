@@ -183,9 +183,11 @@ def main(args, policy_string):
                     num_generate=2,
                     num_keep=1,
                 )
+
                 tree.start_timer()
-                num_levels = 7
+                num_levels = 2
                 for j in range(num_levels):
+                    print(starting_state.ads_symbols)
                     print(f"---- {j} ----")
                     tree.step_save(
                         Path(args.savedir)
@@ -210,11 +212,13 @@ if __name__ == "__main__":
     ]:
         if "oc" in f:
             args = {
-                "input": str(Path("data", "input_data", "oc", "oc_input_0.txt")),
+                "input": str(
+                    Path("data", "input_data", "biofuels", "biofuels_input_1.csv")
+                ),
                 "savedir": str(Path("data", "output_data", "demo", "oc", "test")),
                 "llm": "gpt-3.5-turbo",
                 "search_methods": ["beam_search"],
-                "reward_function": "llm-reward",
+                "reward_function": "simulation-reward",
                 "policy": "coherent-policy",
                 "debug": True,
             }
@@ -224,13 +228,13 @@ if __name__ == "__main__":
         elif "biofuels" in f:
             args = {
                 "input": str(
-                    Path("data", "input_data", "biofuels", "biofuels_input_0.csv")
+                    Path("data", "input_data", "biofuels", "biofuels_input_1.csv")
                 ),
                 "savedir": str(Path("data", "output_data", "demo", "biofuels", "test")),
                 "llm": "gpt-3.5-turbo",
                 "search_methods": ["beam_search"],
-                "reward_function": "llm-reward",
-                "policy": "reasoner-policy",
+                "reward_function": "simulation-reward",
+                "policy": "coherent-policy",
                 "debug": False,
             }
             args = SimpleNamespace(**args)

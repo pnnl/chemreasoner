@@ -90,6 +90,9 @@ class CoherentPolicy(ReasonerPolicy):
         self.min_max
 
         state.info["priors"].update({"reward_adjusted_similarities": reward_adjustment})
+        state.info["priors"].update(
+            {"reward_adjustment_value": self.min_max(state.reward)}
+        )
 
         new_priors = (
             softmax((reward_adjustment / self.temperature).astype(float)) * priors

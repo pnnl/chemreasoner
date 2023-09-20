@@ -132,6 +132,12 @@ class BeamSearchTree:
         with open(fname, "wb") as f:
             pickle.dump(pickle_data, f)
 
+    def step_return(self):
+        """Take a step and return the tree data."""
+        self.simulation_policy()
+        self.end_timer()
+        return self.get_processed_data()
+
     def step_save(self, fname):
         """Take a simulation step and save the resulting tree state with end_time."""
         self.simulation_policy()

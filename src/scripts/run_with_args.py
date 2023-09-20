@@ -65,6 +65,7 @@ def main(args, policy_string):
         prompt_iterator = df.iterrows()
         state_policy_generator = automate_prompts.get_initial_state_biofuels
 
+    data_list = []
     for i, prompt in prompt_iterator:
         print(prompt)
         state_policy = state_policy_generator(

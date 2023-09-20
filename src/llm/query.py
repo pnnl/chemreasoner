@@ -3,6 +3,7 @@ import datetime
 import logging
 import os
 import re
+import time
 
 from ast import literal_eval
 from copy import deepcopy
@@ -42,7 +43,7 @@ class QueryState:
         embedding_model: str = "text-embedding-ada-002",
         info: dict = None,
         reward: float = None,
-        debug=False,
+        debug=True,
         **kwargs,
     ):
         """Initialize the object."""
@@ -225,10 +226,11 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
                         self.info["llm-reward"]["attempted_prompts"][retries - 1][
                             "answer"
                         ].append(answer)
+                        key_answers = []
                         number_answers = []
                         for line in answer.split("\n"):
                             if ":" in line:
-                                _, number = line.split(":")
+                                k, number = line.split(":")
                                 number = (
                                     number.lower()
                                     .replace("(ev)", "")
@@ -241,6 +243,12 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
                                     or number != ""
                                 ):
                                     number_answers.append(abs(float(number)))
+                        self.info["llm-reward"]["attempted_prompts"][retries - 1][
+                            "key_answers"
+                        ].append(key_answers)
+                        self.info["llm-reward"]["attempted_prompts"][retries - 1][
+                            "key_answers"
+                        ].append(number_answers)
                         if not len(number_answers) == len(self.candidates):
                             raise ValueError(
                                 f"Found {len(number_answers)} adsorption energies. "
@@ -448,8 +456,12 @@ def run_get_embeddings(strings, model="text-embedding-ada-002"):
 
 
 @backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=120)
-def run_query(query, model="gpt-3.5-turbo", system_prompt=None, **gpt_kwargs):
+def run_query(
+    query, model="gpt-3.5-turbo", system_prompt=None, max_pause=15, **gpt_kwargs
+):
     """Query language model for a list of k candidates."""
+    random_wait = np.random.randint(low=0, high=max_pause + 1)
+    time.sleep(random_wait)
     gpt_kwargs["temperature"] = gpt_kwargs.get("temperature", 0.6)
     gpt_kwargs["top_p"] = gpt_kwargs.get("top_p", 0.3)
     gpt_kwargs["max_tokens"] = gpt_kwargs.get("max_tokens", 1300)

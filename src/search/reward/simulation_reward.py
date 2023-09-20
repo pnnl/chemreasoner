@@ -37,11 +37,14 @@ class StructureReward(BaseReward):
         candidates_list = s.candidates
         ads_list = s.ads_symbols
         retries = 0
-        while retries < num_attempts:
+        successful = False
+        while retries < num_attempts and not successful:
+            print("here")
             try:
                 slab_syms = ase_interface.llm_answer_to_symbols(
                     candidates_list, debug=s.debug
                 )
+                successful = True
             except Exception as err:
                 retries += 1
                 if retries == num_attempts:
@@ -50,7 +53,7 @@ class StructureReward(BaseReward):
                     print(err)
                     retries += 1
                     s.query()
-
+        print("here")
         adslab_ats = []  # List to store initial adslabs and indices
         name_candidate_mapping = (
             {}
