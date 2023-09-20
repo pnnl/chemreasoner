@@ -123,15 +123,19 @@ def main(args, policy_string):
                 tree.start_timer()
                 max_steps = 300
                 data_list.append(None)
-                for j in range(max_steps):
-                    print(f"---- {j} ----")
+                try:
+                    for j in range(max_steps):
+                        print(f"---- {j} ----")
 
-                    data_list[-1] = tree.step_return()
-                    with open(
-                        results_file,
-                        "wb",
-                    ) as f:
-                        pickle.dump(data_list, f)
+                        data_list[-1] = (tree.step_return(), "")
+                        with open(
+                            results_file,
+                            "wb",
+                        ) as f:
+                            pickle.dump(data_list, f)
+                except Exception as err:
+                    data_list[-1] = (tree.get_processed_data(), str(err))
+                    pass
 
             if "beam-search" in args.search_method:
                 if args.reward == "llm-reward":
@@ -154,15 +158,19 @@ def main(args, policy_string):
                 tree.start_timer()
                 num_levels = 7
                 data_list.append(None)
-                for j in range(num_levels):
-                    print(f"---- {j} ----")
-                    data_list[-1] = tree.step_return()
-                    with open(
-                        Path(args.savedir)
-                        / f"{args.search_method}_{policy_string}_{args.reward}_{fname}.pkl",
-                        "wb",
-                    ) as f:
-                        pickle.dump(data_list, f)
+                try:
+                    for j in range(num_levels):
+                        print(f"---- {j} ----")
+                        data_list[-1] = (tree.step_return(), "")
+                        with open(
+                            Path(args.savedir)
+                            / f"{args.search_method}_{policy_string}_{args.reward}_{fname}.pkl",
+                            "wb",
+                        ) as f:
+                            pickle.dump(data_list, f)
+                except Exception as err:
+                    data_list[-1] = (tree.get_processed_data(), str(err))
+                    pass
 
 
 if __name__ == "__main__":

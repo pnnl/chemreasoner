@@ -48,7 +48,11 @@ class StructureReward(BaseReward):
             except Exception as err:
                 retries += 1
                 if retries == num_attempts:
-                    raise err
+                    print(
+                        f"Unable to get atomic symbols with error {err}. "
+                        "Returning a penalty value."
+                    )
+                    return -10
                 else:
                     print(err)
                     retries += 1
