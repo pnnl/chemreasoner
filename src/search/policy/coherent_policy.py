@@ -34,22 +34,26 @@ class CoherentPolicy(ReasonerPolicy):
         )
         self.temperature = temperature
         self.min_max = MinMaxScaler()
+        self.min_max.fit([[0]])  # initialize one value
 
-    def set_min_max_data(self, x: np.ndarray):
+    def set_min_max_data(self, x: float):
         """Set the min max function from data."""
+        x = [[x]]
         self.min_max.fit(x)
 
-    def update_min_max_data(self, x: np.ndarray):
+    def update_min_max_data(self, x: float):
         """Set the min max function from data."""
+        x = [[x]]
         self.min_max.partial_fit(x)
 
-    def transform_reward(self, x: np.ndarray):
+    def transform_reward(self, x: float):
         """Set the min max function from data."""
+        x = [[x]]
         try:
-            self.min_max.transform(x)
+            return self.min_max.transform(x)[0][0]
         except NotFittedError:
             self.update_min_max_data(x)
-            self.min_max.transform(x)
+            return self.min_max.transform(x)[0][0]
 
     @classmethod
     @staticmethod
