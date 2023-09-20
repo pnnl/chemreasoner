@@ -43,7 +43,7 @@ class CoherentPolicy(ReasonerPolicy):
         """Set the min max function from data."""
         self.min_max.partial_fit(x)
 
-    def min_max(self, x: np.ndarray):
+    def transform_reward(self, x: np.ndarray):
         """Set the min max function from data."""
         try:
             self.min_max.transform(x)
@@ -81,17 +81,15 @@ class CoherentPolicy(ReasonerPolicy):
         full_sim_scores = np.zeros_like(priors)
         full_sim_scores[np.array(idx_trial_states)] = np.array(sim_scores)
         if state.reward is not None:
-            reward_adjustment = full_sim_scores * (self.min_max(state.reward)) + (
-                1 - full_sim_scores
-            ) * (1 - self.min_max(state.reward))
+            reward_adjustment = full_sim_scores * (
+                self.transform_reward(state.reward)
+            ) + (1 - full_sim_scores) * (1 - self.transform_reward(state.reward))
         else:
             reward_adjustment = full_sim_scores
 
-        self.min_max
-
         state.info["priors"].update({"reward_adjusted_similarities": reward_adjustment})
         state.info["priors"].update(
-            {"reward_adjustment_value": self.min_max(state.reward)}
+            {"reward_adjustment_value": self.transform_reward(state.reward)}
         )
 
         new_priors = (
