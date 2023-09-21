@@ -37,7 +37,6 @@ class StructureReward(BaseReward):
         retries = 0
         successful = False
         while retries < num_attempts and not successful:
-            print("here")
             try:
                 s.query()
                 candidates_list = s.candidates
@@ -56,7 +55,6 @@ class StructureReward(BaseReward):
                 else:
                     print(err)
                     retries += 1
-        print("here")
         adslab_ats = []  # List to store initial adslabs and indices
         name_candidate_mapping = (
             {}
