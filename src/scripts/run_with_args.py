@@ -74,6 +74,8 @@ def main(args, policy_string):
             data_list = pickle.load(f)
     else:
         data_list = []
+
+    idx = 0
     for i, prompt in prompt_iterator:
         print(prompt)
         state_policy = state_policy_generator(
@@ -157,21 +159,31 @@ def main(args, policy_string):
                 )
                 tree.start_timer()
                 num_levels = 7
-                data_list.append(None)
-                try:
-                    for j in range(num_levels):
-                        print(f"---- {j} ----")
-                        data_list[-1] = (tree.step_return(), "")
-                        with open(
-                            Path(args.savedir)
-                            / f"{args.search_method}_{policy_string}_{args.reward}_{fname}.pkl",
-                            "wb",
-                        ) as f:
-                            pickle.dump(data_list, f)
-                except Exception as err:
-                    data_list[-1] = (tree.get_processed_data(), str(err))
-                    print(str(err))
-                    pass
+                if len(data_list) == idx:
+                    data_list.append(None)
+                    error = None
+                else:
+                    _, error = data_list[idx]
+
+                if (
+                    error is None
+                    or "'ellipsis' object has no attribute 'replace'" in error
+                ):
+                    try:
+                        for j in range(num_levels):
+                            print(f"---- {j} ----")
+                            data_list[idx] = (tree.step_return(), "")
+                            with open(
+                                Path(args.savedir)
+                                / f"{args.search_method}_{policy_string}_{args.reward}_{fname}.pkl",
+                                "wb",
+                            ) as f:
+                                pickle.dump(data_list, f)
+                    except Exception as err:
+                        data_list[idx] = (tree.get_processed_data(), str(err))
+                        print(str(err))
+                        pass
+        idx += 1
 
 
 if __name__ == "__main__":
