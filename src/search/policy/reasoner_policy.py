@@ -46,7 +46,8 @@ class IncludePropertyAdder:
         new_state = state.return_next()
         _add_property(new_state.include_list, self.property_name)
         if not trial:
-            new_state.query()
+            pass
+            # new_state.query()
         return new_state
 
 
@@ -62,7 +63,8 @@ class ExcludePropertyAdder:
         new_state = state.return_next()
         _add_property(new_state.exclude_list, self.property_name)
         if not trial:
-            new_state.query()
+            pass
+            # new_state.query()
         return new_state
 
 
@@ -86,7 +88,8 @@ class RelationToCandidateListChanger:
         new_state = state.return_next()
         new_state.relation_to_candidate_list = self.relationship_name
         if not trial:
-            new_state.query()
+            pass
+            # new_state.query()
         return new_state
 
 
@@ -113,7 +116,8 @@ class CatalystLabelChanger:
         else:
             new_state.catalyst_label = f"{self.catalyst_label_type}catalysts"
         if not trial:
-            new_state.query()
+            pass
+            # new_state.query()
         return new_state
 
 
@@ -127,14 +131,16 @@ def toggle_oxide(state, trial=False):
             "catalysts", "oxide catalysts"
         )
     if not trial:
-        new_state.query()
+        pass
+        # new_state.query()
     return new_state
 
 
 def _query_again(state, trial=False):
     new_state = state.return_next()
     if not trial:
-        new_state.query()
+        pass
+        # new_state.query()
     return new_state
 
 

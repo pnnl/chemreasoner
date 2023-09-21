@@ -32,13 +32,15 @@ class StructureReward(BaseReward):
 
     def __call__(self, s: query.QueryState, num_attempts=3):
         """Return the calculated adsorption energy from the predicted catalysts."""
-        candidates_list = s.candidates
+
         ads_list = s.ads_symbols
         retries = 0
         successful = False
         while retries < num_attempts and not successful:
             print("here")
             try:
+                s.query()
+                candidates_list = s.candidates
                 slab_syms = ase_interface.llm_answer_to_symbols(
                     candidates_list, debug=s.debug
                 )
@@ -54,7 +56,6 @@ class StructureReward(BaseReward):
                 else:
                     print(err)
                     retries += 1
-                    s.query()
         print("here")
         adslab_ats = []  # List to store initial adslabs and indices
         name_candidate_mapping = (

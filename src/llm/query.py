@@ -203,6 +203,8 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
         while retries < 3:
             retries += 1
             try:  # Try parsing out the given answer
+                if allow_requery:
+                    self.query()
                 self.info["llm-reward"]["attempted_prompts"].append(
                     {
                         "prompt": self.adsorption_energy_prompts,
@@ -272,8 +274,6 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
                 logging.warning(
                     f"Failed to parse answer with error: {str(err)}. Generating new answer."
                 )
-                if allow_requery:
-                    self.query()
         logging.warning(
             f"Failed to parse answer with error: {str(error)}. Returning a penalty value."
         )
