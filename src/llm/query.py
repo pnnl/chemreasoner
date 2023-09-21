@@ -7,7 +7,6 @@ import time
 
 from ast import literal_eval
 from copy import deepcopy
-from typing import Union
 
 import backoff
 

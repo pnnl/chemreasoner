@@ -225,7 +225,7 @@ typical_syms = {
 
 
 def llm_answer_to_symbols(
-    answer=Union[str, list[str]],
+    answer: list[str],
     model="gpt-3.5-turbo",
     debug=False,
     num_attempts=3,
@@ -233,27 +233,7 @@ def llm_answer_to_symbols(
     """Turn an llm answer into a list of atomic symbols or None if not possible."""
     from llm.query import run_query  # noqa: E402
 
-    return_value = False
-    if isinstance(answer, str):
-        answer = [answer]
-        return_value = True
-
-    print(answer)
-
-    example_format = ""
-    for i, ans in enumerate(answer):
-        example_format += f"{ans}: [list_{i}]\n"
-
-    answer_string = ", ".join(answer)
-    prompt = (
-        f"Consider the following list of catalysts:\n{answer_string}.\n\n"
-        "For each catalyst, return the list of chemical symbols that make up the "
-        "catalyst. If a catalyst does not have a chemical symbol, return None. "
-        "If a catalyst is already a chemical formula, repeat the elements in the "
-        "chemical formula.\n\n"
-        "Format your list as:\n"
-        f"{example_format}"
-    )
+    prompt = llm_answer_to_symbols_prompt(answer)
 
     if not debug:
         answer_parsed = run_query(
@@ -275,10 +255,27 @@ def llm_answer_to_symbols(
                 syms_list = None
             answer_list_parsed[idx] = syms_list
 
-    if return_value:
-        return answer_list_parsed[0]
-    else:
-        return answer_list_parsed
+    return answer_list_parsed
+
+
+def llm_answer_to_symbols_prompt(answer: list[str]):
+    """Turn an llm_answer into a prompt for symbols_parsing."""
+
+    example_format = ""
+    for i, ans in enumerate(answer):
+        example_format += f"{ans}: [list_{i}]\n"
+
+    answer_string = ", ".join(answer)
+    prompt = (
+        f"Consider the following list of catalysts:\n{answer_string}.\n\n"
+        "For each catalyst, return the list of chemical symbols that make up the "
+        "catalyst. If a catalyst does not have a chemical symbol, return None. "
+        "If a catalyst is already a chemical formula, repeat the elements in the "
+        "chemical formula.\n\n"
+        "Format your list as:\n"
+        f"{example_format}"
+    )
+    return prompt
 
 
 def symbols_list_to_bulk(symbols_list):

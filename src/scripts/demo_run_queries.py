@@ -82,6 +82,33 @@ def main(args, policy_string):
                 "gpt-3.5-turbo",
                 simulation_reward=args.reward_function == "simulation-reward",
             )
+            print(starting_state.prompt)
+            json_prompts.append(
+                {
+                    "generation_prompt": {
+                        "system": starting_state.system_prompt_generation,
+                        "user": starting_state.prompt,
+                    }
+                }
+            )
+            starting_state
+            json_prompts[-1].update(
+                {
+                    "energy_calculation_prompt": {
+                        "system": starting_state.system_prompt_reward,
+                        "adsorbates": starting_state.ads_symbols,
+                    }
+                }
+            )
+            print(starting_state.ads_symbols)
+            json_prompts[-1].update(
+                {
+                    "parsing_prompt": {
+                        "system": "",
+                    }
+                }
+            )
+            continue
             starting_state.debug = args.debug
             if args.policy == "coherent-policy":
                 policy = CoherentPolicy.from_reasoner_policy(policy)
@@ -151,7 +178,7 @@ def main(args, policy_string):
                         / f"beam_search_{policy_string}_{fname}_{i}.pkl"
                     )
 
-            if args.debug:
+            if args.debug and False:
                 return 0
 
 
@@ -160,13 +187,13 @@ if __name__ == "__main__":
 
     for f in [
         "oc_input_0.txt",
-        # "oc_input_1.txt",
-        # "oc_input_2.txt",
-        # "oc_input_3.txt",
-        # "biofuels_input_0.csv",
-        # "biofuels_input_1.csv",
-        # "biofuels_input_2.csv",
-        # "biofuels_input_3.csv",
+        "oc_input_1.txt",
+        "oc_input_2.txt",
+        "oc_input_3.txt",
+        "biofuels_input_0.csv",
+        "biofuels_input_1.csv",
+        "biofuels_input_2.csv",
+        "biofuels_input_3.csv",
     ]:
         if "oc" in f:
             args = {
@@ -176,16 +203,14 @@ if __name__ == "__main__":
                 "search_methods": ["beam_search"],
                 "reward_function": "llm-reward",
                 "policy": "coherent-policy",
-                "debug": False,
+                "debug": True,
             }
             args = SimpleNamespace(**args)
             main(args, policy_string="reasoner")
 
         elif "biofuels" in f:
             args = {
-                "input": str(
-                    Path("data", "input_data", "biofuels", "biofuels_input_1.csv")
-                ),
+                "input": str(Path("data", "input_data", "biofuels", f)),
                 "savedir": str(Path("data", "output_data", "demo", "biofuels", "test")),
                 "llm": "gpt-3.5-turbo",
                 "search_methods": ["beam_search"],
