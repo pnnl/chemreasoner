@@ -5,6 +5,7 @@ import sys
 import time
 
 from pathlib import Path
+from traceback import format_exc
 from types import SimpleNamespace
 
 import numpy as np
@@ -88,6 +89,7 @@ def main(args, policy_string):
             starting_state, policy = state_policy
             if args.policy == "coherent-policy":
                 policy = CoherentPolicy.from_reasoner_policy(policy)
+
             if "single_shot" in args.search_method:
                 single_shot(
                     starting_state.copy(), Path(args.savedir), f"{fname}_{i}.pkl"
@@ -136,16 +138,19 @@ def main(args, policy_string):
                         for j in range(max_steps):
                             print(f"---- {j} ----")
 
-                            data_list[-1] = (tree.step_return(), "")
+                            data_list[idx] = (tree.step_return(), "", "")
                             with open(
                                 results_file,
                                 "wb",
                             ) as f:
                                 pickle.dump(data_list, f)
                     except Exception as err:
-                        data_list[-1] = (tree.get_processed_data(), str(err))
+                        data_list[idx] = (
+                            tree.get_processed_data(),
+                            str(err),
+                            format_exc(),
+                        )
                         print(str(err))
-                        pass
 
             if "beam-search" in args.search_method:
                 if args.reward == "llm-reward":
@@ -171,7 +176,7 @@ def main(args, policy_string):
                     data_list.append(None)
                     error = None
                 else:
-                    _, error = data_list[idx]
+                    _, error, trace = data_list[idx]
 
                 if (
                     error is None
@@ -180,7 +185,7 @@ def main(args, policy_string):
                     try:
                         for j in range(num_levels):
                             print(f"---- {j} ----")
-                            data_list[idx] = (tree.step_return(), "")
+                            data_list[idx] = (tree.step_return(), "", "")
                             with open(
                                 Path(args.savedir)
                                 / f"{args.search_method}_{policy_string}_{args.reward}_{fname}.pkl",
@@ -188,10 +193,15 @@ def main(args, policy_string):
                             ) as f:
                                 pickle.dump(data_list, f)
                     except Exception as err:
-                        data_list[idx] = (tree.get_processed_data(), str(err))
+                        data_list[idx] = (
+                            tree.get_processed_data(),
+                            str(err),
+                            format_exc(),
+                        )
                         print(str(err))
+                        data_list[idx][2]
                         pass
-        idx += 1
+            idx += 1
 
 
 if __name__ == "__main__":
