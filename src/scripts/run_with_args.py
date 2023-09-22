@@ -24,30 +24,47 @@ np.random.seed(11)
 
 def single_shot(starting_state, directory, fname):
     """Save a single_shot_query."""
+    reward = simulation_reward.StructureReward(
+        num_adslab_samples=16,
+        num_slab_samples=16,
+        device="cuda:0",
+        model="gemnet",
+        traj_dir=Path("data/output/trajectories/pipeline_test"),
+    )
+    starting_state.copy()
     start_time = time.time()
     starting_state.query()
+    reward(starting_state)
     end_time = time.time()
     saving_data = vars(starting_state)
-    saving_data["node_rewards"] = llm_reward.llm_adsorption_energy_reward(
-        starting_state
-    )
+    saving_data["node_rewards"] = starting_state.reward
     saving_data["start_time"] = start_time
     saving_data["end_time"] = end_time
-    with open(directory / ("single_shot_" + fname), "wb") as f:
-        pickle.dump(saving_data, f)
+    return saving_data
 
 
 def multi_shot(starting_state, directory: Path, fname, num_trials=10):
     """Save a single_shot_query."""
+    reward = simulation_reward.StructureReward(
+        num_adslab_samples=16,
+        num_slab_samples=16,
+        device="cuda:0",
+        model="gemnet",
+        traj_dir=Path("data/output/trajectories/pipeline_test"),
+    )
+    results_list = []
     for j in range(10):
         starting_state = starting_state.copy()
+        start_time = time.time()
         starting_state.query()
+        reward(starting_state)
+        end_time = time.time()
         saving_data = vars(starting_state)
-        saving_data["node_rewards"] = llm_reward.llm_adsorption_energy_reward(
-            starting_state
-        )
-        with open(directory / (f"multi_shot_{j}_" + fname), "wb") as f:
-            pickle.dump(saving_data, f)
+        saving_data["node_rewards"] = starting_state.reward
+        saving_data["start_time"] = start_time
+        saving_data["end_time"] = end_time
+        results_list.append(saving_data)
+    return results_list
 
 
 def main(args, policy_string):
