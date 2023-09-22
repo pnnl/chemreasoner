@@ -123,21 +123,29 @@ def main(args, policy_string):
                 )
                 tree.start_timer()
                 max_steps = 300
-                data_list.append(None)
-                try:
-                    for j in range(max_steps):
-                        print(f"---- {j} ----")
+                if len(data_list) == idx:
+                    data_list.append(None)
+                    error = None
+                else:
+                    _, error = data_list[idx]
+                if (
+                    error is None
+                    or "'ellipsis' object has no attribute 'replace'" in error
+                ):
+                    try:
+                        for j in range(max_steps):
+                            print(f"---- {j} ----")
 
-                        data_list[-1] = (tree.step_return(), "")
-                        with open(
-                            results_file,
-                            "wb",
-                        ) as f:
-                            pickle.dump(data_list, f)
-                except Exception as err:
-                    data_list[-1] = (tree.get_processed_data(), str(err))
-                    print(str(err))
-                    pass
+                            data_list[-1] = (tree.step_return(), "")
+                            with open(
+                                results_file,
+                                "wb",
+                            ) as f:
+                                pickle.dump(data_list, f)
+                    except Exception as err:
+                        data_list[-1] = (tree.get_processed_data(), str(err))
+                        print(str(err))
+                        pass
 
             if "beam-search" in args.search_method:
                 if args.reward == "llm-reward":
