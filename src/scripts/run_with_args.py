@@ -141,7 +141,7 @@ def main(args, policy_string):
                     discount_factor=0.9,
                 )
                 tree.start_timer()
-                max_steps = 350
+                max_steps = 300
                 if len(data_list) == idx:
                     data_list.append(None)
                     error = None
@@ -188,7 +188,7 @@ def main(args, policy_string):
                     num_keep=6,
                 )
                 tree.start_timer()
-                num_levels = 6
+                num_levels = 5
                 if len(data_list) == idx:
                     data_list.append(None)
                     error = None
