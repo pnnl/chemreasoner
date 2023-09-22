@@ -95,7 +95,8 @@ def main(args, policy_string):
 
     idx = 0
     for i, prompt in prompt_iterator:
-        print(prompt)
+        print(f"*\n*\n*\n*\n{prompt}*\n*\n*\n*\n")
+
         state_policy = state_policy_generator(
             prompt,
             "gpt-3.5-turbo",
@@ -103,6 +104,7 @@ def main(args, policy_string):
             simulation_reward=args.reward == "simulation-reward",
         )
         if state_policy is not None:
+            print(f"*\n*\n*\n*\n{prompt}*\n*\n*\n*\n------COUNT: {idx}------")
             starting_state, policy = state_policy
             if args.policy == "coherent-policy":
                 policy = CoherentPolicy.from_reasoner_policy(policy)
@@ -184,11 +186,11 @@ def main(args, policy_string):
                     data=starting_state,
                     policy=policy,
                     reward_fn=reward,
-                    num_generate=12,
+                    num_generate=8,
                     num_keep=6,
                 )
                 tree.start_timer()
-                num_levels = 5
+                num_levels = 6
                 if len(data_list) == idx:
                     data_list.append(None)
                     error = None

@@ -164,7 +164,7 @@ def main(args, policy_string):
                     data=starting_state,
                     policy=policy,
                     reward_fn=reward,
-                    num_generate=12,
+                    num_generate=8,
                     num_keep=6,
                 )
 

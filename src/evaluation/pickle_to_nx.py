@@ -198,8 +198,7 @@ if __name__ == "__main__":
             if "beam-search" in str(p):
                 graph = bfs_to_nx(tree_data)
             else:
-                graph = None
-                # graph = search_tree_to_nx(tree_data)
+                graph = search_tree_to_nx(tree_data)
 
             print(graph)
 
