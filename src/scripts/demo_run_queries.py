@@ -108,7 +108,7 @@ def main(args, policy_string):
                     }
                 }
             )
-            continue
+
             starting_state.debug = args.debug
             if args.policy == "coherent-policy":
                 policy = CoherentPolicy.from_reasoner_policy(policy)
@@ -164,12 +164,12 @@ def main(args, policy_string):
                     data=starting_state,
                     policy=policy,
                     reward_fn=reward,
-                    num_generate=2,
-                    num_keep=1,
+                    num_generate=12,
+                    num_keep=6,
                 )
 
                 tree.start_timer()
-                num_levels = 2
+                num_levels = 6
                 for j in range(num_levels):
                     print(starting_state.ads_symbols)
                     print(f"---- {j} ----")
@@ -177,8 +177,16 @@ def main(args, policy_string):
                         Path(args.savedir)
                         / f"beam_search_{policy_string}_{fname}_{i}.pkl"
                     )
+                length = 0
+                for sub_l in tree.nodes:
+                    length += len(sub_l)
+                    print(len(sub_l))
+                for sub_l in tree.generated_nodes:
+                    length += len(sub_l)
+                    print(len(sub_l))
+                print(length)
 
-            if args.debug and False:
+            if args.debug:
                 return 0
 
 
@@ -187,13 +195,13 @@ if __name__ == "__main__":
 
     for f in [
         "oc_input_0.txt",
-        "oc_input_1.txt",
-        "oc_input_2.txt",
-        "oc_input_3.txt",
-        "biofuels_input_0.csv",
-        "biofuels_input_1.csv",
-        "biofuels_input_2.csv",
-        "biofuels_input_3.csv",
+        # "oc_input_1.txt",
+        # "oc_input_2.txt",
+        # "oc_input_3.txt",
+        # "biofuels_input_0.csv",
+        # "biofuels_input_1.csv",
+        # "biofuels_input_2.csv",
+        # "biofuels_input_3.csv",
     ]:
         if "oc" in f:
             args = {
