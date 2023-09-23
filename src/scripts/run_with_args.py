@@ -31,15 +31,25 @@ def single_shot(starting_state, directory, fname):
         model="gemnet",
         traj_dir=Path("data/output/trajectories/pipeline_test"),
     )
+
     starting_state.copy()
+
     start_time = time.time()
     starting_state.query()
     reward(starting_state)
+    starting_state.set_reward(
+        llm_reward.llm_adsorption_energy_reward(
+            starting_state,
+            primary_reward=False,
+        )
+    )
     end_time = time.time()
+
     saving_data = vars(starting_state)
     saving_data["node_rewards"] = starting_state.reward
     saving_data["start_time"] = start_time
     saving_data["end_time"] = end_time
+    saving_data["total_time"] = end_time - start_time
     return saving_data
 
 
@@ -55,10 +65,18 @@ def multi_shot(starting_state, directory: Path, fname, num_trials=10):
     results_list = []
     for j in range(10):
         starting_state = starting_state.copy()
+
         start_time = time.time()
         starting_state.query()
         reward(starting_state)
+        starting_state.set_reward(
+            llm_reward.llm_adsorption_energy_reward(
+                starting_state,
+                primary_reward=False,
+            )
+        )
         end_time = time.time()
+
         saving_data = vars(starting_state)
         saving_data["node_rewards"] = starting_state.reward
         saving_data["start_time"] = start_time
@@ -109,12 +127,42 @@ def main(args, policy_string):
             if args.policy == "coherent-policy":
                 policy = CoherentPolicy.from_reasoner_policy(policy)
 
-            if "single_shot" in args.search_method:
-                single_shot(
-                    starting_state.copy(), Path(args.savedir), f"{fname}_{i}.pkl"
-                )
+            if "single-shot" in args.search_method:
+                if len(data_list) == idx:
+                    data_list.append(None)
+                    error = None
+                else:
+                    _, error = data_list[idx]
+                if (
+                    error is None
+                    or "'ellipsis' object has no attribute 'replace'" in error
+                ):
+                    try:
+                        data_list[idx] = single_shot(
+                            starting_state.copy(),
+                        )
+                        with open(
+                            Path(args.savedir) / f"{args.search_method}_{fname}.pkl",
+                            "wb",
+                        ) as f:
+                            pickle.dump(data_list, f)
+                    except Exception as err:
+                        data_list[idx] = (
+                            vars(starting_state),
+                            str(err),
+                            format_exc(),
+                        )
+                        data_list[idx] = single_shot(
+                            starting_state.copy(),
+                        )
+                        with open(
+                            Path(args.savedir) / f"{args.search_method}_{fname}.pkl",
+                            "wb",
+                        ) as f:
+                            pickle.dump(data_list, f)
+                        print(str(err))
 
-            if "multi_shot" in args.search_method:
+            if "multi-shot" in args.search_method:
                 multi_shot(
                     starting_state.copy(),
                     Path(args.savedir),
@@ -148,7 +196,7 @@ def main(args, policy_string):
                     data_list.append(None)
                     error = None
                 else:
-                    _, error = data_list[idx]
+                    _, error, trace = data_list[idx]
                 if (
                     error is None
                     or "'ellipsis' object has no attribute 'replace'" in error
@@ -219,7 +267,6 @@ def main(args, policy_string):
                         )
                         print(str(err))
                         data_list[idx][2]
-                        pass
             idx += 1
 
 
