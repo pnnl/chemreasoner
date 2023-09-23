@@ -169,7 +169,7 @@ def main(args, policy_string):
                 )
 
                 tree.start_timer()
-                num_levels = 6
+                num_levels = 5
                 for j in range(num_levels):
                     print(starting_state.ads_symbols)
                     print(f"---- {j} ----")
