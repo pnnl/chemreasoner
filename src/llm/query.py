@@ -496,15 +496,7 @@ def run_query(
         init_llama()
         global llama_generator
         sys_prompt = "" if system_prompt is None else system_prompt
-        gen_prompt = (
-            "<s>[INST] <<SYS>>\n"
-            + sys_prompt
-            + "\n<</SYS>>"
-            + "\n\n"
-            + query
-            + " [/INST]"
-        )
-        answer = llama_generator(gen_prompt)
+        answer = generate_cand(llama_generator, sys_prompt, query)
         logging.info(answer)
         return answer  # Skip usage statistics for now
     logging.info(f"--------------------\nQ: {query}\n--------------------")
