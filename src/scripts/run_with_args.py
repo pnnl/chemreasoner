@@ -22,7 +22,7 @@ np.random.seed(11)
 # from search.methods.sampling import single_shot, multi_shot  # noqa: E402
 
 
-def single_shot(starting_state, directory, fname):
+def single_shot(starting_state):
     """Save a single_shot_query."""
     reward = simulation_reward.StructureReward(
         num_adslab_samples=16,

@@ -9,8 +9,12 @@ from ast import literal_eval
 from copy import deepcopy
 
 import backoff
+import torch
 
+from huggingface_hub import login
 import numpy as np
+from transformers import AutoTokenizer, LlamaForCausalLM
+from transformers import pipeline
 
 import openai
 from openai.embeddings_utils import get_embeddings, cosine_similarity
@@ -460,7 +464,7 @@ def run_get_embeddings(strings, model="text-embedding-ada-002"):
 
 @backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=120)
 def run_query(
-    query, model="gpt-3.5-turbo", system_prompt=None, max_pause=15, **gpt_kwargs
+    query, model="gpt-3.5-turbo", system_prompt=None, max_pause=0, **gpt_kwargs
 ):
     """Query language model for a list of k candidates."""
     random_wait = np.random.randint(low=0, high=max_pause + 1)
@@ -488,6 +492,20 @@ def run_query(
             model=model, messages=messages, **gpt_kwargs
         )
         answer = output["choices"][0]["message"]["content"]
+    elif "llama" in model:
+        init_llama()
+        global llama_generator
+        sys_prompt = "" if system_prompt is None else system_prompt
+        gen_prompt = (
+            "<s>[INST] <<SYS>>\n"
+            + sys_prompt
+            + "\n<</SYS>>"
+            + "\n\n"
+            + query
+            + " [/INST]"
+        )
+        answer = llama_generator(gen_prompt)
+        return answer  # Skip usage statistics for now
     logging.info(f"--------------------\nQ: {query}\n--------------------")
 
     global query_counter
@@ -510,4 +528,41 @@ def run_query(
     return answer
 
 
+llama_generator = None
+
+
+def init_llama():
+    """Initialize the llama model and load in on the gpu."""
+    global llama_generator
+    if llama_generator is None:
+        device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+        print(device)
+        llama_generator = pipeline(
+            model="meta-llama/Llama-2-13b-chat-hf", device=device
+        )
+
+
+def generate_cand(generator, sys_prompt, user_prompt):
+    # sys_prompt =  prompt['generation_prompt']['system']
+    # user_prompt = prompt['generation_prompt']['user']
+    gen_prompt = (
+        "<s>[INST] <<SYS>>\n"
+        + sys_prompt
+        + "\n<</SYS>>"
+        + "\n\n"
+        + user_prompt
+        + " [/INST]"
+    )
+    # print(gen_prompt)
+    answer = generator(gen_prompt)
+    return answer
+
+
 init_openai()
+
+if __name__ == "__main__":
+    run_query(
+        "Generate a phrase that says 'I did it'",
+        model="llama",
+        system_prompt="Do what I say.",
+    )
