@@ -117,8 +117,8 @@ def main(args, policy_string):
 
         state_policy = state_policy_generator(
             prompt,
-            args.model,
-            args.model,
+            args.llm,
+            args.llm,
             simulation_reward=args.reward == "simulation-reward",
         )
         if state_policy is not None:
