@@ -6,6 +6,7 @@
 *.DS_Store
 *.xyz
 *.traj
+*.sdf
 *.pt
 data/output_data/
 ext/*/*.yml
