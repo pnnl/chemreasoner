@@ -505,6 +505,7 @@ def run_query(
             + " [/INST]"
         )
         answer = llama_generator(gen_prompt)
+        logging.info(answer)
         return answer  # Skip usage statistics for now
     logging.info(f"--------------------\nQ: {query}\n--------------------")
 
