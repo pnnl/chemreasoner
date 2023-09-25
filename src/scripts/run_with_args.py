@@ -117,8 +117,8 @@ def main(args, policy_string):
 
         state_policy = state_policy_generator(
             prompt,
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo",
+            args.model,
+            args.model,
             simulation_reward=args.reward == "simulation-reward",
         )
         if state_policy is not None:

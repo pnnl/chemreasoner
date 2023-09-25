@@ -557,7 +557,7 @@ def generate_cand(generator, sys_prompt, user_prompt):
     )
     # print(gen_prompt)
     answer = generator(gen_prompt)
-    return answer
+    return answer[0]["generated_text"].split("[/INST]")[-1]
 
 
 init_openai()
