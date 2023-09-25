@@ -533,6 +533,8 @@ llama_generator = None
 
 def init_llama():
     """Initialize the llama model and load in on the gpu."""
+    llama_key = os.getenv("LLAMA_KEY")
+    login(llama_key)
     global llama_generator
     if llama_generator is None:
         device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
