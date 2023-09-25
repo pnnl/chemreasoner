@@ -563,8 +563,10 @@ def generate_cand(generator, sys_prompt, user_prompt):
 init_openai()
 
 if __name__ == "__main__":
-    run_query(
-        "Generate a phrase that says 'I did it'",
-        model="llama",
-        system_prompt="Do what I say.",
+    logging.info(
+        run_query(
+            "Generate a phrase that says 'I did it'",
+            model="llama",
+            system_prompt="Do what I say.",
+        )
     )
