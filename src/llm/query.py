@@ -527,9 +527,17 @@ def run_query(
 llama_generator = None
 
 
+def get_device():
+    """Get proper device for llama."""
+    if torch.cuda.is_available():
+        return f"cuda:{torch.cuda.device_count() - 1}"
+    else:
+        return "cpu"
+
+
 def init_llama(llama_weights="meta-llama/Llama-2-13b-chat-hf"):
     """Initialize the llama model and load in on the gpu."""
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    device = get_device
     global llama_generator  # , llama_model, llama_tokenizer
     # if llama_model is None:
 
