@@ -121,13 +121,13 @@ class StructureReward(BaseReward):
         s.info["simulation-reward"].update(
             {"slab_syms": slab_syms, "value": final_reward}
         )
-
-        # s.set_reward(
-        #     llm_adsorption_energy_reward(
-        #         s,
-        #         primary_reward=False,
-        #     )
-        # )
+        if "llama" in s.reward_model:
+            s.set_reward(
+                llm_adsorption_energy_reward(
+                    s,
+                    primary_reward=False,
+                )
+            )
         return final_reward  # return mean over candidates
 
     def create_batches_and_calculate(self, adslabs):
