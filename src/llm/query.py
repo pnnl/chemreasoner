@@ -536,11 +536,13 @@ def init_llama(llama_weights="meta-llama/Llama-2-13b-chat-hf"):
     if llama_model is None:
         llama_key = os.getenv("LLAMA_KEY")
         login(llama_key)
-        llama_model = pipeline(model=llama_weights, device=device)
+        llama_model = pipeline(
+            model="meta-llama/Llama-2-13b-chat-hf", device_map=device
+        )
     if llama_generator is None:
-        llama_generator = pipeline(model=llama_model, device=device)
+        llama_generator = pipeline(model="meta-llama/Llama-2-13b-chat-hf")
     if llama_tokenizer is None:
-        llama_tokenizer = pipeline(model=llama_model, device=device)
+        llama_tokenizer = pipeline(model="meta-llama/Llama-2-13b-chat-hf")
 
 
 def generate_cand(generator, sys_prompt, user_prompt):
