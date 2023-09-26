@@ -537,7 +537,7 @@ def get_device():
 
 def init_llama(llama_weights="meta-llama/Llama-2-13b-chat-hf"):
     """Initialize the llama model and load in on the gpu."""
-    device = get_device
+    device = get_device()
     global llama_generator  # , llama_model, llama_tokenizer
     # if llama_model is None:
 
