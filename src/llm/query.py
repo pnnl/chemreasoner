@@ -536,11 +536,13 @@ def init_llama(llama_weights="meta-llama/Llama-2-13b-chat-hf"):
     if llama_model is None:
         llama_key = os.getenv("LLAMA_KEY")
         login(llama_key)
-        llama_model = pipeline(model="meta-llama/Llama-2-13b-chat-hf", device=device)
+        llama_model = LlamaForCausalLM.from_pretrained(
+            model="meta-llama/Llama-2-13b-chat-hf", device=device
+        )
     if llama_generator is None:
-        llama_generator = pipeline(model="meta-llama/Llama-2-13b-chat-hf")
+        llama_generator = pipeline(model=llama_model)
     if llama_tokenizer is None:
-        llama_tokenizer = pipeline(model="meta-llama/Llama-2-13b-chat-hf")
+        llama_tokenizer = LlamaTokenizer(model=llama_model)
 
 
 def generate_cand(generator, sys_prompt, user_prompt):
@@ -562,6 +564,7 @@ def generate_cand(generator, sys_prompt, user_prompt):
 def llama_get_embeddings(strings):
     """Get the embeddings with the given llama model."""
     init_llama()
+    global llama_model, llama_tokenizer
     input_ids = torch.tensor(llama_tokenizer.encode(strings)).unsqueeze(0)
     logging.info(f"Input_ids:\n{input_ids}")
     outputs = llama_model(input_ids)
