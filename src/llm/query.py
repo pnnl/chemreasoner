@@ -529,7 +529,7 @@ llama_model = None
 llama_tokenizer = None
 
 
-def init_llama(llama_weights="meta-llama/Llama-2-7b-chat-hf"):
+def init_llama(llama_weights="meta-llama/Llama-2-13b-chat-hf"):
     """Initialize the llama model and load in on the gpu."""
     llama_key = os.getenv("LLAMA_KEY")
     login(llama_key)
