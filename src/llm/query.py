@@ -537,7 +537,7 @@ def init_llama(llama_weights="meta-llama/Llama-2-13b-chat-hf"):
         llama_key = os.getenv("LLAMA_KEY")
         login(llama_key)
         llama_model = LlamaForCausalLM.from_pretrained(
-            "meta-llama/Llama-2-13b-chat-hf", device_map=device
+            "meta-llama/Llama-2-13b-chat-hf", device=device
         )
     if llama_generator is None:
         llama_generator = pipeline(model=llama_model)
