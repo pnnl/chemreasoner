@@ -579,7 +579,5 @@ if __name__ == "__main__":
     logging.info(
         llama_get_embeddings(
             ["string for embeddings 1", "acka gobagfs string to distract the mind!"],
-            model="llama",
-            system_prompt="Do what I say.",
         )
     )
