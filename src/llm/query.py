@@ -547,6 +547,7 @@ def init_llama(llama_weights="meta-llama/Llama-2-13b-chat-hf"):
 def generate_cand(generator, sys_prompt, user_prompt):
     # sys_prompt =  prompt['generation_prompt']['system']
     # user_prompt = prompt['generation_prompt']['user']
+    init_llama()
     gen_prompt = (
         "<s>[INST] <<SYS>>\n"
         + sys_prompt
