@@ -531,18 +531,16 @@ llama_tokenizer = None
 
 def init_llama(llama_weights="meta-llama/Llama-2-13b-chat-hf"):
     """Initialize the llama model and load in on the gpu."""
-    llama_key = os.getenv("LLAMA_KEY")
-    login(llama_key)
+    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     global llama_generator, llama_model, llama_tokenizer
     if llama_model is None:
-        device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+        llama_key = os.getenv("LLAMA_KEY")
+        login(llama_key)
         llama_model = pipeline(model=llama_weights, device=device)
     if llama_generator is None:
-        device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-        llama_generator = pipeline(model=llama_weights, device=device)
+        llama_generator = pipeline(model=llama_model, device=device)
     if llama_tokenizer is None:
-        device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-        llama_tokenizer = pipeline(model=llama_weights, device=device)
+        llama_tokenizer = pipeline(model=llama_model, device=device)
 
 
 def generate_cand(generator, sys_prompt, user_prompt):
@@ -578,6 +576,6 @@ init_openai()
 if __name__ == "__main__":
     logging.info(
         llama_get_embeddings(
-            ["string for embeddings 1"],
+            ["string for embeddings 1", "stndhjs ibvhfi bv bfhi bvhi"],
         )
     )
