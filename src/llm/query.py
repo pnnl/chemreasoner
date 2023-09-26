@@ -555,7 +555,6 @@ def init_llama(llama_weights="meta-llama/Llama-2-13b-chat-hf"):
 def generate_cand(generator, sys_prompt, user_prompt):
     # sys_prompt =  prompt['generation_prompt']['system']
     # user_prompt = prompt['generation_prompt']['user']
-    init_llama()
     gen_prompt = (
         "<s>[INST] <<SYS>>\n"
         + sys_prompt
@@ -571,7 +570,7 @@ def generate_cand(generator, sys_prompt, user_prompt):
 
 def llama_get_embeddings(strings):
     """Get the embeddings with the given llama model."""
-    init_llama()
+
     global llama_model, llama_tokenizer
     input_ids = torch.tensor(llama_tokenizer.encode(strings)).unsqueeze(0)
     logging.info(f"Input_ids:\n{input_ids}")
@@ -586,9 +585,9 @@ init_openai()
 
 if __name__ == "__main__":
     logging.info(
-        generate_cand(
-            llama_generator,
-            "string for embeddings 1",
-            "stndhjs ibvhfi bv bfhi bvhi",
+        run_query(
+            "This is the query, is it?",
+            model="llama",
+            system_prompt=" HDSVJ  vdhskv dskk jD  kDJ JDK",
         )
     )
