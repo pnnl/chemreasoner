@@ -536,9 +536,7 @@ def init_llama(llama_weights="meta-llama/Llama-2-13b-chat-hf"):
     if llama_model is None:
         llama_key = os.getenv("LLAMA_KEY")
         login(llama_key)
-        llama_model = pipeline(
-            model="meta-llama/Llama-2-13b-chat-hf", device_map=device
-        )
+        llama_model = pipeline(model="meta-llama/Llama-2-13b-chat-hf", device=device)
     if llama_generator is None:
         llama_generator = pipeline(model="meta-llama/Llama-2-13b-chat-hf")
     if llama_tokenizer is None:
