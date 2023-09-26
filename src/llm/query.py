@@ -500,26 +500,26 @@ def run_query(
         global llama_generator
         sys_prompt = "" if system_prompt is None else system_prompt
         answer = generate_cand(llama_generator, sys_prompt, query)
-        logging.info(answer)
-        return answer  # Skip usage statistics for now
     logging.info(f"--------------------\nQ: {query}\n--------------------")
 
     global query_counter
     query_counter += 1
     logging.info(f"Num queries run: {query_counter}")
 
-    global tok_sent
-    tok_sent += output["usage"]["prompt_tokens"]
-    logging.info(f"Total num tok sent: {tok_sent}")
+    if "llama" not in model:
+        global tok_sent
+        tok_sent += output["usage"]["prompt_tokens"]
+        logging.info(f"Total num tok sent: {tok_sent}")
 
     now = datetime.datetime.now()
     logging.info(f"Answer recieved at time: {now}")
 
     logging.info(f"--------------------\nA: {answer}\n--------------------")
 
-    global tok_recieved
-    tok_recieved += output["usage"]["completion_tokens"]
-    logging.info(f"Total num tok recieved: {tok_recieved}\n\n")
+    if "llama" not in model:
+        global tok_recieved
+        tok_recieved += output["usage"]["completion_tokens"]
+        logging.info(f"Total num tok recieved: {tok_recieved}\n\n")
 
     return answer
 
