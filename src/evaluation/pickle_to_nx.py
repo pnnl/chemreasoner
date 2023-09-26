@@ -189,18 +189,23 @@ def create_current_candidate_list(node_data):
 if __name__ == "__main__":
 
     for p in Path("data", "output", "iclr", "").rglob("*.pkl"):
-        with open(p, "rb") as f:
-            data = pickle.load(f)
+        if "single" not in str(p) and "reasoner" in str(p):
+            with open(p, "rb") as f:
+                data = pickle.load(f)
 
-        for i, data_entry in enumerate(data):
-            tree_data, err = data_entry
-            print(str(p))
-            if "beam-search" in str(p):
-                graph = bfs_to_nx(tree_data)
-            else:
-                graph = search_tree_to_nx(tree_data)
+            for i, data_entry in enumerate(data):
+                tree_data, err, trace = data_entry
+                if err != "":
+                    print(err)
+                    print(trace)
+                print(str(p))
+                if "beam-search" in str(p):
+                    graph = bfs_to_nx(tree_data)
+                else:
+                    continue
+                    # graph = search_tree_to_nx(tree_data)
 
-            print(graph)
+                print(graph)
 
     # old_code #
     # for p in Path(

@@ -36,7 +36,6 @@ def get_initial_state_oc(
         template=template,
         reward_template=None,
         ads_symbols=[adsorbate],
-        relation_to_candidate_list="include elements similar to",
         ads_preferences=[1],
         num_answers=5,
         prediction_model=prediction_model,

@@ -13,7 +13,7 @@ import torch
 
 from huggingface_hub import login
 import numpy as np
-from transformers import AutoTokenizer, LlamaForCausalLM
+from transformers import AutoTokenizer, LlamaForCausalLM, LlamaTokenizer
 from transformers import pipeline
 
 import openai
@@ -459,7 +459,10 @@ tok_recieved = 0
 @backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=120)
 def run_get_embeddings(strings, model="text-embedding-ada-002"):
     """Query language model for a list of k candidates."""
-    return get_embeddings(strings, engine=model)
+    if model == "text-embedding-ada-002":
+        return get_embeddings(strings, engine=model)
+    elif "llama" in model:
+        return llama_get_embeddings(strings)
 
 
 @backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=120)
@@ -522,19 +525,24 @@ def run_query(
 
 
 llama_generator = None
+llama_model = None
+llama_tokenizer = None
 
 
-def init_llama():
+def init_llama(llama_weights="meta-llama/Llama-2-7b-chat-hf"):
     """Initialize the llama model and load in on the gpu."""
     llama_key = os.getenv("LLAMA_KEY")
     login(llama_key)
-    global llama_generator
+    global llama_generator, llama_model, llama_tokenizer
+    if llama_model is None:
+        device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+        llama_model = pipeline(model=llama_weights, device=device)
     if llama_generator is None:
         device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-        print(device)
-        llama_generator = pipeline(
-            model="meta-llama/Llama-2-13b-chat-hf", device=device
-        )
+        llama_generator = pipeline(model=llama_weights, device=device)
+    if llama_tokenizer is None:
+        device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+        llama_tokenizer = pipeline(model=llama_weights, device=device)
 
 
 def generate_cand(generator, sys_prompt, user_prompt):
@@ -553,12 +561,24 @@ def generate_cand(generator, sys_prompt, user_prompt):
     return answer[0]["generated_text"].split("[/INST]")[-1]
 
 
+def llama_get_embeddings(strings):
+    """Get the embeddings with the given llama model."""
+    init_llama()
+    input_ids = torch.tensor(llama_tokenizer.encode(strings)).unsqueeze(0)
+    logging.info(f"Input_ids:\n{input_ids}")
+    outputs = llama_model(input_ids)
+    logging.info(f"model_outputs:\n{outputs}")
+    last_hidden_states = outputs[0]
+    logging.info(f"last_hidden_states:\n{last_hidden_states}")
+    return last_hidden_states
+
+
 init_openai()
 
 if __name__ == "__main__":
     logging.info(
-        run_query(
-            "Generate a phrase that says 'I did it'",
+        llama_get_embeddings(
+            ["string for embeddings 1", "acka gobagfs string to distract the mind!"],
             model="llama",
             system_prompt="Do what I say.",
         )

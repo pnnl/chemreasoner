@@ -138,8 +138,10 @@ def main(args, policy_string):
                     or "'ellipsis' object has no attribute 'replace'" in error
                 ):
                     try:
-                        data_list[idx] = single_shot(
-                            starting_state.copy(),
+                        data_list[idx] = (
+                            single_shot(starting_state.copy()),
+                            "",
+                            "",
                         )
                         with open(
                             Path(args.savedir) / f"{args.search_method}_{fname}.pkl",

@@ -87,18 +87,17 @@ def generate_bulk_ads_pairs(
     height=3.0,
 ) -> Union[Atoms, list[Atoms]]:
     """Add adsorbate to a bulk in the given locations."""
-    return_value = False
-    if site is None:
-        s = np.random.choice(list(bulk.info["adsorbate_info"]["sites"].keys()))
-
     num_tries = 0
+
     valid = False  # Indicate whether generated structure is valid
     while not valid:
         new_bulk = bulk.copy()
         new_ads = ads.copy()
+
         # randomly select the binding location
         site_name = random.choice(list(new_bulk.info["adsorbate_info"]["sites"]))
         position = new_bulk.info["adsorbate_info"]["sites"][site_name]
+
         # randomly set the binding atom
         bulk_z = list(set(bulk.get_atomic_numbers()))
         binding_z = np.random.choice(list(bulk_z))
@@ -106,14 +105,17 @@ def generate_bulk_ads_pairs(
         numbers = new_bulk.get_atomic_numbers()
         numbers[binding_idx] = binding_z
         new_bulk.set_atomic_numbers(numbers)
+
         # randomly sample rotation angles
         z_rot = random.uniform(0, 360)
         x_rot = random.uniform(0, 15)
         y_rot = random.uniform(0, 15)
+
         # Do in-plane rotations first
         new_ads.rotate("z", z_rot)
         new_ads.rotate("x", x_rot)
         new_ads.rotate("y", y_rot)
+
         # Apply adsorbate to new_bullk
         new_bulk = combine_adsorbate_slab(
             new_bulk,
