@@ -578,6 +578,6 @@ init_openai()
 if __name__ == "__main__":
     logging.info(
         llama_get_embeddings(
-            ["string for embeddings 1", "acka gobagfs string to distract the mind!"],
+            ["string for embeddings 1"],
         )
     )
