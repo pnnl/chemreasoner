@@ -201,18 +201,22 @@ def graph_get_trace(graph: nx.Graph):
     print(max_idx)
     sp = nx.all_simple_paths(graph, 0, max_idx)
 
+    print(list(nx.cycle_basis(graph)))
+
     messages = []
-    for node in list(sp)[0]:
+    print(list(sp))
+    if len(list(sp)) > 0:
+        for node in list(sp)[0]:
 
-        prompt = create_prompt_from_node_data(graph.nodes()[node])
+            prompt = create_prompt_from_node_data(graph.nodes()[node])
 
-        answer = graph.nodes()[node]["answer"]
+            answer = graph.nodes()[node]["answer"]
 
-        messages.append(" * " + str(graph.nodes()[node]["node_rewards"]))
-        messages.append("")
-        messages.append("P:\n" + prompt)
-        messages.append("A:\n" + str(answer))
-        messages.append("-" * 80 + "\n\n")
+            messages.append(" * " + str(graph.nodes()[node]["node_rewards"]))
+            messages.append("")
+            messages.append("P:\n" + prompt)
+            messages.append("A:\n" + str(answer))
+            messages.append("-" * 80 + "\n\n")
 
     return messages
 
@@ -252,27 +256,32 @@ if __name__ == "__main__":
                     elif "mcts" in str(p):
                         graph = search_tree_to_nx(tree_data)
 
-                    trace_messages.append(p.stem + f"_{i}\n\n")
-                    trace_messages += graph_get_trace(graph)
-                    trace_messages.append("\n\n" + "=" * 80 + "\n" + "=" * 80 + "\n\n")
-                    with open("data/output/search_traces.txt", "a") as f:
-                        f.write("\n".join(trace_messages))
+                    if len(graph.nodes) > 1:
 
-                    data = {
-                        "llm": llm,
-                        "method": p.stem.split("_")[0],
-                        "policy": p.stem.split(method + "_")[-1].split("_")[0],
-                        "reward_function": p.stem.split(policy + "_")[-1].split("_")[0],
-                        "best_reward": max(
-                            nx.get_node_attributes(graph, "node_rewards").values()
-                        ),
-                        "query": (file_name, i),
-                    }
-                    search_results = pd.concat([search_results, pd.DataFrame(data)])
-                    print(err)
-                    print(trace)
-                    print(str(p))
-                    break
+                        trace_messages.append(p.stem + f"_{i}\n\n")
+                        trace_messages += graph_get_trace(graph)
+                        trace_messages.append(
+                            "\n\n" + "=" * 80 + "\n" + "=" * 80 + "\n\n"
+                        )
+                        with open("data/output/search_traces.txt", "a") as f:
+                            f.write("\n".join(trace_messages))
+
+                        data = {
+                            "llm": llm,
+                            "method": p.stem.split("_")[0],
+                            "policy": p.stem.split(method + "_")[-1].split("_")[0],
+                            "reward_function": p.stem.split(policy + "_")[-1].split(
+                                "_"
+                            )[0],
+                            "best_reward": max(
+                                nx.get_node_attributes(graph, "node_rewards").values()
+                            ),
+                            "query": (file_name, i),
+                        }
+                        search_results = pd.concat([search_results, pd.DataFrame(data)])
+                        print(err)
+                        print(trace)
+                        print(str(p))
 
     print(search_results)
     # old_code #
