@@ -586,7 +586,7 @@ init_openai()
 if __name__ == "__main__":
     llama_key = os.getenv("LLAMA_KEY")
     login(llama_key)
-    llama_tokenizer = LlamaTokenizer("meta-llama/Llama-2-13b-chat-hf")
+    llama_tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-13b-chat-hf")
 
     logging.info(
         llama_get_embeddings(
