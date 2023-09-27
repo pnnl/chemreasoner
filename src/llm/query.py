@@ -584,8 +584,12 @@ def llama_get_embeddings(strings):
 init_openai()
 
 if __name__ == "__main__":
+    llama_key = os.getenv("LLAMA_KEY")
+    login(llama_key)
+    llama_tokenizer = LlamaTokenizer("meta-llama/Llama-2-13b-chat-hf")
+
     logging.info(
-        run_query(
+        llama_get_embeddings(
             "This is the query, is it?",
             model="llama",
             system_prompt=" HDSVJ  vdhskv dskk jD  kDJ JDK",

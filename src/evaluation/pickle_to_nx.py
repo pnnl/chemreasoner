@@ -186,27 +186,50 @@ def create_current_candidate_list(node_data):
         return None
 
 
+search_results = pd.DataFrame(
+    columns=["llm", "method", "policy", "reward_function", "best_reward", "query"]
+)
 if __name__ == "__main__":
 
     for p in Path("data", "output", "iclr", "").rglob("*.pkl"):
-        if "single" not in str(p) and "reasoner" in str(p):
-            with open(p, "rb") as f:
-                data = pickle.load(f)
+        llm = "gpt-3.5"
+        file_name = str(p).split("reward_")[-1].split(".")[0]
+        method = p.stem.split("_")[0]
+        policy = p.stem.split(method + "_")[-1].split("_")[0]
+        reward = p.stem.split(policy + "_")[-1].split("_")[0]
 
-            for i, data_entry in enumerate(data):
+        with open(p, "rb") as f:
+            data = pickle.load(f)
+
+        for i, data_entry in enumerate(data):
+
+            if "single" in str(p):
+                tree_data, err, trace = (data_entry, "", "")
+                print(p)
+                print(type(tree_data["node_rewards"]))
+                print(tree_data["info"]["generation"]["candidates_list"])
+                print(tree_data["info"]["simulation-reward"])
+
+            else:
                 tree_data, err, trace = data_entry
-                if err != "":
-                    print(err)
-                    print(trace)
-                print(str(p))
+                data = {
+                    "llm": "gpt-3.5",
+                    "method": p.stem.split("_")[0],
+                    "policy": p.stem.split(method + "_")[-1].split("_")[0],
+                    "reward_function": p.stem.split(policy + "_")[-1].split("_")[0],
+                    "best_reward": max(max(tree_data["node_rewards"], key=max)),
+                    "query": (file_name, i),
+                }
+                print(data)
+                search_results = pd.concat([search_results, pd.DataFrame(data)])
                 if "beam-search" in str(p):
                     graph = bfs_to_nx(tree_data)
-                else:
-                    continue
-                    # graph = search_tree_to_nx(tree_data)
-
-                print(graph)
-
+                elif "mcts" in str(p):
+                    graph = search_tree_to_nx(tree_data)
+                print(err)
+                print(trace)
+                print(str(p))
+    print(search_results)
     # old_code #
     # for p in Path(
     #     "/Users/spru445/alchemist/data/output_data/post_submission_tests_davinci"
