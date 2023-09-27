@@ -186,6 +186,12 @@ def create_current_candidate_list(node_data):
         return None
 
 
+def create_prompt_from_node_data(node_data):
+    """Create a prompt from node data in a graph."""
+    qs = QueryState.from_dict(node_data)
+    return qs.prompt
+
+
 def graph_get_trace(graph: nx.Graph):
     """Dump the trace to the best node in a graph."""
     max_idx = np.argmax(
@@ -197,15 +203,15 @@ def graph_get_trace(graph: nx.Graph):
 
     messages = []
     for node in list(sp)[0]:
-        prompt = graph.nodes()[node]["prompt"]
+
+        prompt = create_prompt_from_node_data(graph.nodes()[node])
+
         answer = graph.nodes()[node]["answer"]
 
         messages.append(" * " + str(graph.nodes()[node]["node_rewards"]))
-        messages.append(" * " + str(graph.nodes()[node]["prompt"]))
-        messages.append(" * " + str(graph.nodes()[node]["answer"]))
-        messages.append([""])
+        messages.append("")
         messages.append("P:\n" + prompt)
-        messages.append("A:\n" + answer)
+        messages.append("A:\n" + str(answer))
         messages.append("-" * 80 + "\n\n")
 
     return messages
@@ -246,13 +252,11 @@ if __name__ == "__main__":
                     elif "mcts" in str(p):
                         graph = search_tree_to_nx(tree_data)
 
-                    trace_messages.append([p.stem + f"_{i}\n\n"])
+                    trace_messages.append(p.stem + f"_{i}\n\n")
                     trace_messages += graph_get_trace(graph)
-                    trace_messages.append(
-                        ["\n\n" + "=" * 80 + "\n" + "=" * 80 + "\n\n"]
-                    )
+                    trace_messages.append("\n\n" + "=" * 80 + "\n" + "=" * 80 + "\n\n")
                     with open("data/output/search_traces.txt", "a") as f:
-                        f.writelines(trace_messages)
+                        f.write("\n".join(trace_messages))
 
                     data = {
                         "llm": llm,

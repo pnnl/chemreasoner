@@ -76,6 +76,31 @@ class QueryState:
         self.reward = reward
         self.debug = debug
 
+    @classmethod
+    @staticmethod
+    def from_dict(data: dict):  # TODO: Add defaults
+        """Create a query state from dictionary."""
+        return QueryState(
+            template=data.get("template"),
+            reward_template=data.get("reward_template"),
+            ads_symbols=data.get("ads_symbols").copy(),
+            ads_preferences=data.get("ads_preferences", None),
+            catalyst_label=data.get("catalyst_label"),
+            prev_candidate_list=data.get("prev_candidate_list", []).copy(),
+            relation_to_candidate_list=data.get("relation_to_candidate_list", None),
+            include_list=data.get("include_list", []).copy(),
+            exclude_list=data.get("exclude_list", []).copy(),
+            answer=data.get("answer", None),
+            embeddings=data.get("embeddings", {}).copy(),
+            num_queries=data.get("num_queries", 0),
+            prediction_model=data.get("prediction_model", "gpt-3.5-turbo"),
+            reward_model=data.get("reward_model", "gpt-3.5-turbo"),
+            embedding_model=data.get("embedding_model", "text-embedding-ada-002"),
+            info=deepcopy(data.get("self.info", {})),
+            reward=data.get("reward", None),
+            debug=data.get("debug", False),
+        )
+
     def copy(self):
         """Return a copy of self."""
         return QueryState(
