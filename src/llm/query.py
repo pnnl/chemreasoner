@@ -590,8 +590,6 @@ if __name__ == "__main__":
 
     logging.info(
         llama_get_embeddings(
-            "This is the query, is it?",
-            model="llama",
-            system_prompt=" HDSVJ  vdhskv dskk jD  kDJ JDK",
+            ["This is the query, is it?", "Making a western movie is a thing."],
         )
     )
