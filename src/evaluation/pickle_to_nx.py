@@ -186,49 +186,90 @@ def create_current_candidate_list(node_data):
         return None
 
 
+def graph_get_trace(graph: nx.Graph):
+    """Dump the trace to the best node in a graph."""
+    max_idx = np.argmax(
+        [graph.nodes(data=True)[i]["node_rewards"] for i in range(len(graph.nodes))]
+    )
+    # print(graph.nodes(data=False)[max_idx])
+    print(max_idx)
+    sp = nx.all_simple_paths(graph, 0, max_idx)
+
+    messages = []
+    for node in list(sp)[0]:
+        prompt = graph.nodes()[node]["prompt"]
+        answer = graph.nodes()[node]["answer"]
+
+        messages.append(" * " + str(graph.nodes()[node]["node_rewards"]))
+        messages.append(" * " + str(graph.nodes()[node]["prompt"]))
+        messages.append(" * " + str(graph.nodes()[node]["answer"]))
+        messages.append([""])
+        messages.append("P:\n" + prompt)
+        messages.append("A:\n" + answer)
+        messages.append("-" * 80 + "\n\n")
+
+    return messages
+
+
 search_results = pd.DataFrame(
     columns=["llm", "method", "policy", "reward_function", "best_reward", "query"]
 )
+with open("iclr_traces.txt", "w"):  # clear the file
+    pass
+
 if __name__ == "__main__":
+    for llm in ["gpt", "llama"]:
+        for p in Path("data", "output", f"iclr_{llm}", "").rglob("*.pkl"):
+            file_name = str(p).split("reward_")[-1].split(".")[0]
+            method = p.stem.split("_")[0]
+            policy = p.stem.split(method + "_")[-1].split("_")[0]
+            reward = p.stem.split(policy + "_")[-1].split("_")[0]
 
-    for p in Path("data", "output", "iclr", "").rglob("*.pkl"):
-        llm = "gpt-3.5"
-        file_name = str(p).split("reward_")[-1].split(".")[0]
-        method = p.stem.split("_")[0]
-        policy = p.stem.split(method + "_")[-1].split("_")[0]
-        reward = p.stem.split(policy + "_")[-1].split("_")[0]
+            with open(p, "rb") as f:
+                data = pickle.load(f)
 
-        with open(p, "rb") as f:
-            data = pickle.load(f)
+            for i, data_entry in enumerate(data):
+                trace_messages = []
+                if "single" in str(p):
+                    tree_data, err, trace = (data_entry, "", "")
+                    # print(p)
+                    # print(type(tree_data["node_rewards"]))
+                    # print(tree_data["info"]["generation"]["candidates_list"])
+                    # print(tree_data["info"]["simulation-reward"])
 
-        for i, data_entry in enumerate(data):
+                else:
+                    tree_data, err, trace = data_entry
 
-            if "single" in str(p):
-                tree_data, err, trace = (data_entry, "", "")
-                print(p)
-                print(type(tree_data["node_rewards"]))
-                print(tree_data["info"]["generation"]["candidates_list"])
-                print(tree_data["info"]["simulation-reward"])
+                    if "beam-search" in str(p):
+                        graph = bfs_to_nx(tree_data)
 
-            else:
-                tree_data, err, trace = data_entry
-                data = {
-                    "llm": "gpt-3.5",
-                    "method": p.stem.split("_")[0],
-                    "policy": p.stem.split(method + "_")[-1].split("_")[0],
-                    "reward_function": p.stem.split(policy + "_")[-1].split("_")[0],
-                    "best_reward": max(max(tree_data["node_rewards"], key=max)),
-                    "query": (file_name, i),
-                }
-                print(data)
-                search_results = pd.concat([search_results, pd.DataFrame(data)])
-                if "beam-search" in str(p):
-                    graph = bfs_to_nx(tree_data)
-                elif "mcts" in str(p):
-                    graph = search_tree_to_nx(tree_data)
-                print(err)
-                print(trace)
-                print(str(p))
+                    elif "mcts" in str(p):
+                        graph = search_tree_to_nx(tree_data)
+
+                    trace_messages.append([p.stem + f"_{i}\n\n"])
+                    trace_messages += graph_get_trace(graph)
+                    trace_messages.append(
+                        ["\n\n" + "=" * 80 + "\n" + "=" * 80 + "\n\n"]
+                    )
+                    with open("data/output/search_traces.txt", "a") as f:
+                        f.writelines(trace_messages)
+
+                    data = {
+                        "llm": llm,
+                        "method": p.stem.split("_")[0],
+                        "policy": p.stem.split(method + "_")[-1].split("_")[0],
+                        "reward_function": p.stem.split(policy + "_")[-1].split("_")[0],
+                        "best_reward": max(
+                            nx.get_node_attributes(graph, "node_rewards").values()
+                        ),
+                        "query": (file_name, i),
+                    }
+                    search_results = pd.concat([search_results, pd.DataFrame(data)])
+                    print(err)
+                    print(trace)
+                    print(str(p))
+                    break
+
     print(search_results)
     # old_code #
     # for p in Path(
