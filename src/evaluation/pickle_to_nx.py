@@ -221,9 +221,13 @@ def graph_get_trace(graph: nx.Graph):
     return messages
 
 
+with open("all_adsorption_energies.json", "r") as f:
+    adsorption_energy_data = json.load(f)
+
 search_results = pd.DataFrame(
     columns=["llm", "method", "policy", "reward_function", "best_reward", "query"]
 )
+data_for_plots = []
 with open("iclr_traces.txt", "w"):  # clear the file
     pass
 
@@ -246,8 +250,38 @@ if __name__ == "__main__":
                     # print(type(tree_data["node_rewards"]))
                     # print(tree_data["info"]["generation"]["candidates_list"])
                     # print(tree_data["info"]["simulation-reward"])
+                    # print(tree_data["info"]["llm-reward"])
+                    for i, llm_results in enumerate(
+                        tree_data["info"]["llm-reward"]["attempted_prompts"][-1][
+                            "number_answers"
+                        ]
+                    ):  # Assume candidate catalysts are same order after llm gen
+                        for j, candidate in enumerate(
+                            tree_data["info"]["generation"]["candidates_list"]
+                        ):
+                            slab_syms = tree_data["info"]["simulation-reward"][
+                                "slab_syms"
+                            ][j]
+                            print(tree_data["info"]["simulation-reward"]["slab_syms"])
+                            if slab_syms is not None:
+                                print(slab_syms)
+                                ads_syms = tree_data["ads_symbols"][i]
+                                adslab_syms = "".join(slab_syms) + "_" + ads_syms
+                                simulation_value = adsorption_energy_data[adslab_syms][
+                                    "adsorption_energy"
+                                ]
+                                output_data = {
+                                    "llm_value": llm_results[j],
+                                    "simulation_value": simulation_value,
+                                    "candidate": candidate,
+                                    "candidates_symbols": slab_syms,
+                                    "adsorbates": ads_syms,
+                                    "adslab": adslab_syms,
+                                }
+                                data_for_plots.append(output_data)
 
                 else:
+                    continue
                     tree_data, err, trace = data_entry
 
                     if "beam-search" in str(p):
@@ -282,7 +316,8 @@ if __name__ == "__main__":
                         print(err)
                         print(trace)
                         print(str(p))
-
+    with open("data/output/scatterplot_data.json", "w") as f:
+        json.dump(data_for_plots, f)
     print(search_results)
     # old_code #
     # for p in Path(
@@ -486,9 +521,13 @@ if __name__ == "__main__":
 
     #     # with open(Path("traces") / f"{mcr_p.stem}.txt", "w") as f:
     #     #     f.writelines([str(mes) + "\n" for mes in messages])
-    # all_answers = [ans_list + [None] * (5 - len(ans_list)) for ans_list in all_answers]
+    # all_answers = [
+    #   ans_list + [None] * (5 - len(ans_list)) for ans_list in all_answers
+    # ]
     # max_length = len(max(all_answers, key=len))
-    # data_df = pd.DataFrame(all_answers, columns=[f"ans_{i}" for i in range(max_length)])
+    # data_df = pd.DataFrame(
+    #   all_answers, columns=[f"ans_{i}" for i in range(max_length)]
+    # )
     # data_df["reward"] = rewards
     # data_df["search_method"] = search_methods
     # data_df["dataset"] = datasets
