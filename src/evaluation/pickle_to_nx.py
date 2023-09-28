@@ -71,8 +71,9 @@ def bfs_to_nx(tree_data):
     for i, parent_list in enumerate(tree_data["parent_idx"]):
         for j, parent_idx in enumerate(parent_list):
             current_node = node_indices[i][j]
-            parent_node = node_indices[i - 1][parent_idx]
-            edge_list.append((parent_node, current_node))
+            if parent_idx != -1:
+                parent_node = node_indices[i - 1][parent_idx]
+                edge_list.append((parent_node, current_node))
 
     for i, gen_node_list in enumerate(tree_data["generated_nodes"]):
         parent_list = tree_data["generated_parent_idx"][i]
@@ -202,6 +203,10 @@ def graph_get_trace(graph: nx.Graph):
     sp = nx.all_simple_paths(graph, 0, max_idx)
 
     print(list(nx.cycle_basis(graph)))
+    if len(list(nx.cycle_basis(graph))) > 0:
+        nx_plot(graph)
+        plt.show()
+        raise
 
     messages = []
     print(list(sp))
@@ -281,7 +286,6 @@ if __name__ == "__main__":
                                 data_for_plots.append(output_data)
 
                 else:
-                    continue
                     tree_data, err, trace = data_entry
 
                     if "beam-search" in str(p):

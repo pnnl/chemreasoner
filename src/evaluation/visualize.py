@@ -270,7 +270,11 @@ def nx_plot(H: nx.Graph, node_attr="node_rewards", edge_attr="log_action", title
         annot.xy = xy
         node_attr = {"node": node}
         node_attr.update(G.nodes[node])
-        text = "\n".join(f"{k}: {v}" for k, v in node_attr.items())
+        text = "\n".join(
+            f"{k}: {v}"
+            for k, v in node_attr.items()
+            if k in ["node_rewards", "node_idx"]
+        )
         annot.set_text(text)
 
     def hover(event):
