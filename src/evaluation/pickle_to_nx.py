@@ -199,14 +199,12 @@ def graph_get_trace(graph: nx.Graph):
         [graph.nodes(data=True)[i]["node_rewards"] for i in range(len(graph.nodes))]
     )
     # print(graph.nodes(data=False)[max_idx])
-    print(max_idx)
     sp = nx.all_simple_paths(graph, 0, max_idx)
 
-    print(list(nx.cycle_basis(graph)))
     if len(list(nx.cycle_basis(graph))) > 0:
         nx_plot(graph)
         plt.show()
-        raise
+        raise ValueError("A graph has a cycle!")
 
     messages = []
     print(list(sp))
