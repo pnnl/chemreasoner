@@ -243,11 +243,12 @@ if __name__ == "__main__":
             reward = p.stem.split(policy + "_")[-1].split("_")[0]
 
             with open(p, "rb") as f:
-                data = pickle.load(f)
+                runs_data = pickle.load(f)
 
-            for i, data_entry in enumerate(data):
+            for i, data_entry in enumerate(runs_data):
                 trace_messages = []
                 if "single" in str(p):
+
                     tree_data, err, trace = (data_entry, "", "")
                     # print(p)
                     # print(type(tree_data["node_rewards"]))
@@ -314,7 +315,14 @@ if __name__ == "__main__":
                             ),
                             "query": (file_name, i),
                         }
-                        search_results = pd.concat([search_results, pd.DataFrame(data)])
+                        print(data)
+                        search_results = pd.concat(
+                            [
+                                search_results,
+                                pd.DataFrame.from_dict(data, orient="index").T,
+                            ],
+                            ignore_index=True,
+                        )
                         print(err)
                         print(trace)
                         print(str(p))

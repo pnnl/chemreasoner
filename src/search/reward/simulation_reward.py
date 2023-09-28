@@ -108,7 +108,7 @@ class StructureReward(BaseReward):
                 rewards.append(
                     np.mean(
                         [
-                            abs(min(reward_values[cand][ads])) ** s.ads_preferences[i]
+                            -((min(reward_values[cand][ads])) ** s.ads_preferences[i])
                             for i, ads in enumerate(reward_values[cand].keys())
                         ]
                     )
