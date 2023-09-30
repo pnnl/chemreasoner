@@ -6,5 +6,8 @@
 * [Presentation](https://www.kisacoresearch.com/sites/default/files/presentations/aihwsummit-sutanay.pdf) at AI Hardware and Edge AI Summit, Santa Clara, September 2023
 
 ## Installation
+Pre-print and details coming soon!
 
-Details coming soon!
+### Contact
+
+sutanay tod choudhury ta pnnl tod gov
