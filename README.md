@@ -10,4 +10,5 @@ Pre-print and details coming soon!
 
 ### Contact
 
+[Sutanay Choudhury](https://www.linkedin.com/in/sutanay/)
 sutanay tod choudhury ta pnnl tod gov
