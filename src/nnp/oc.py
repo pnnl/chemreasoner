@@ -4,6 +4,7 @@ Must intsall the sub-module ocpmodels included in ext/ocp.
 """
 import json
 import pickle
+import time
 import wget
 import yaml
 
@@ -52,6 +53,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
         Downloads weights if they are not available.
         """
+        self.gnn_calls = 0
+        self.gnn_time = 0
         self.device = device
         self.batch_size = batch_size
         self.model = model
@@ -177,6 +180,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             relax_opt = {"memory": 100}  # only need to set memory and traj_dir
 
         relax_opt["traj_dir"] = self.traj_dir
+        # assume 100 steps every time
+        start = time.time()
         final_batch = ml_relax(
             batch=[batch],  # ml_relax always uses batch[0]
             model=trainer,
@@ -186,6 +191,10 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             save_full_traj=True,
             device=trainer.device,
         )
+        end = time.time()
+        self.gnn_calls += 100
+        self.gnn_time += end - start
+
         final_atoms = batch_to_atoms(final_batch)
         return final_atoms
 
@@ -279,8 +288,12 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def _batched_static_eval(self, batch):
         """Run static energy/force calculation on batch."""
+        self.gnn_calls += 1
         calc = self.get_torch_model
+        start = time.time()
         predictions = calc.predict(batch, per_image=False, disable_tqdm=True)
+        end = time.time()
+        self.gnn_time += end - start
         energy = predictions["energy"]
         forces = predictions["forces"]
         batch.y = energy
