@@ -242,14 +242,21 @@ if __name__ == "__main__":
             policy = p.stem.split(method + "_")[-1].split("_")[0]
             reward = p.stem.split(policy + "_")[-1].split("_")[0]
 
-            with open(p, "rb") as f:
-                runs_data = pickle.load(f)
+            try:
+                with open(p, "rb") as f:
+                    runs_data = pickle.load(f)
+            except:
+                continue
 
             for i, data_entry in enumerate(runs_data):
                 trace_messages = []
                 if "single" in str(p):
-
-                    tree_data, err, trace = (data_entry, "", "")
+                    search_results.to_csv(Path("data", "output", "search_results.csv"))
+                    if isinstance(data_entry, tuple):
+                        tree_data, err, trace = data_entry
+                    else:
+                        tree_data, err, trace = (data_entry, "", "")
+                    print(tree_data)
                     # print(p)
                     # print(type(tree_data["node_rewards"]))
                     # print(tree_data["info"]["generation"]["candidates_list"])
@@ -266,7 +273,6 @@ if __name__ == "__main__":
                             slab_syms = tree_data["info"]["simulation-reward"][
                                 "slab_syms"
                             ][j]
-                            print(tree_data["info"]["simulation-reward"]["slab_syms"])
                             if slab_syms is not None:
                                 print(slab_syms)
                                 ads_syms = tree_data["ads_symbols"][i]
@@ -274,7 +280,7 @@ if __name__ == "__main__":
                                 simulation_value = adsorption_energy_data[adslab_syms][
                                     "adsorption_energy"
                                 ]
-                                output_data = {
+                                scatterplot_data = {
                                     "llm_value": llm_results[j],
                                     "simulation_value": simulation_value,
                                     "candidate": candidate,
@@ -282,7 +288,40 @@ if __name__ == "__main__":
                                     "adsorbates": ads_syms,
                                     "adslab": adslab_syms,
                                 }
-                                data_for_plots.append(output_data)
+                                data_for_plots.append(scatterplot_data)
+
+                                llm_reward_table_data = {
+                                    "llm": llm,
+                                    "method": "zero-shot",
+                                    "policy": "zero-shot",
+                                    "reward_function": "llm-reward",
+                                    "best_reward": tree_data["info"]["llm-reward"][
+                                        "value"
+                                    ],
+                                    "query": (file_name, i),
+                                }
+                                sim_reward_table_data = {
+                                    "llm": llm,
+                                    "method": "zero-shot",
+                                    "policy": "zero-shot",
+                                    "reward_function": "simulation-reward",
+                                    "best_reward": tree_data["info"][
+                                        "simulation-reward"
+                                    ]["value"],
+                                    "query": (file_name, i),
+                                }
+                                search_results = pd.concat(
+                                    [
+                                        search_results,
+                                        pd.DataFrame(llm_reward_table_data),
+                                    ]
+                                )
+                                search_results = pd.concat(
+                                    [
+                                        search_results,
+                                        pd.DataFrame(sim_reward_table_data),
+                                    ]
+                                )
 
                 else:
                     tree_data, err, trace = data_entry
@@ -329,6 +368,7 @@ if __name__ == "__main__":
     with open("data/output/scatterplot_data.json", "w") as f:
         json.dump(data_for_plots, f)
     print(search_results)
+    search_results.to_csv(Path("data", "output", "search_results.csv"))
     # old_code #
     # for p in Path(
     #     "/Users/spru445/alchemist/data/output_data/post_submission_tests_davinci"

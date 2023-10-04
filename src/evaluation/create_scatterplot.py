@@ -9,16 +9,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 df = pd.read_json(Path("data", "output", "scatterplot_data.json"))
-
+df = df.drop_duplicates(subset=["adslab"])
 names = np.array(df["adslab"])
 print(names)
 
 fig, ax = plt.subplots()
 
-sc = plt.scatter(df["llm_value"], -df["simulation_value"])
+sc = plt.scatter(df["llm_value"], -df["simulation_value"], alpha=0.5)
 plt.plot([0, 2.5], [0, 2.5])
-plt.xlabel("llm-reward")
-plt.ylabel("simulation-reward")
+plt.title("Conparison of GNN vs. LLM adsorption energies.")
+plt.xlabel(r"$|\Delta E_{GPT}|$")
+plt.ylabel(r"$- \Delta E_{sim}$")
 
 annot = ax.annotate(
     "",
