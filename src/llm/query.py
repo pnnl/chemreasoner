@@ -41,6 +41,7 @@ class QueryState:
         answer: str = None,
         embeddings: dict = {},
         num_queries: int = 0,
+        query_time: float = 0.0,
         prediction_model: str = "gpt-3.5-turbo",
         reward_model: str = "gpt-3.5-turbo",
         embedding_model: str = "text-embedding-ada-002",
@@ -66,6 +67,7 @@ class QueryState:
         self.answer = answer
         self.embeddings = embeddings
         self.num_queries = num_queries
+        self.query_time = query_time
         self.prediction_model = prediction_model
         self.reward_model = reward_model
         self.embedding_model = embedding_model
@@ -104,6 +106,7 @@ class QueryState:
             answer=data.get("answer", None),
             embeddings=data.get("embeddings", {}).copy(),
             num_queries=data.get("num_queries", 0),
+            query_time=data.get("query_time", 0.0),
             prediction_model=data.get("prediction_model", "gpt-3.5-turbo"),
             reward_model=data.get("reward_model", "gpt-3.5-turbo"),
             embedding_model=data.get("embedding_model", "text-embedding-ada-002"),
@@ -127,6 +130,7 @@ class QueryState:
             answer=self.answer,
             embeddings=self.embeddings.copy(),
             num_queries=self.num_queries,
+            query_time=self.query_time,
             prediction_model=self.prediction_model,
             reward_model=self.reward_model,
             embedding_model=self.embedding_model,
@@ -148,6 +152,7 @@ class QueryState:
             answer=None,
             embeddings={},
             num_queries=0,
+            query_time=0.0,
             prediction_model=self.prediction_model,
             reward_model=self.reward_model,
             embedding_model=self.embedding_model,
@@ -323,7 +328,10 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
         """Send the query to OpenAI and increment."""
         if model is None:
             model = self.prediction_model
+        start = time.time()
         answer = run_query(prompt, model=model, system_prompt=system_prompt)
+        end = time.time()
+        self.query_time += end - start
         self.num_queries += 1
         return answer
 
