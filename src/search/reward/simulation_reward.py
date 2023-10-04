@@ -55,6 +55,8 @@ class StructureReward(BaseReward):
                 else:
                     print(err)
                     retries += 1
+        start_gnn_calls = self.adsorption_calculator.gnn_calls
+        start_gnn_time = self.adsorption_calculator.gnn_time
         adslab_ats = []  # List to store initial adslabs and indices
         name_candidate_mapping = (
             {}
@@ -118,8 +120,15 @@ class StructureReward(BaseReward):
                 rewards.append(-10)
         final_reward = np.mean(rewards)
         s.set_reward(final_reward, info_field="simulation-reward")
+        end_gnn_calls = self.adsorption_calculator.gnn_calls
+        end_gnn_time = self.adsorption_calculator.gnn_time
         s.info["simulation-reward"].update(
-            {"slab_syms": slab_syms, "value": final_reward}
+            {
+                "slab_syms": slab_syms,
+                "value": final_reward,
+                "gnn_calls": end_gnn_calls - start_gnn_calls,
+                "gnn_time": end_gnn_time - start_gnn_time,
+            }
         )
         if "llama" in s.reward_model:
             s.set_reward(
