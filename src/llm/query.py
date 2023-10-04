@@ -75,6 +75,17 @@ class QueryState:
             self.info = {"generation": {}, "priors": {}}
         self.reward = reward
         self.debug = debug
+        if any(
+            [
+                "llama" in model
+                for model in [
+                    self.prediction_model,
+                    self.reward_model,
+                    self.embedding_model,
+                ]
+            ]
+        ):
+            init_llama()
 
     @classmethod
     @staticmethod
@@ -495,8 +506,6 @@ def run_query(
     query, model="gpt-3.5-turbo", system_prompt=None, max_pause=0, **gpt_kwargs
 ):
     """Query language model for a list of k candidates."""
-    random_wait = np.random.randint(low=0, high=max_pause + 1)
-    time.sleep(random_wait)
     gpt_kwargs["temperature"] = gpt_kwargs.get("temperature", 0.6)
     gpt_kwargs["top_p"] = gpt_kwargs.get("top_p", 0.3)
     gpt_kwargs["max_tokens"] = gpt_kwargs.get("max_tokens", 1300)
@@ -508,9 +517,13 @@ def run_query(
     # )
 
     if model == "text-davinci-003":
+        random_wait = np.random.randint(low=0, high=max_pause + 1)
+        time.sleep(random_wait)
         output = openai.Completion.create(model=model, prompt=query, **gpt_kwargs)
         answer = output["choices"][0]["text"]
     elif "gpt-3.5" in model or "gpt-4" in model:
+        random_wait = np.random.randint(low=0, high=max_pause + 1)
+        time.sleep(random_wait)
         if system_prompt is not None:
             messages = [{"role": "system", "content": system_prompt}]
         else:
@@ -521,7 +534,6 @@ def run_query(
         )
         answer = output["choices"][0]["message"]["content"]
     elif "llama" in model:
-        init_llama()
         global llama_generator
         sys_prompt = "" if system_prompt is None else system_prompt
         answer = generate_cand(llama_generator, sys_prompt, query)
