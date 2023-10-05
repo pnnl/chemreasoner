@@ -30,6 +30,6 @@ def break_trajectory(traj_path: Path, dirname: str = None):
 
 
 if __name__ == "__main__":
-    sim_dir = Path("data", "output", "trajectories", "pipeline_test")
-    for p in tqdm((sim_dir / "Ce_CO").rglob("*.traj")):
+    sim_dir = Path("data", "output", "trajectories")
+    for p in tqdm((sim_dir).rglob("*phenol/*.traj")):
         break_trajectory(p)
