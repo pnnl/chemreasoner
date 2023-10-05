@@ -233,10 +233,10 @@ search_results = pd.DataFrame(
 data_for_plots = []
 with open("iclr_traces.txt", "w"):  # clear the file
     pass
-
+usage_statistics = []
 if __name__ == "__main__":
     for llm in ["gpt", "llama"]:
-        for p in Path("data", "output", f"iclr_{llm}", "").rglob("*.pkl"):
+        for p in Path("data", "output", f"iclr_{llm}_timing", "").rglob("*.pkl"):
             file_name = str(p).split("reward_")[-1].split(".")[0]
             method = p.stem.split("_")[0]
             policy = p.stem.split(method + "_")[-1].split("_")[0]
@@ -245,7 +245,7 @@ if __name__ == "__main__":
             try:
                 with open(p, "rb") as f:
                     runs_data = pickle.load(f)
-            except:
+            except Exception:
                 continue
 
             for i, data_entry in enumerate(runs_data):
@@ -334,6 +334,47 @@ if __name__ == "__main__":
 
                     if len(graph.nodes) > 1:
 
+                        usage_statistics.append(
+                            {
+                                "llm_count": 0,
+                                "llm_time": 0,
+                                "llm_avg": None,
+                                "gnn_count": 0,
+                                "gnn_time": 0,
+                                "gnn_avg": None,
+                            }
+                        )
+                        for n, data in graph.nodes(data=True):
+                            if "simulation-reward" in data["info"].keys():
+                                usage_statistics[-1]["llm_count"] += data["num_queries"]
+                                usage_statistics[-1]["llm_time"] += data["query_time"]
+                                usage_statistics[-1]["llm_avg"] = (
+                                    usage_statistics[-1]["llm_time"]
+                                    / usage_statistics[-1]["llm_count"]
+                                )
+                                usage_statistics[-1]["gnn_count"] += data["info"][
+                                    "simulation-reward"
+                                ]["gnn_calls"]
+                                usage_statistics[-1]["gnn_time"] += data["info"][
+                                    "simulation-reward"
+                                ]["gnn_time"]
+                                if usage_statistics[-1]["gnn_time"] != 0:
+                                    usage_statistics[-1]["gnn_avg"] = (
+                                        usage_statistics[-1]["gnn_time"]
+                                        / usage_statistics[-1]["gnn_count"]
+                                    )
+                            else:
+                                print(list(data["info"].keys()))
+
+                        usage_statistics[-1]["overall_time"] = (
+                            tree_data["end_time"] - tree_data["start_time"]
+                        )
+                        usage_statistics[-1]["num_nodes"] = len(graph.nodes)
+                        usage_statistics[-1]["avg_node_time"] = (
+                            usage_statistics[-1]["overall_time"]
+                            / usage_statistics[-1]["num_nodes"]
+                        )
+
                         trace_messages.append(p.stem + f"_{i}\n\n")
                         trace_messages += graph_get_trace(graph)
                         trace_messages.append(
@@ -366,225 +407,10 @@ if __name__ == "__main__":
                         print(trace)
                         print(str(p))
     with open("data/output/scatterplot_data.json", "w") as f:
-        json.dump(data_for_plots, f)
-    print(search_results)
-    search_results.to_csv(Path("data", "output", "search_results.csv"))
-    # old_code #
-    # for p in Path(
-    #     "/Users/spru445/alchemist/data/output_data/post_submission_tests_davinci"
-    # ).rglob("mcr*.pkl"):
-    #     continue
-    #     graph = read_mcr_to_graph(p)
-    #     if len(graph.nodes()) >= 200:
+        pass
+        # json.dump(data_for_plots, f)
+    # print(search_results)
+    # search_results.to_csv(Path("data", "output", "search_results.csv"))
 
-    #         # add_atribute(graph, create_prompt, name="prompt")
-    #         # add_atribute(
-    #         #     graph, create_current_candidate_list, name="current_candidates"
-    #         # )
-    #         # add_atribute(graph, create_embedding, name="embedding")
-
-    #         single_path = Path(str(p).replace("mcr", "single_shot"))
-    #         if single_path.exists():
-    #             single_json = read_single_query_to_json(single_path)
-    #             single_json["prompt"] = create_prompt(single_json, split=False)
-    #             single_json["current_candidates"] = create_current_candidate_list(
-    #                 single_json
-    #             )
-    #             # single_json["embedding"] = create_embedding(single_json)
-    #             with open(str(single_path).replace(".pkl", ".json"), "w") as f:
-    #                 json.dump(single_json, f)
-
-    #         multi_shot = []
-    #         for i in range(10):
-    #             multi_path = Path(str(p).replace("mcr", f"multi_shot_{i}"))
-    #             if multi_path.exists():
-    #                 multi_json = read_single_query_to_json(multi_path)
-    #                 multi_json["prompt"] = create_prompt(multi_json, split=False)
-    #                 multi_json["current_candidates"] = create_current_candidate_list(
-    #                     multi_json
-    #                 )
-    #                 # multi_json["embedding"] = create_embedding(multi_json)
-    #                 multi_shot.append(multi_json)
-
-    #         with open(
-    #             str(multi_path)
-    #             .replace(f"multi_shot_{i}", "multi_shot")
-    #             .replace(".pkl", ".json"),
-    #             "w",
-    #         ) as f:
-    #             json.dump(multi_shot, f)
-
-    #         # nx.write_gpickle(graph, str(p).replace(".pkl", ".gpickle"))
-
-    # for p in Path("/Users/spru445/alchemist/post_submission_tests_davinci").rglob(
-    #     "bfs*.pkl"
-    # ):
-    #     continue
-    #     graph = read_bfs_to_graph(p)
-
-    #     add_atribute(graph, create_prompt, name="prompt")
-    #     add_atribute(graph, create_current_candidate_list, name="current_candidates")
-    #     # add_atribute(graph, create_embedding, name="embedding")
-    #     nx.write_gpickle(graph, str(p).replace(".pkl", ".gpickle"))
-
-    # i = 0
-    # found_oc = False
-    # found_biofuels = False
-    # queries = []
-    # search_methods = []
-    # datasets = []
-    # rewards = []
-    # prompts = []
-    # raw_answers = []
-    # all_answers = []
-    # for p in list(
-    #     Path(
-    #         "/Users/spru445/alchemist/data/output_data/post_submission_tests_davinci/"
-    #     ).rglob("*mcr*.gpickle")
-    # ) + list(
-    #     Path(
-    #         "/Users/spru445/alchemist/data/output_data/post_submission_tests_davinci/"
-    #     ).rglob("*bfs*.gpickle")
-    # ):
-    #     if "bfs" in str(p):
-    #         bfs_p = p
-    #         # for bfs_p, mcr_p in hardcoded_paths:
-    #         bfs_G = nx.read_gpickle(bfs_p)
-    #         # nx_plot(bfs_G, title=f"{bfs_p.stem}")
-    #         # plt.savefig(Path("traces") / f"{bfs_p.stem}.pdf")
-    #         max_idx = np.argmax(
-    #             [
-    #                 bfs_G.nodes(data=True)[i]["node_rewards"]
-    #                 for i in range(len(bfs_G.nodes))
-    #             ]
-    #         )
-    #         sp = nx.all_simple_paths(bfs_G, 0, max_idx)
-    #         messages = []
-    #         for node in list(sp)[0]:
-    #             messages.append("-------")
-    #             messages.append(bfs_G.nodes()[node]["node_rewards"])
-    #             messages.append(bfs_G.nodes()[node]["answer"])
-    #             messages.append(bfs_G.nodes()[node]["prompt"])
-    #             messages.append("-------")
-
-    #             with open(Path("traces") / f"{bfs_p.stem}.txt", "w") as f:
-    #                 f.writelines([str(mes) + "\n" for mes in messages])
-
-    #         for node in bfs_G.nodes():
-    #             datasets.append("oc" if "oc" in bfs_p.stem else "biofuels")
-    #             if "oc" in bfs_p.stem:
-    #                 queries.append(bfs_p.stem.split("_")[-1])
-    #             elif "biofuels" in bfs_p.stem:
-    #                 queries.append("input" + bfs_p.stem.split("input")[-1])
-    #             else:
-    #                 raise ValueError(f"Unkown dataset for file {bfs_p}.")
-    #             search_methods.append("beam_search")
-    #             rewards.append(bfs_G.nodes()[node]["node_rewards"])
-    #             prompts.append(bfs_G.nodes()[node]["prompt"])
-    #             raw_answers.append(bfs_G.nodes()[node]["answer"])
-    #             all_answers.append(
-    #                 parse_answer(
-    #                     bfs_G.nodes()[node]["answer"]
-    #                     if bfs_G.nodes()[node]["answer"] is not None
-    #                     else ""
-    #                 )
-    #             )
-
-    #     if "mcr" in str(p):
-    #         mcr_p = p
-    #         mcr_G = nx.read_gpickle(mcr_p)
-    #         # nx_plot(mcr_G, title=f"{mcr_p.stem}")
-    #         # plt.savefig(Path("traces") / f"{mcr_p.stem}.pdf")
-    #         max_idx = np.argmax(
-    #             [
-    #                 mcr_G.nodes(data=True)[i]["node_rewards"]
-    #                 for i in range(len(mcr_G.nodes))
-    #             ]
-    #         )
-    #         sp = nx.all_simple_paths(mcr_G, 0, max_idx)
-    #         messages = []
-
-    #         for node in list(sp)[0]:
-    #             messages.append("-------")
-    #             messages.append(mcr_G.nodes()[node]["node_rewards"])
-    #             messages.append(mcr_G.nodes()[node]["answer"])
-    #             messages.append(mcr_G.nodes()[node]["prompt"])
-    #             messages.append("-------")
-    #             # print(mcr_G.nodes()[node]["node_rewards"])
-    #             # print(mcr_G.nodes()[node]["prompt"])
-    #             # print(mcr_G.nodes()[node]["answer"])
-
-    #         for node in mcr_G.nodes():
-    #             datasets.append("oc" if "oc" in mcr_p.stem else "biofuels")
-    #             if "oc" in mcr_p.stem:
-    #                 queries.append(mcr_p.stem.split("_")[-1])
-    #             elif "biofuels" in mcr_p.stem:
-    #                 queries.append("input" + bfs_p.stem.split("input")[-1])
-    #             else:
-    #                 raise ValueError(f"Unkown dataset for file {bfs_p}.")
-    #             search_methods.append("mcts")
-    #             rewards.append(mcr_G.nodes()[node]["node_rewards"])
-    #             prompts.append(mcr_G.nodes()[node]["prompt"])
-    #             raw_answers.append(mcr_G.nodes()[node]["answer"])
-    #             all_answers.append(
-    #                 parse_answer(
-    #                     mcr_G.nodes()[node]["answer"]
-    #                     if mcr_G.nodes()[node]["answer"] is not None
-    #                     else ""
-    #                 )
-    #             )
-
-    #     break
-
-    # for p in Path(
-    #     "/Users/spru445/alchemist/data/output_data/post_submission_tests_davinci/"
-    # ).rglob("*shot*.json"):
-    #     with open(p, "r") as f:
-    #         data = json.load(f)
-    #     if "multi" in str(p):
-    #         for obj in data:
-    #             datasets.append("oc" if "oc" in p.stem else "biofuels")
-    #             if "oc" in mcr_p.stem:
-    #                 queries.append(mcr_p.stem.split("_")[-1])
-    #             elif "biofuels" in mcr_p.stem:
-    #                 queries.append("input" + bfs_p.stem.split("input")[-1])
-    #             search_methods.append("multi_shot")
-    #             rewards.append(obj["node_rewards"])
-    #             prompts.append(obj["prompt"])
-    #             raw_answers.append(obj["answer"])
-    #             all_answers.append(
-    #                 parse_answer(obj["answer"] if obj["answer"] is not None else "")
-    #             )
-    #     else:
-    #         datasets.append("oc" if "oc" in p.stem else "biofuels")
-    #         if "oc" in mcr_p.stem:
-    #             queries.append(mcr_p.stem.split("_")[-1])
-    #         elif "biofuels" in mcr_p.stem:
-    #             queries.append("input" + bfs_p.stem.split("input")[-1])
-    #         search_methods.append("single_shot")
-    #         rewards.append(data["node_rewards"])
-    #         prompts.append(data["prompt"])
-    #         raw_answers.append(data["answer"])
-    #         all_answers.append(
-    #             parse_answer(data["answer"] if data["answer"] is not None else "")
-    #         )
-
-    #     # with open(Path("traces") / f"{mcr_p.stem}.txt", "w") as f:
-    #     #     f.writelines([str(mes) + "\n" for mes in messages])
-    # all_answers = [
-    #   ans_list + [None] * (5 - len(ans_list)) for ans_list in all_answers
-    # ]
-    # max_length = len(max(all_answers, key=len))
-    # data_df = pd.DataFrame(
-    #   all_answers, columns=[f"ans_{i}" for i in range(max_length)]
-    # )
-    # data_df["reward"] = rewards
-    # data_df["search_method"] = search_methods
-    # data_df["dataset"] = datasets
-    # data_df["query"] = queries
-    # data_df["prompt"] = prompts
-    # data_df["raw_answer"] = raw_answers
-    # print(data_df.head())
-    # data_df.to_csv("llm_answers.csv", index=False)
-
-    # plt.show()
+    with open("data/output/usage_statistics.json", "w") as f:
+        json.dump(usage_statistics, f)

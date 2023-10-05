@@ -509,7 +509,7 @@ def run_get_embeddings(strings, model="text-embedding-ada-002"):
         return llama_get_embeddings(strings)
 
 
-@backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=120)
+# @backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=120)
 def run_query(
     query, model="gpt-3.5-turbo", system_prompt=None, max_pause=0, **gpt_kwargs
 ):
