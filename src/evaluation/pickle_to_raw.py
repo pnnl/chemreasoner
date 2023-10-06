@@ -339,6 +339,8 @@ if __name__ == "__main__":
                                 "llm_count": 0,
                                 "llm_time": 0,
                                 "llm_avg": None,
+                                "prompt_length": 0,
+                                "answer_length": 0,
                                 "gnn_count": 0,
                                 "gnn_time": 0,
                                 "gnn_avg": None,
@@ -346,6 +348,7 @@ if __name__ == "__main__":
                         )
                         for n, data in graph.nodes(data=True):
                             if "simulation-reward" in data["info"].keys():
+
                                 usage_statistics[-1]["llm_count"] += data["num_queries"]
                                 usage_statistics[-1]["llm_time"] += data["query_time"]
                                 usage_statistics[-1]["llm_avg"] = (
@@ -363,9 +366,22 @@ if __name__ == "__main__":
                                         usage_statistics[-1]["gnn_time"]
                                         / usage_statistics[-1]["gnn_count"]
                                     )
+                                print(list(data["info"]["generation"].keys()))
+                                usage_statistics[-1]["prompt_length"] += len(
+                                    data["info"]["generation"]["prompt"]
+                                ) + len(data["info"]["generation"]["system_prompt"])
+                                usage_statistics[-1]["answer_length"] += len(
+                                    data["info"]["generation"]["answer"]
+                                )
                             else:
                                 print(list(data["info"].keys()))
 
+                        usage_statistics[-1]["avg_prompt_length"] = usage_statistics[
+                            -1
+                        ]["prompt_length"] / len(graph.nodes)
+                        usage_statistics[-1]["avg_answer_length"] = usage_statistics[
+                            -1
+                        ]["answer_length"] / len(graph.nodes)
                         usage_statistics[-1]["overall_time"] = (
                             tree_data["end_time"] - tree_data["start_time"]
                         )
