@@ -40,6 +40,9 @@ class IncludePropertyAdder:
     def __init__(self, property_name):
         """Save the property name."""
         self.property_name = property_name
+        self.message = (
+            f"Include candidates with the good property {self.property_name}."
+        )
 
     def __call__(self, state, trial=False):
         """Add propery to the state."""
@@ -57,6 +60,7 @@ class ExcludePropertyAdder:
     def __init__(self, property_name):
         """Save the property name."""
         self.property_name = property_name
+        self.message = f"Exclude candidates with the bad property {self.property_name}."
 
     def __call__(self, state, trial=False):
         """Add propery to the state."""
@@ -82,6 +86,8 @@ class RelationToCandidateListChanger:
     def __init__(self, relationship_name):
         """Save the property name."""
         self.relationship_name = relationship_name
+        relationship_name_cap = relationship_name[0].upper() + relationship_name[1:]
+        self.message = f"{relationship_name_cap} the predicted catalysts."
 
     def __call__(self, state, trial=False):
         """Add propery to the state."""
@@ -107,6 +113,7 @@ class CatalystLabelChanger:
     def __init__(self, catalyst_label_type):
         """Save the property name."""
         self.catalyst_label_type = catalyst_label_type
+        self.message = f"Predict {catalyst_label_type}catalysts."
 
     def __call__(self, state, trial=False):
         """Add propery to the state."""
@@ -136,12 +143,16 @@ def toggle_oxide(state, trial=False):
     return new_state
 
 
-def _query_again(state, trial=False):
-    new_state = state.return_next()
-    if not trial:
-        pass
-        # new_state.query()
-    return new_state
+class QueryAgain:
+    message = "Run the same query again."
+
+    @staticmethod
+    def __call__(state, trial=False):
+        new_state = state.return_next()
+        if not trial:
+            pass
+            # new_state.query()
+        return new_state
 
 
 class ReasonerPolicy:
@@ -179,7 +190,7 @@ class ReasonerPolicy:
         if try_oxides:
             self.actions.append(toggle_oxide)
 
-        self.actions.append(_query_again)
+        self.actions.append(QueryAgain())
         self.init_weights()
 
     def init_weights(self):
