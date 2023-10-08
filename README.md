@@ -14,7 +14,7 @@ Please cite the following paper if you use this code in your work.
 @inproceedings{sprueill2023MCR,
   title={ Monte Carlo Thought Search: Large Language Model Querying for Complex Scientific Reasoning in Catalyst Design},
   author={Sprueill, Henry and Edwards, Carl and Sanyal, Sanyal and Olarte, Mariefel and Ji, Heng and Choudhury, Sutanay}
-  booktitle={ Findings of the Association for Computational Linguistics: EMNLP 2023},
+  booktitle={Findings of the Association for Computational Linguistics: EMNLP 2023},
   year={2023}
 }
 ```
