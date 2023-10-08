@@ -1,4 +1,4 @@
-![image](https://github.com/pnnl/chemreasoner/assets/7649924/36cb3fe4-3bc9-4535-9ee8-0bf7a82a4290)# ChemReasoner: Discovering catalysts via Generative AI and Computational Chemistry
+# ChemReasoner: Discovering catalysts via Generative AI and Computational Chemistry
 ![image](https://github.com/pnnl/chemreasoner/assets/7649924/ccae35c9-876e-4865-8e46-0b229167d522)
 
 ## News/Presentations/Publications
