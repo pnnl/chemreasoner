@@ -40,7 +40,7 @@ class IncludePropertyAdder:
     def __init__(self, property_name):
         """Save the property name."""
         self.property_name = property_name
-        self.message = (
+        self._message = (
             f"Include candidates with the good property {self.property_name}."
         )
 
@@ -53,6 +53,10 @@ class IncludePropertyAdder:
             # new_state.query()
         return new_state
 
+    def message(self, state):
+        """Return the message for this action. State does nothing."""
+        return self._message
+
 
 class ExcludePropertyAdder:
     """Class to add property to a state."""
@@ -60,7 +64,9 @@ class ExcludePropertyAdder:
     def __init__(self, property_name):
         """Save the property name."""
         self.property_name = property_name
-        self.message = f"Exclude candidates with the bad property {self.property_name}."
+        self._message = (
+            f"Exclude candidates with the bad property {self.property_name}."
+        )
 
     def __call__(self, state, trial=False):
         """Add propery to the state."""
@@ -70,6 +76,10 @@ class ExcludePropertyAdder:
             pass
             # new_state.query()
         return new_state
+
+    def message(self, state):
+        """Return the message for this action. State does nothing."""
+        return self._message
 
 
 _relationship_to_candidate_list_types = [
@@ -87,7 +97,7 @@ class RelationToCandidateListChanger:
         """Save the property name."""
         self.relationship_name = relationship_name
         relationship_name_cap = relationship_name[0].upper() + relationship_name[1:]
-        self.message = f"{relationship_name_cap} the predicted catalysts."
+        self._message = f"{relationship_name_cap} the predicted catalysts."
 
     def __call__(self, state, trial=False):
         """Add propery to the state."""
@@ -97,6 +107,10 @@ class RelationToCandidateListChanger:
             pass
             # new_state.query()
         return new_state
+
+    def message(self, state):
+        """Return the message for this action. State does nothing."""
+        return self._message
 
 
 _catalyst_label_types = [
@@ -113,7 +127,7 @@ class CatalystLabelChanger:
     def __init__(self, catalyst_label_type):
         """Save the property name."""
         self.catalyst_label_type = catalyst_label_type
-        self.message = f"Predict {catalyst_label_type}catalysts."
+        self._message = f"Predict {catalyst_label_type}catalysts."
 
     def __call__(self, state, trial=False):
         """Add propery to the state."""
@@ -127,20 +141,36 @@ class CatalystLabelChanger:
             # new_state.query()
         return new_state
 
+    def message(self, state):
+        """Return the message for this action. State does nothing."""
+        return self._message
 
-def toggle_oxide(state, trial=False):
-    """Toggle whether or not to target oxides."""
-    new_state = state.return_next()
-    if "oxide" in state.catalyst_label:
-        new_state.catalyst_label = new_state.catalyst_label.replace("oxide ", "")
-    else:  # Add in oxide to label
-        new_state.catalyst_label = new_state.catalyst_label.replace(
-            "catalysts", "oxide catalysts"
-        )
-    if not trial:
-        pass
-        # new_state.query()
-    return new_state
+
+class ToggleOxide:
+    @staticmethod
+    def __call__(state, trial=False):
+        """Toggle whether or not to target oxides."""
+        new_state = state.return_next()
+        if "oxide" in state.catalyst_label:
+            new_state.catalyst_label = new_state.catalyst_label.replace("oxide ", "")
+        else:  # Add in oxide to label
+            new_state.catalyst_label = new_state.catalyst_label.replace(
+                "catalysts", "oxide catalysts"
+            )
+        if not trial:
+            pass
+            # new_state.query()
+        return new_state
+
+    @staticmethod
+    def message(state):
+        """Return a description"""
+        new_state = state.return_next()
+        if "oxide" in state.catalyst_label:
+            return "Search for non-oxide catalysts, instead."
+        else:  # Add in oxide to label
+            return "Search for oxide catalysts, instead."
+        return new_state
 
 
 class QueryAgain:
@@ -188,7 +218,7 @@ class ReasonerPolicy:
             self.actions.append(CatalystLabelChanger(label))
 
         if try_oxides:
-            self.actions.append(toggle_oxide)
+            self.actions.append(ToggleOxide)
 
         self.actions.append(QueryAgain())
         self.init_weights()

@@ -336,6 +336,7 @@ if __name__ == "__main__":
 
                         usage_statistics.append(
                             {
+                                "filename": str(p),
                                 "llm_count": 0,
                                 "llm_time": 0,
                                 "llm_avg": None,

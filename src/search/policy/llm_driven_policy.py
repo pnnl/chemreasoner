@@ -63,14 +63,19 @@ class LLMDrivenPolicy(ReasonerPolicy):
         )
 
         actions_statement = "The actions are:\n\n"
-        for a, i in enumerate(actions):
-            actions_statement += f"{i}) {a.message}\n\n"  # punctuation is in a.message
+        for i, a in enumerate(actions):
+            print(a)
+            actions_statement += (
+                f"{i}) {a.message(s)}\n\n"  # punctuation is in a.message
+            )
 
         prior_prompt += actions_statement
         prior_prompt += (
             "Return your answer as a python dictionary mapping each "
             "action to a score from 0 to 10 (10 is the best)."
         )
+
+        print(prior_prompt)
 
         return actions, new_priors
 
@@ -97,6 +102,13 @@ Now, let's return the python list named final_answer containing the top-5 cataly
 
 final_answer = ['Platinum (Pt)', 'Palladium (Pd)', 'Silver (Ag)', 'Rhodium (Rh)', 'Ruthenium (Ru)']"""
     reward = 30
+    candidates = [
+        "Platinum (Pt)",
+        "Palladium (Pd)",
+        "Silver (Ag)",
+        "Rhodium (Rh)",
+        "Ruthenium (Ru)",
+    ]
 
     def __init__(
         self,
@@ -115,7 +127,6 @@ final_answer = ['Platinum (Pt)', 'Palladium (Pd)', 'Silver (Ag)', 'Rhodium (Rh)'
 if __name__ == "__main__":
     from llm.automate_prompts import get_initial_state_oc
 
-    s, _ = get_initial_state_oc("H20", "gpt-3.5-turbo", "gpt-3.5-turbo")
+    s = TestState()
     p = LLMDrivenPolicy(0.4)
-    print(p.temperature)
     print(p.get_actions(s))
