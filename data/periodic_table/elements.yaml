@@ -1,0 +1,793 @@
+elements:
+- Atomic Number: 1
+  Atomic Weight: 1.01
+  Categories:
+  - Nonmetals
+  Name: Hydrogen
+  State: Gas
+  Symbol: H
+- Atomic Number: 3
+  Atomic Weight: 6.94
+  Categories:
+  - Alkali Metals
+  Name: Lithium
+  State: Solid
+  Symbol: Li
+- Atomic Number: 11
+  Atomic Weight: 22.99
+  Categories:
+  - Alkali Metals
+  Name: Sodium
+  State: Solid
+  Symbol: Na
+- Atomic Number: 19
+  Atomic Weight: 39.1
+  Categories:
+  - Alkali Metals
+  Name: Potassium
+  State: Solid
+  Symbol: K
+- Atomic Number: 37
+  Atomic Weight: 85.47
+  Categories:
+  - Alkali Metals
+  Name: Rubidium
+  State: Solid
+  Symbol: Rb
+- Atomic Number: 55
+  Atomic Weight: 132.91
+  Categories:
+  - Alkali Metals
+  Name: Cesium
+  State: Solid
+  Symbol: Cs
+- Atomic Number: 87
+  Atomic Weight: 223.0
+  Categories:
+  - Alkali Metals
+  Name: Francium
+  State: Solid
+  Symbol: Fr
+- Atomic Number: 4
+  Atomic Weight: 9.01
+  Categories:
+  - Alkaline Earth Metals
+  Name: Beryllium
+  State: Solid
+  Symbol: Be
+- Atomic Number: 12
+  Atomic Weight: 24.31
+  Categories:
+  - Alkaline Earth Metals
+  Name: Magnesium
+  State: Solid
+  Symbol: Mg
+- Atomic Number: 20
+  Atomic Weight: 40.08
+  Categories:
+  - Alkaline Earth Metals
+  Name: Calcium
+  State: Solid
+  Symbol: Ca
+- Atomic Number: 38
+  Atomic Weight: 87.62
+  Categories:
+  - Alkaline Earth Metals
+  Name: Strontium
+  State: Solid
+  Symbol: Sr
+- Atomic Number: 56
+  Atomic Weight: 137.33
+  Categories:
+  - Alkaline Earth Metals
+  Name: Barium
+  State: Solid
+  Symbol: Ba
+- Atomic Number: 88
+  Atomic Weight: 226.03
+  Categories:
+  - Alkaline Earth Metals
+  Name: Radium
+  State: Solid
+  Symbol: Ra
+- Atomic Number: 21
+  Atomic Weight: 44.96
+  Categories:
+  - Transition Metals
+  Name: Scandium
+  State: Solid
+  Symbol: Sc
+- Atomic Number: 39
+  Atomic Weight: 88.91
+  Categories:
+  - Transition Metals
+  Name: Yttrium
+  State: Solid
+  Symbol: Y
+- Atomic Number: 57
+  Atomic Weight: 138.91
+  Categories:
+  - Transition Metals
+  Name: Lanthanum
+  State: Solid
+  Symbol: La
+- Atomic Number: 89
+  Atomic Weight: 227.03
+  Categories:
+  - Transition Metals
+  Name: Actinium
+  State: Solid
+  Symbol: Ac
+- Atomic Number: 22
+  Atomic Weight: 47.9
+  Categories:
+  - Transition Metals
+  Name: Titanium
+  State: Solid
+  Symbol: Ti
+- Atomic Number: 40
+  Atomic Weight: 91.22
+  Categories:
+  - Transition Metals
+  Name: Zirconium
+  State: Solid
+  Symbol: Zr
+- Atomic Number: 72
+  Atomic Weight: 178.49
+  Categories:
+  - Transition Metals
+  Name: Hanium
+  State: Solid
+  Symbol: Hf
+- Atomic Number: 104
+  Atomic Weight: 261.0
+  Categories:
+  - Transition Metals
+  Name: Rutherfordium
+  State: Synthetic
+  Symbol: Rf
+- Atomic Number: 23
+  Atomic Weight: 50.94
+  Categories:
+  - Transition Metals
+  Name: Vanadium
+  State: Solid
+  Symbol: V
+- Atomic Number: 41
+  Atomic Weight: 92.91
+  Categories:
+  - Transition Metals
+  Name: Niobium
+  State: Solid
+  Symbol: Nb
+- Atomic Number: 73
+  Atomic Weight: 180.95
+  Categories:
+  - Transition Metals
+  Name: Tantalum
+  State: Solid
+  Symbol: Ta
+- Atomic Number: 105
+  Atomic Weight: 262.0
+  Categories:
+  - Transition Metals
+  Name: Hahnium
+  State: Synthetic
+  Symbol: Ha
+- Atomic Number: 24
+  Atomic Weight: 51.99
+  Categories:
+  - Transition Metals
+  Name: Chromium
+  State: Solid
+  Symbol: Cr
+- Atomic Number: 42
+  Atomic Weight: 95.94
+  Categories:
+  - Transition Metals
+  Name: Molybdenum
+  State: Solid
+  Symbol: Mo
+- Atomic Number: 74
+  Atomic Weight: 183.85
+  Categories:
+  - Transition Metals
+  Name: Tungsten
+  State: Solid
+  Symbol: W
+- Atomic Number: 106
+  Atomic Weight: 266.0
+  Categories:
+  - Transition Metals
+  Name: Seaborgium
+  State: Synthetic
+  Symbol: Sg
+- Atomic Number: 25
+  Atomic Weight: 178.49
+  Categories:
+  - Transition Metals
+  Name: Manganese
+  State: Solid
+  Symbol: Mn
+- Atomic Number: 43
+  Atomic Weight: 178.49
+  Categories:
+  - Transition Metals
+  Name: Technetium
+  State: Synthetic
+  Symbol: Tc
+- Atomic Number: 75
+  Atomic Weight: 178.49
+  Categories:
+  - Transition Metals
+  Name: Rhenium
+  State: Solid
+  Symbol: Re
+- Atomic Number: 107
+  Atomic Weight: 262.0
+  Categories:
+  - Transition Metals
+  Name: Bohrium
+  State: Synthetic
+  Symbol: Bh
+- Atomic Number: 26
+  Atomic Weight: 55.85
+  Categories:
+  - Transition Metals
+  Name: Iron
+  State: Solid
+  Symbol: Fe
+- Atomic Number: 44
+  Atomic Weight: 101.07
+  Categories:
+  - Transition Metals
+  Name: Ruthenium
+  State: Solid
+  Symbol: Ru
+- Atomic Number: 76
+  Atomic Weight: 190.2
+  Categories:
+  - Transition Metals
+  Name: Osmium
+  State: Solid
+  Symbol: Os
+- Atomic Number: 108
+  Atomic Weight: 265.0
+  Categories:
+  - Transition Metals
+  Name: Hassium
+  State: Synthetic
+  Symbol: Hs
+- Atomic Number: 27
+  Atomic Weight: 58.93
+  Categories:
+  - Transition Metals
+  Name: Cobalt
+  State: Solid
+  Symbol: Co
+- Atomic Number: 45
+  Atomic Weight: 102.91
+  Categories:
+  - Transition Metals
+  Name: Rhodium
+  State: Solid
+  Symbol: Rh
+- Atomic Number: 77
+  Atomic Weight: 192.22
+  Categories:
+  - Transition Metals
+  Name: Iridium
+  State: Solid
+  Symbol: Ir
+- Atomic Number: 109
+  Atomic Weight: 266.0
+  Categories:
+  - Transition Metals
+  Name: Meitnerium
+  State: Synthetic
+  Symbol: Mt
+- Atomic Number: 28
+  Atomic Weight: 58.7
+  Categories:
+  - Transition Metals
+  Name: Nickle
+  State: Solid
+  Symbol: Ni
+- Atomic Number: 46
+  Atomic Weight: 106.4
+  Categories:
+  - Transition Metals
+  Name: Palladium
+  State: Solid
+  Symbol: Pd
+- Atomic Number: 78
+  Atomic Weight: 195.09
+  Categories:
+  - Transition Metals
+  Name: Platinum
+  State: Solid
+  Symbol: Pt
+- Atomic Number: 29
+  Atomic Weight: 63.55
+  Categories:
+  - Transition Metals
+  Name: Copper
+  State: Solid
+  Symbol: Cu
+- Atomic Number: 47
+  Atomic Weight: 107.97
+  Categories:
+  - Transition Metals
+  Name: Silver
+  State: Solid
+  Symbol: Ag
+- Atomic Number: 79
+  Atomic Weight: 196.97
+  Categories:
+  - Transition Metals
+  Name: Gold
+  State: Solid
+  Symbol: Au
+- Atomic Number: 30
+  Atomic Weight: 65.37
+  Categories:
+  - Transition Metals
+  Name: Zinc
+  State: Solid
+  Symbol: Zn
+- Atomic Number: 48
+  Atomic Weight: 112.41
+  Categories:
+  - Transition Metals
+  Name: Cadmium
+  State: Solid
+  Symbol: Cd
+- Atomic Number: 80
+  Atomic Weight: 200.59
+  Categories:
+  - Transition Metals
+  Name: Mercury
+  State: Liquid
+  Symbol: Hg
+- Atomic Number: 5
+  Atomic Weight: 10.81
+  Categories:
+  - Metalloid
+  Name: Boron
+  State: Solid
+  Symbol: B
+- Atomic Number: 13
+  Atomic Weight: 26.98
+  Categories:
+  - Metals
+  Name: Aluminum
+  State: Solid
+  Symbol: Al
+- Atomic Number: 31
+  Atomic Weight: 69.72
+  Categories:
+  - Metals
+  Name: Gallium
+  State: Solid
+  Symbol: Ga
+- Atomic Number: 49
+  Atomic Weight: 69.72
+  Categories:
+  - Metals
+  Name: Indium
+  State: Solid
+  Symbol: In
+- Atomic Number: 81
+  Atomic Weight: 204.37
+  Categories:
+  - Metals
+  Name: Thallium
+  State: Solid
+  Symbol: Tl
+- Atomic Number: 6
+  Atomic Weight: 12.01
+  Categories:
+  - Nonmetals
+  Name: Carbon
+  State: Solid
+  Symbol: C
+- Atomic Number: 14
+  Atomic Weight: 28.09
+  Categories:
+  - Metalloid
+  Name: Silicon
+  State: Solid
+  Symbol: Si
+- Atomic Number: 32
+  Atomic Weight: 72.59
+  Categories:
+  - Metalloid
+  Name: Germanium
+  State: Solid
+  Symbol: Ge
+- Atomic Number: 50
+  Atomic Weight: 118.69
+  Categories:
+  - Metals
+  Name: Tin
+  State: Solid
+  Symbol: Sn
+- Atomic Number: 82
+  Atomic Weight: 207.2
+  Categories:
+  - Metals
+  Name: Lead
+  State: Solid
+  Symbol: Pb
+- Atomic Number: 7
+  Atomic Weight: 14.01
+  Categories:
+  - Nonmetals
+  Name: Nitrogen
+  State: Gas
+  Symbol: N
+- Atomic Number: 15
+  Atomic Weight: 30.97
+  Categories:
+  - Nonmetals
+  Name: Phosphorus
+  State: Solid
+  Symbol: P
+- Atomic Number: 33
+  Atomic Weight: 74.92
+  Categories:
+  - Metalloid
+  Name: Arsenic
+  State: Solid
+  Symbol: As
+- Atomic Number: 51
+  Atomic Weight: 121.75
+  Categories:
+  - Metalloid
+  Name: Antimony
+  State: Solid
+  Symbol: Sb
+- Atomic Number: 83
+  Atomic Weight: 208.98
+  Categories:
+  - Metals
+  Name: Bismuth
+  State: Solid
+  Symbol: Bi
+- Atomic Number: 8
+  Atomic Weight: 15.99
+  Categories:
+  - Nonmetals
+  Name: Oxygen
+  State: Gas
+  Symbol: O
+- Atomic Number: 16
+  Atomic Weight: 32.06
+  Categories:
+  - Nonmetals
+  Name: Sulfur
+  State: Solid
+  Symbol: S
+- Atomic Number: 34
+  Atomic Weight: 78.96
+  Categories:
+  - Nonmetals
+  Name: Selenium
+  State: Solid
+  Symbol: Se
+- Atomic Number: 52
+  Atomic Weight: 127.6
+  Categories:
+  - Metalloid
+  Name: Tellurium
+  State: Solid
+  Symbol: Te
+- Atomic Number: 84
+  Atomic Weight: 209.0
+  Categories:
+  - Metals
+  Name: Polonium
+  State: Solid
+  Symbol: Po
+- Atomic Number: 9
+  Atomic Weight: 18.99
+  Categories:
+  - Nonmetals
+  Name: Fluorine
+  State: Gas
+  Symbol: F
+- Atomic Number: 17
+  Atomic Weight: 35.45
+  Categories:
+  - Nonmetals
+  Name: Chlorine
+  State: Gas
+  Symbol: Cl
+- Atomic Number: 35
+  Atomic Weight: 79.9
+  Categories:
+  - Nonmetals
+  Name: Bromine
+  State: Liquid
+  Symbol: Br
+- Atomic Number: 53
+  Atomic Weight: 126.9
+  Categories:
+  - Nonmetals
+  Name: Iodine
+  State: Solid
+  Symbol: I
+- Atomic Number: 85
+  Atomic Weight: 210.0
+  Categories:
+  - Nonmetals
+  Name: Astatine
+  State: Solid
+  Symbol: At
+- Atomic Number: 2
+  Atomic Weight: 4.0
+  Categories:
+  - Noble Gases
+  Name: Helium
+  State: Gas
+  Symbol: He
+- Atomic Number: 10
+  Atomic Weight: 20.18
+  Categories:
+  - Noble Gases
+  Name: Neon
+  State: Gas
+  Symbol: Ne
+- Atomic Number: 18
+  Atomic Weight: 39.95
+  Categories:
+  - Noble Gases
+  Name: Argon
+  State: Gas
+  Symbol: Ar
+- Atomic Number: 36
+  Atomic Weight: 83.8
+  Categories:
+  - Noble Gases
+  Name: Krypton
+  State: Gas
+  Symbol: Kr
+- Atomic Number: 54
+  Atomic Weight: 131.3
+  Categories:
+  - Noble Gases
+  Name: Xenon
+  State: Gas
+  Symbol: Xe
+- Atomic Number: 86
+  Atomic Weight: 222.0
+  Categories:
+  - Noble Gases
+  Name: Radon
+  State: Gas
+  Symbol: Rn
+- Atomic Number: 58
+  Atomic Weight: 140.12
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Cerium
+  State: Solid
+  Symbol: Ce
+- Atomic Number: 59
+  Atomic Weight: 140.91
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Praseodymium
+  State: Solid
+  Symbol: Pr
+- Atomic Number: 60
+  Atomic Weight: 144.24
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Neodymium
+  State: Solid
+  Symbol: Nd
+- Atomic Number: 61
+  Atomic Weight: 145.0
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Promethium
+  State: Synthetic
+  Symbol: Pm
+- Atomic Number: 62
+  Atomic Weight: 150.4
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Samarium
+  State: Solid
+  Symbol: Sm
+- Atomic Number: 63
+  Atomic Weight: 151.96
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Europium
+  State: Solid
+  Symbol: Eu
+- Atomic Number: 64
+  Atomic Weight: 157.25
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Gadolinium
+  State: Solid
+  Symbol: Gd
+- Atomic Number: 65
+  Atomic Weight: 158.93
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Terbium
+  State: Solid
+  Symbol: Tb
+- Atomic Number: 66
+  Atomic Weight: 162.5
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Dyprosium
+  State: Solid
+  Symbol: Dy
+- Atomic Number: 67
+  Atomic Weight: 164.93
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Holmium
+  State: Solid
+  Symbol: Ho
+- Atomic Number: 68
+  Atomic Weight: 167.26
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Erbium
+  State: Solid
+  Symbol: Er
+- Atomic Number: 69
+  Atomic Weight: 168.93
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Thulium
+  State: Solid
+  Symbol: Tm
+- Atomic Number: 70
+  Atomic Weight: 173.04
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Ytterbium
+  State: Solid
+  Symbol: Yb
+- Atomic Number: 71
+  Atomic Weight: 174.97
+  Categories:
+  - Transition Metals
+  - Lanthanides
+  Name: Lutetium
+  State: Solid
+  Symbol: Lu
+- Atomic Number: 90
+  Atomic Weight: 232.04
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Thorium
+  State: Solid
+  Symbol: Th
+- Atomic Number: 91
+  Atomic Weight: 231.04
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Protactinium
+  State: Solid
+  Symbol: Pa
+- Atomic Number: 92
+  Atomic Weight: 238.03
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Uranium
+  State: Solid
+  Symbol: U
+- Atomic Number: 93
+  Atomic Weight: 237.05
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Neptunium
+  State: Synthetic
+  Symbol: Np
+- Atomic Number: 94
+  Atomic Weight: 244.0
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Plutonium
+  State: Synthetic
+  Symbol: Pu
+- Atomic Number: 95
+  Atomic Weight: 243.0
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Americium
+  State: Synthetic
+  Symbol: Am
+- Atomic Number: 96
+  Atomic Weight: 247
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Curium
+  State: Synthetic
+  Symbol: Cm
+- Atomic Number: 97
+  Atomic Weight: 247
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Berkelium
+  State: Synthetic
+  Symbol: Bk
+- Atomic Number: 98
+  Atomic Weight: 247
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Californium
+  State: Synthetic
+  Symbol: Cf
+- Atomic Number: 99
+  Atomic Weight: 252.0
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Einsteinium
+  State: Synthetic
+  Symbol: Es
+- Atomic Number: 100
+  Atomic Weight: 257.0
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Fermium
+  State: Synthetic
+  Symbol: Fm
+- Atomic Number: 101
+  Atomic Weight: 260.0
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Mendelevium
+  State: Synthetic
+  Symbol: Md
+- Atomic Number: 102
+  Atomic Weight: 259
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Nobleium
+  State: Synthetic
+  Symbol: 'No'
+- Atomic Number: 103
+  Atomic Weight: 262
+  Categories:
+  - Transition Metals
+  - Actinides
+  Name: Lawrencium
+  State: Synthetic
+  Symbol: Lr
+version: 1

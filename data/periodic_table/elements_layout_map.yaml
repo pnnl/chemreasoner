@@ -1,0 +1,329 @@
+map:
+  Ac:
+    column: 2
+    row: 7
+  Ag:
+    column: 10
+    row: 5
+  Al:
+    column: 12
+    row: 3
+  Am:
+    column: 8
+    row: 12
+  Ar:
+    column: 17
+    row: 3
+  As:
+    column: 14
+    row: 4
+  At:
+    column: 16
+    row: 6
+  Au:
+    column: 10
+    row: 6
+  B:
+    column: 12
+    row: 2
+  Ba:
+    column: 1
+    row: 6
+  Be:
+    column: 1
+    row: 2
+  Bh:
+    column: 6
+    row: 7
+  Bi:
+    column: 14
+    row: 6
+  Bk:
+    column: 10
+    row: 12
+  Br:
+    column: 16
+    row: 4
+  C:
+    column: 13
+    row: 2
+  Ca:
+    column: 1
+    row: 4
+  Cd:
+    column: 11
+    row: 5
+  Ce:
+    column: 3
+    row: 11
+  Cf:
+    column: 11
+    row: 12
+  Cl:
+    column: 16
+    row: 3
+  Cm:
+    column: 9
+    row: 12
+  Co:
+    column: 8
+    row: 4
+  Cr:
+    column: 5
+    row: 4
+  Cs:
+    column: 0
+    row: 6
+  Cu:
+    column: 10
+    row: 4
+  Dy:
+    column: 11
+    row: 11
+  Er:
+    column: 13
+    row: 11
+  Es:
+    column: 12
+    row: 12
+  Eu:
+    column: 8
+    row: 11
+  F:
+    column: 16
+    row: 2
+  Fe:
+    column: 7
+    row: 4
+  Fm:
+    column: 13
+    row: 12
+  Fr:
+    column: 0
+    row: 7
+  Ga:
+    column: 12
+    row: 4
+  Gd:
+    column: 9
+    row: 11
+  Ge:
+    column: 13
+    row: 4
+  H:
+    column: 0
+    row: 1
+  Ha:
+    column: 4
+    row: 7
+  He:
+    column: 17
+    row: 1
+  Hf:
+    column: 3
+    row: 6
+  Hg:
+    column: 11
+    row: 6
+  Ho:
+    column: 12
+    row: 11
+  Hs:
+    column: 7
+    row: 7
+  I:
+    column: 16
+    row: 5
+  In:
+    column: 12
+    row: 5
+  Ir:
+    column: 8
+    row: 6
+  K:
+    column: 0
+    row: 4
+  Kr:
+    column: 17
+    row: 4
+  La:
+    column: 2
+    row: 6
+  Li:
+    column: 0
+    row: 2
+  Lr:
+    column: 16
+    row: 12
+  Lu:
+    column: 16
+    row: 11
+  Md:
+    column: 14
+    row: 12
+  Mg:
+    column: 1
+    row: 3
+  Mn:
+    column: 6
+    row: 4
+  Mo:
+    column: 5
+    row: 5
+  Mt:
+    column: 8
+    row: 7
+  N:
+    column: 14
+    row: 2
+  Na:
+    column: 0
+    row: 3
+  Nb:
+    column: 4
+    row: 5
+  Nd:
+    column: 5
+    row: 11
+  Ne:
+    column: 17
+    row: 2
+  Ni:
+    column: 9
+    row: 4
+  'No':
+    column: 15
+    row: 12
+  Np:
+    column: 6
+    row: 12
+  O:
+    column: 15
+    row: 2
+  Os:
+    column: 7
+    row: 6
+  P:
+    column: 14
+    row: 3
+  Pa:
+    column: 4
+    row: 12
+  Pb:
+    column: 13
+    row: 6
+  Pd:
+    column: 9
+    row: 5
+  Pm:
+    column: 6
+    row: 11
+  Po:
+    column: 15
+    row: 6
+  Pr:
+    column: 4
+    row: 11
+  Pt:
+    column: 9
+    row: 6
+  Pu:
+    column: 7
+    row: 12
+  Ra:
+    column: 1
+    row: 7
+  Rb:
+    column: 0
+    row: 5
+  Re:
+    column: 6
+    row: 6
+  Rf:
+    column: 3
+    row: 7
+  Rh:
+    column: 8
+    row: 5
+  Rn:
+    column: 17
+    row: 6
+  Ru:
+    column: 7
+    row: 5
+  S:
+    column: 15
+    row: 3
+  Sb:
+    column: 14
+    row: 5
+  Sc:
+    column: 2
+    row: 4
+  Se:
+    column: 15
+    row: 4
+  Sg:
+    column: 5
+    row: 7
+  Si:
+    column: 13
+    row: 3
+  Sm:
+    column: 7
+    row: 11
+  Sn:
+    column: 13
+    row: 5
+  Sr:
+    column: 1
+    row: 5
+  Ta:
+    column: 4
+    row: 6
+  Tb:
+    column: 10
+    row: 11
+  Tc:
+    column: 6
+    row: 5
+  Te:
+    column: 15
+    row: 5
+  Th:
+    column: 3
+    row: 12
+  Ti:
+    column: 3
+    row: 4
+  Tl:
+    column: 12
+    row: 6
+  Tm:
+    column: 14
+    row: 11
+  U:
+    column: 5
+    row: 12
+  V:
+    column: 4
+    row: 4
+  W:
+    column: 5
+    row: 6
+  Xe:
+    column: 17
+    row: 5
+  Y:
+    column: 2
+    row: 5
+  Yb:
+    column: 15
+    row: 11
+  Zn:
+    column: 11
+    row: 4
+  Zr:
+    column: 3
+    row: 5
+version: 1
