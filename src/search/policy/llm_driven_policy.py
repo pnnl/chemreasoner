@@ -56,6 +56,7 @@ class LLMDrivenPolicy(ReasonerPolicy):
         prev_answer = state.answer
 
         prior_prompt = f"Consider the previous answer: {prev_answer}.\n\n"
+        prior_prompt += f"The reward for this prompt was {state.reward}."
         prior_prompt += (
             "Your task is to rate the following actions to produce a "
             "new prompt that an llm can use to recommend better catalysts.\n\n"
@@ -72,6 +73,43 @@ class LLMDrivenPolicy(ReasonerPolicy):
         )
 
         return actions, new_priors
+
+
+class TestState:
+    answer = """To generate a list of top-5 monometallic catalysts for the adsorption of *CH2CH2OH, we need to consider catalysts that can effectively interact with the adsorbate and promote its adsorption. Here are the top-5 catalysts along with their scientific explanations:
+
+1. Platinum (Pt):
+Platinum is a highly effective catalyst for the adsorption of *CH2CH2OH due to its ability to form strong bonds with oxygen-containing species. The Pt surface can adsorb *CH2CH2OH through the dissociation of the C-O bond, leading to the formation of *CH2CH2 and *OH species. This dissociation step is facilitated by the high reactivity of Pt towards oxygen-containing compounds.
+
+2. Palladium (Pd):
+Palladium is another excellent catalyst for the adsorption of *CH2CH2OH. Similar to Pt, Pd can form strong bonds with oxygen-containing species. The Pd surface can adsorb *CH2CH2OH by breaking the C-O bond, resulting in the formation of *CH2CH2 and *OH species. Pd is known for its high catalytic activity and selectivity towards oxygen-containing compounds.
+
+3. Silver (Ag):
+Silver is a promising catalyst for the adsorption of *CH2CH2OH due to its ability to interact with oxygen-containing species. The Ag surface can adsorb *CH2CH2OH by breaking the C-O bond, leading to the formation of *CH2CH2 and *OH species. Ag exhibits good catalytic activity and stability, making it a suitable catalyst for this reaction.
+
+4. Rhodium (Rh):
+Rhodium is a highly effective catalyst for the adsorption of *CH2CH2OH due to its strong interaction with oxygen-containing species. The Rh surface can adsorb *CH2CH2OH by breaking the C-O bond, resulting in the formation of *CH2CH2 and *OH species. Rh is known for its excellent catalytic properties and can promote the adsorption of oxygen-containing compounds.
+
+5. Ruthenium (Ru):
+Ruthenium is a versatile catalyst for the adsorption of *CH2CH2OH due to its ability to interact with oxygen-containing species. The Ru surface can adsorb *CH2CH2OH by breaking the C-O bond, leading to the formation of *CH2CH2 and *OH species. Ru exhibits high catalytic activity and stability, making it a suitable catalyst for this reaction.
+
+Now, let's return the python list named final_answer containing the top-5 catalysts:
+
+final_answer = ['Platinum (Pt)', 'Palladium (Pd)', 'Silver (Ag)', 'Rhodium (Rh)', 'Ruthenium (Ru)']"""
+    reward = 30
+
+    def __init__(
+        self,
+        catalyst_label: str = "catalysts",
+        relation_to_candidate_list: str = None,
+        include_list: list[str] = [],
+        exclude_list: list[str] = [],
+    ):
+
+        self.catalyst_label = catalyst_label
+        self.relation_to_candidate_list = "similar to"
+        self.include_list = ["low cost", "high activity"]
+        self.exclude_list = ["high cost", "low conversion"]
 
 
 if __name__ == "__main__":
