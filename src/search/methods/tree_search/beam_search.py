@@ -33,38 +33,37 @@ class BeamSearchTree:
         self.end_time = None
         # expand the root node
 
-    def expand_node(self, node):
+    def expand_node(self, nodes):
         """Expand out possible sub-nodes for given node."""
-        actions, priors = self.policy.get_actions(node)
-        shuffle_idx = list(range(len(priors)))
-        shuffle(shuffle_idx)
-        priors = [priors[i] for i in shuffle_idx]
-        actions = [actions[i] for i in shuffle_idx]
-
-        action_idxs = np.argsort(priors)[-self.num_generate :]  # noqa: E203
-
+        actions, priors = self.policy.get_actions(nodes)
         new_nodes = []
-        for i in action_idxs:
-            if priors[i] > 0:
-                a = actions[i]
-                new_nodes.append(a(node))
-        return new_nodes
+        parent_idx = []
+        for i, node in enumerate(nodes):
+            priors = priors[i]
+            shuffle_idx = list(range(len(priors)))
+            shuffle(shuffle_idx)
+            priors = [priors[i] for i in shuffle_idx]
+            actions = [actions[i] for i in shuffle_idx]
+
+            action_idxs = np.argsort(priors)[-self.num_generate :]  # noqa: E203
+
+            these_new_nodes = []
+            for i in action_idxs:
+                if priors[i] > 0:
+                    a = actions[i]
+                    these_new_nodes.append(a(node))
+            new_nodes += these_new_nodes
+            parent_idx += [i] * len(these_new_nodes)
+        return new_nodes, parent_idx
 
     def simulation_policy(self):
         """Simulate a beam search step."""
         if self.start_time is None:
             self.start_timer()
-        nodes = self.nodes[-1]
 
-        successor_nodes = []
-        successor_rewards = []
-        parent_idx = []
-        for i, n in enumerate(nodes):
-            next_nodes = self.expand_node(n)
-            rewards = [self.reward_fn(n) for n in next_nodes]
-            successor_nodes += next_nodes
-            successor_rewards += rewards
-            parent_idx += [i] * len(next_nodes)
+        successor_nodes, parent_idx = self.expand_node(self.nodes[-1])
+        successor_rewards = self.reward_fn(successor_nodes)
+
         selected_node_idx = np.argsort(successor_rewards)[
             -self.num_keep :  # noqa: E203
         ]

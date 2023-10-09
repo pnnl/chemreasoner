@@ -135,7 +135,7 @@ class MonteCarloTree:
                     self.children_idx[current_idx, action_idx] = len(self.nodes) - 1
                     current_idx = len(self.nodes) - 1
 
-                    reward = self.reward_fn(current_node)
+                    reward = self.reward_fn([current_node])[0]
                     self.node_rewards = np.append(self.node_rewards, reward)
                 else:  # Further progressing this state is not possible.
                     history_stack.pop()
