@@ -55,23 +55,23 @@ class LLMDrivenPolicy(ReasonerPolicy):
 
         prev_answer = state.answer
 
-        prior_prompt = f"Consider the previous answer: {prev_answer}.\n\n"
-        prior_prompt += f"The reward for this prompt was {state.reward}."
+        prior_prompt = f"Consider the previous answer:\n{prev_answer}.\n\n"
+        prior_prompt += f"The reward for this prompt was {state.reward}.\n\n"
         prior_prompt += (
             "Your task is to rate the following actions to produce a "
             "new prompt that an llm can use to recommend better catalysts.\n\n"
         )
 
-        actions_statement = "The actions are:\n\n"
+        actions_statement = "The actions are:\n"
         for i, a in enumerate(actions):
-            print(a)
-            actions_statement += (
-                f"{i}) {a.message(s)}\n\n"  # punctuation is in a.message
-            )
+            if priors[i] != 0:
+                actions_statement += (
+                    f"{i}) {a.message(s)}\n"  # punctuation is in a.message
+                )
 
         prior_prompt += actions_statement
         prior_prompt += (
-            "Return your answer as a python dictionary mapping each "
+            "\nReturn your answer as a python dictionary mapping each "
             "action to a score from 0 to 10 (10 is the best)."
         )
 

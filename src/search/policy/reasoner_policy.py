@@ -164,7 +164,7 @@ class ToggleOxide:
 
     @staticmethod
     def message(state):
-        """Return a description"""
+        """Return the message for this action. Depends on the state."""
         if "oxide" in state.catalyst_label:
             return "Search for non-oxide catalysts, instead."
         else:  # Add in oxide to label
@@ -172,7 +172,7 @@ class ToggleOxide:
 
 
 class QueryAgain:
-    message = "Run the same query again."
+    _message = "Run the same query again."
 
     @staticmethod
     def __call__(state, trial=False):
@@ -181,6 +181,10 @@ class QueryAgain:
             pass
             # new_state.query()
         return new_state
+
+    def message(self, state):
+        """Return the message for this action. State does nothing."""
+        return self._message
 
 
 class ReasonerPolicy:
