@@ -165,12 +165,10 @@ class ToggleOxide:
     @staticmethod
     def message(state):
         """Return a description"""
-        new_state = state.return_next()
         if "oxide" in state.catalyst_label:
             return "Search for non-oxide catalysts, instead."
         else:  # Add in oxide to label
             return "Search for oxide catalysts, instead."
-        return new_state
 
 
 class QueryAgain:
