@@ -12,7 +12,7 @@ sys.path.append("src")
 from search.policy.reasoner_policy import ReasonerPolicy  # noqa:402
 
 
-class LLMDrivenPolicy(ReasonerPolicy):
+class LLMDrivenReasonerPolicy(ReasonerPolicy):
     """A polocy like the Reasoner policy, but it promotes more coherent prompts."""
 
     def __init__(
@@ -38,9 +38,9 @@ class LLMDrivenPolicy(ReasonerPolicy):
     @staticmethod
     def from_reasoner_policy(
         reasoner_policy: ReasonerPolicy, temperature: float = 0.6
-    ) -> "LLMDrivenPolicy":
+    ) -> "LLMDrivenReasonerPolicy":
         """Construct a coherent policy from a reasoner poliy."""
-        p = LLMDrivenPolicy()
+        p = LLMDrivenReasonerPolicy()
         p.actions = reasoner_policy.actions.copy()
         p.init_weights()
         return p
@@ -131,5 +131,5 @@ if __name__ == "__main__":
     from llm.automate_prompts import get_initial_state_oc
 
     s = TestState()
-    p = LLMDrivenPolicy(0.4)
+    p = LLMDrivenReasonerPolicy(0.4)
     print(p.get_actions(s))
