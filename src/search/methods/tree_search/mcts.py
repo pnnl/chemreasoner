@@ -130,6 +130,7 @@ class MonteCarloTree:
                 _, priors = self.policy.get_actions(
                     current_node
                 )  # calculate new priors
+                priors = priors[0]
                 if sum(priors.flatten()) != 0:
                     self.add_node(current_node, priors)
                     self.children_idx[current_idx, action_idx] = len(self.nodes) - 1

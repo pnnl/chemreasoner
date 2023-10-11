@@ -46,36 +46,39 @@ class LLMDrivenPolicy(ReasonerPolicy):
         return p
 
     def get_actions(
-        self, state: object
+        self, states: object
     ) -> tuple[list[Callable[object, object]], np.array]:
         """Return the actions along with their priors."""
         actions, priors = super().get_actions(
-            state
+            states
         )  # get super class actions and priors
+        new_priors = []
+        for i, state in enumerate(states):
 
-        prev_answer = state.answer
+            prev_answer = state.answer
 
-        prior_prompt = f"Consider the previous answer:\n{prev_answer}.\n\n"
-        prior_prompt += f"The reward for this prompt was {state.reward}.\n\n"
-        prior_prompt += (
-            "Your task is to rate the following actions to produce a "
-            "new prompt that an llm can use to recommend better catalysts.\n\n"
-        )
+            prior_prompt = f"Consider the previous answer:\n{prev_answer}.\n\n"
+            prior_prompt += f"The reward for this prompt was {state.reward}.\n\n"
+            prior_prompt += (
+                "Your task is to rate the following actions to produce a "
+                "new prompt that an llm can use to recommend better catalysts.\n\n"
+            )
 
-        actions_statement = "The actions are:\n"
-        for i, a in enumerate(actions):
-            if priors[i] != 0:
-                actions_statement += (
-                    f"{i}) {a.message(s)}\n"  # punctuation is in a.message
-                )
+            actions_statement = "The actions are:\n"
+            for i, a in enumerate(actions):
+                if priors[i] != 0:
+                    actions_statement += (
+                        f"{i}) {a.message(s)}\n"  # punctuation is in a.message
+                    )
 
-        prior_prompt += actions_statement
-        prior_prompt += (
-            "\nReturn your answer as a python dictionary mapping each "
-            "action to a score from 0 to 10 (10 is the best)."
-        )
+            prior_prompt += actions_statement
+            prior_prompt += (
+                "\nReturn your answer as a python dictionary mapping each "
+                "action to a score from 0 to 10 (10 is the best)."
+            )
 
-        print(prior_prompt)
+            print(prior_prompt)
+            new_priors.append(priors[i])
 
         return actions, new_priors
 
