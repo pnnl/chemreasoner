@@ -14,6 +14,7 @@ class BasePolicy(metaclass=ABCMeta):
         """Return the actions along with their priors."""
         ...
 
+    @abstractmethod
     def early_stopping(self):
         """Whether or not to stop the search early."""
-        return False
+        ...

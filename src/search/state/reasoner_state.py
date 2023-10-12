@@ -1,4 +1,9 @@
 """Create a class for a reasoner state."""
+from copy import deepcopy
+from typing import Union
+
+import numpy as np
+
 
 class ReasonerState:
     """A class for the search tree state."""
@@ -64,7 +69,7 @@ class ReasonerState:
     @staticmethod
     def from_dict(data: dict):  # TODO: Add defaults
         """Create a query state from dictionary."""
-        return QueryState(
+        return ReasonerState(
             template=data.get("template"),
             reward_template=data.get("reward_template"),
             ads_symbols=data.get("ads_symbols").copy(),
@@ -85,7 +90,7 @@ class ReasonerState:
 
     def copy(self):
         """Return a copy of self."""
-        return QueryState(
+        return ReasonerState(
             template=self.template,
             reward_template=self.reward_template,
             ads_symbols=self.ads_symbols.copy(),
@@ -104,9 +109,9 @@ class ReasonerState:
             debug=self.debug,
         )
 
-    def return_next(self):
-        """Return a copy of self."""
-        return QueryState(
+    def return_next(self) -> "ReasonerState":
+        """Return the successor state of self."""
+        return ReasonerState(
             template=self.template,
             reward_template=self.reward_template,
             ads_symbols=self.ads_symbols.copy(),
@@ -161,6 +166,29 @@ class ReasonerState:
             )
             for ads in self.ads_symbols
         ]
+
+    def parse_adsorption_energy_answers(
+        self, answers: list[str], usage_info: dict[str, list[Union[float, int]]] = {}
+    ):
+        """Parse the adsorption energies out of the given answers.
+
+        Returns 'None' if parsing fails."""
+        self.info["llm-reward"]["attempts"].append(
+            {
+                "prompt": self.adsorption_energy_prompts,
+                "system_prompt": self.system_prompt_reward,
+                "answer": [],
+                "key_answers": [],
+                "number_answers": [],
+                "input_tokens": usage_info.get(
+                    "input_tokens", [None] * len(self.ads_symbols)
+                ),
+                "output_tokens": usage_info.get(
+                    "output_tokens", [None] * len(self.ads_symbols)
+                ),
+                "time": usage_info.get("time", [None] * len(self.ads_symbols)),
+            }
+        )
 
     def query(self):
         """Run a query to the LLM and change the state of self."""

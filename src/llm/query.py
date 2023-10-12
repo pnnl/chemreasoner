@@ -23,9 +23,6 @@ from openai.embeddings_utils import get_embeddings, cosine_similarity
 logging.getLogger().setLevel(logging.INFO)
 
 
-
-
-
 # _reward_system_prompt = "You are a helpful catalysis expert with extensive knowledge "
 #     "of the adsorption of atoms and molecules. You can offer an approximate value of "
 #     "adsorption energies of various adsorbates to various catalysts."
@@ -283,6 +280,6 @@ if __name__ == "__main__":
 
     logging.info(
         llama_get_embeddings(
-            ["This is the query, is it?", "Making a western movie is a thing."],
+            ["This is the query, is it?", "Making a western movie is a cowboy thing."],
         )
     )
