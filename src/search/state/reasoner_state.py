@@ -1,4 +1,6 @@
 """Create a class for a reasoner state."""
+import re
+
 from copy import deepcopy
 from typing import Union
 
@@ -189,6 +191,36 @@ class ReasonerState:
                 "time": usage_info.get("time", [None] * len(self.ads_symbols)),
             }
         )
+        for i, answer in enumerate(answers):
+            self.info["llm-reward"]["attempted_prompts"][-1]["answer"].append(answer)
+            key_answers = []
+            number_answers = []
+            for line in answer.split("\n"):
+                self.info["llm-reward"]["attempts"][-1]["answer"].append(answer)
+                if ":" in line:
+                    k, number = line.split(":")
+                    number = (
+                        number.lower()
+                        .replace("(ev)", "")
+                        .replace("ev", "")
+                        .replace(",", "")
+                        .strip()
+                    )
+                    if (
+                        re.match(r"^-?\d+(?:\.\d+)$", number) is not None
+                        or number != ""
+                    ):
+                        number_answers.append(abs(float(number)))
+                    key_answers.append(k)
+            self.info["llm-reward"]["attempts"][-1]["key_answers"].append(key_answers)
+            self.info["llm-reward"]["attempts"][-1]["number_answers"].append(
+                number_answers
+            )
+            if not len(number_answers) == len(self.candidates):
+                raise ValueError(
+                    f"Found {len(number_answers)} adsorption energies. "
+                    f"Expected {len(self.candidates)}."
+                )
 
     def query(self):
         """Run a query to the LLM and change the state of self."""
