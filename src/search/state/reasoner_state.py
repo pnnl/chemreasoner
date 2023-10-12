@@ -249,6 +249,7 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
                         "answer": [],
                         "key_answers": [],
                         "number_answers": [],
+                        "successful": [],
                     }
                 )
                 answers = []
