@@ -57,99 +57,117 @@ class StructureReward(BaseReward):
                     f"Unable to get atomic symbols with error {error}. "
                     "Returning a penalty value."
                 )
-                final_reward = -10
+                rewards.append(-10)
             else:
-                start_gnn_calls = self.adsorption_calculator.gnn_calls
-                start_gnn_time = self.adsorption_calculator.gnn_time
-                adslab_ats = []  # List to store initial adslabs and indices
-                name_candidate_mapping = (
-                    {}
-                )  # dictionary to get from database names to candidates
-                for i, slab_sym in enumerate(slab_syms):
-                    if slab_sym is not None:
-                        valid_slab_sym = True
-                        slab_name = self.reduce_candidate_symbols(slab_sym)
-                        slab_ats = self.adsorption_calculator.get_slab(slab_name)
-                        if slab_ats is None:
-                            try:
-                                slab_samples = [
-                                    ase_interface.symbols_list_to_bulk(slab_sym)
-                                    for _ in range(self.num_slab_samples)
-                                ]
-                            except ase_interface.StructureGenerationError:
-                                slab_syms[i] = None
-                                valid_slab_sym = False
-
-                            if valid_slab_sym:
-                                slab_ats = self.adsorption_calculator.choose_slab(
-                                    slab_samples, slab_name
-                                )
-                        if slab_ats is not None:
-                            for ads_sym in ads_list:
-
-                                ads_ats = ase_interface.ads_symbols_to_structure(
-                                    ads_sym
-                                )
-                                name = f"{slab_name}_{ads_sym}"
-                                adslab_ats += self.sample_adslabs(
-                                    slab_ats, ads_ats, name
-                                )
-                                name_candidate_mapping[name] = candidates_list[i]
-                adslabs_and_energies = self.create_batches_and_calculate(
-                    adslab_ats,
+                (
+                    adslabs_and_energies,
+                    gnn_calls,
+                    gnn_time,
+                    name_candidate_mapping,
+                ) = self.create_structures_and_calculate(
+                    slab_syms, ads_list, candidates_list
                 )
-                # Parse out the rewards into candidate/adsorbate
-                reward_values = {}
-                for idx, name, energy in adslabs_and_energies:
-                    cand = name_candidate_mapping[name]
-                    ads = name.split("_")[-1]
-                    if cand in reward_values.keys():
-                        if name.split("_")[-1] in reward_values[cand].keys():
-                            reward_values[cand][ads] += [energy]
-                        else:
-                            reward_values[cand][ads] = [energy]
-                    else:
-                        reward_values[cand] = {ads: [energy]}
 
-                # aggregate the rewards
-                rewards = []
-                for cand in candidates_list:
-                    if cand in reward_values.keys():
-                        rewards.append(
-                            np.mean(
-                                [
-                                    -(
-                                        (min(reward_values[cand][ads]))
-                                        ** s.ads_preferences[i]
-                                    )
-                                    for i, ads in enumerate(reward_values[cand].keys())
-                                ]
-                            )
-                        )
-                    else:  # Handle default here TODO: determine some logic/pentaly for this
-                        print(cand)
-                        rewards.append(-10)
-                final_reward = np.mean(rewards)
-                s.set_reward(final_reward, info_field="simulation-reward")
-                end_gnn_calls = self.adsorption_calculator.gnn_calls
-                end_gnn_time = self.adsorption_calculator.gnn_time
+                final_reward = self.parse_adsorption_energies(
+                    adslabs_and_energies, name_candidate_mapping, candidates_list
+                )
+
                 s.info["simulation-reward"].update(
                     {
                         "slab_syms": slab_syms,
                         "value": final_reward,
-                        "gnn_calls": end_gnn_calls - start_gnn_calls,
-                        "gnn_time": end_gnn_time - start_gnn_time,
+                        "gnn_calls": gnn_calls,
+                        "gnn_time": gnn_time,
                     }
                 )
-                # if "llama" in s.reward_model:
-                #     s.set_reward(
-                #         llm_adsorption_energy_reward(
-                #             s,
-                #             primary_reward=False,
-                #         )
-                #     )
-            rewards.append(final_reward)  # return mean over candidates
+
         return rewards
+
+    def create_structures_and_calculate(
+        self,
+        slab_syms,
+        ads_list,
+        candidates_list,
+    ):
+        start_gnn_calls = self.adsorption_calculator.gnn_calls
+        start_gnn_time = self.adsorption_calculator.gnn_time
+        adslab_ats = []  # List to store initial adslabs and indices
+        name_candidate_mapping = (
+            {}
+        )  # dictionary to get from database names to candidates
+        for i, slab_sym in enumerate(slab_syms):
+            if slab_sym is not None:
+                valid_slab_sym = True
+                slab_name = self.reduce_candidate_symbols(slab_sym)
+                slab_ats = self.adsorption_calculator.get_slab(slab_name)
+                if slab_ats is None:
+                    try:
+                        slab_samples = [
+                            ase_interface.symbols_list_to_bulk(slab_sym)
+                            for _ in range(self.num_slab_samples)
+                        ]
+                    except ase_interface.StructureGenerationError:
+                        slab_syms[i] = None
+                        valid_slab_sym = False
+
+                    if valid_slab_sym:
+                        slab_ats = self.adsorption_calculator.choose_slab(
+                            slab_samples, slab_name
+                        )
+                if slab_ats is not None:
+                    for ads_sym in ads_list:
+                        ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
+                        name = f"{slab_name}_{ads_sym}"
+                        adslab_ats += self.sample_adslabs(slab_ats, ads_ats, name)
+                        name_candidate_mapping[name] = candidates_list[i]
+
+        adslabs_and_energies = self.create_batches_and_calculate(adslab_ats)
+
+        end_gnn_calls = self.adsorption_calculator.gnn_calls
+        end_gnn_time = self.adsorption_calculator.gnn_time
+
+        return (
+            adslabs_and_energies,
+            end_gnn_calls - start_gnn_calls,
+            end_gnn_time - start_gnn_time,
+            name_candidate_mapping,
+        )
+
+    def parse_adsorption_energies(
+        self, adslabs_and_energies, name_candidate_mapping, candidates_list
+    ):
+        # Parse out the rewards into candidate/adsorbate
+        reward_values = {}
+        for idx, name, energy in adslabs_and_energies:
+            cand = name_candidate_mapping[name]
+            ads = name.split("_")[-1]
+            if cand in reward_values.keys():
+                if name.split("_")[-1] in reward_values[cand].keys():
+                    reward_values[cand][ads] += [energy]
+                else:
+                    reward_values[cand][ads] = [energy]
+            else:
+                reward_values[cand] = {ads: [energy]}
+
+        # aggregate the rewards
+        rewards = []
+        for cand in candidates_list:
+            if cand in reward_values.keys():
+                rewards.append(
+                    np.mean(
+                        [
+                            -((min(reward_values[cand][ads])) ** s.ads_preferences[i])
+                            for i, ads in enumerate(reward_values[cand].keys())
+                        ]
+                    )
+                )
+            else:  # Handle default here TODO: determine some logic/pentaly for this
+                print(cand)
+                rewards.append(-10)
+
+        final_reward = np.mean(rewards)
+
+        return final_reward  # return mean over candidates
 
     def create_batches_and_calculate(self, adslabs):
         """Split adslabs into batches and run the simulations."""
@@ -157,7 +175,6 @@ class StructureReward(BaseReward):
         adslab_batch = []
         fname_batch = []
         for idx, name, adslab in adslabs:
-
             fname = Path(f"{name}") / f"{idx}"
             (self.adsorption_calculator.traj_dir / fname).parent.mkdir(
                 parents=True, exist_ok=True
@@ -255,7 +272,6 @@ class StructureReward(BaseReward):
             else:
                 name_syms = [k2, k1]
         else:
-
             name_syms = sorted(list(syms_count.keys()))
 
         formula = "".join(name_syms)
@@ -288,7 +304,6 @@ class _TestState:
 
 
 if __name__ == "__main__":
-
     # test_candidates = [
     #     "Nickel",
     #     "Clay",

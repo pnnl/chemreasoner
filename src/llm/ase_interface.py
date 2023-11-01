@@ -296,6 +296,10 @@ def symbols_list_to_bulk(symbols_list):
                 raise StructureGenerationError(
                     f"Unable to incorporate element {sym} into alloy.",
                 )
+    else:
+        raise StructureGenerationError(
+            f"Incorrect number of symbols given ({len(symbols_list)}).",
+        )
     bulk.info.update({"bulk_syms": symbols_list})
     return bulk
 
