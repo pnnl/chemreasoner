@@ -72,6 +72,8 @@ class StructureReward(BaseReward):
                     adslabs_and_energies, name_candidate_mapping, candidates_list
                 )
 
+                rewards.append(final_reward)
+
                 s.info["simulation-reward"].update(
                     {
                         "slab_syms": slab_syms,
@@ -163,7 +165,7 @@ class StructureReward(BaseReward):
                 )
             else:  # Handle default here TODO: determine some logic/pentaly for this
                 print(cand)
-                rewards.append(-10)
+                return -10
 
         final_reward = np.mean(rewards)
 
