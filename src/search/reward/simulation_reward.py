@@ -91,6 +91,7 @@ class StructureReward(BaseReward):
         ads_list,
         candidates_list,
     ):
+        """Create the structures from the symbols and calculate adsorption energies."""
         start_gnn_calls = self.adsorption_calculator.gnn_calls
         start_gnn_time = self.adsorption_calculator.gnn_time
         adslab_ats = []  # List to store initial adslabs and indices
@@ -138,6 +139,7 @@ class StructureReward(BaseReward):
     def parse_adsorption_energies(
         self, adslabs_and_energies, name_candidate_mapping, candidates_list
     ):
+        """Parse adsorption energies to get the reward value."""
         # Parse out the rewards into candidate/adsorbate
         reward_values = {}
         for idx, name, energy in adslabs_and_energies:
