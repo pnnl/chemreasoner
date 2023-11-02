@@ -127,7 +127,10 @@ class CatalystLabelChanger:
     def __init__(self, catalyst_label_type):
         """Save the property name."""
         self.catalyst_label_type = catalyst_label_type
-        self._message = f"Predict {catalyst_label_type}catalysts."
+        if catalyst_label_type == "":
+            self._message = f"Predict any type of catalysts."
+        else:
+            self._message = f"Predict {catalyst_label_type}catalysts."
 
     def __call__(self, state, trial=False):
         """Add propery to the state."""

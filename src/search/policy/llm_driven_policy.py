@@ -57,7 +57,22 @@ class LLMDrivenReasonerPolicy(ReasonerPolicy):
             prev_answer = state.answer
 
             prior_prompt = f"Consider the previous answer:\n{prev_answer}.\n\n"
-            prior_prompt += f"The reward for this prompt was {state.reward}.\n\n"
+            if state.reward < 0:
+                prior_prompt += (
+                    "These catalysts were very poor recommendations. "
+                    "We should try to find alternative catalysts."
+                )
+            elif state.reward < 5:
+                prior_prompt += (
+                    "These catalysts were weakly active. "
+                    "Let's see if slight modifications can improve their results."
+                )
+            elif state.reward > 5:
+                prior_prompt += (
+                    "These catalysts were very active."
+                    "Let's see if we can improve these recommendations a little bit."
+                )
+            prior_prompt += f"The catalysts {state.reward}.\n\n"
             prior_prompt += (
                 "Your task is to rate the following actions to produce a "
                 "new prompt that an llm can use to recommend better catalysts.\n\n"
@@ -67,13 +82,13 @@ class LLMDrivenReasonerPolicy(ReasonerPolicy):
             for i, a in enumerate(actions):
                 if priors[0][i] != 0:
                     actions_statement += (
-                        f"{i}) {a.message(s)}\n"  # punctuation is in a.message
+                        f"- {a.message(s)}\n"  # punctuation is in a.message
                     )
 
             prior_prompt += actions_statement
             prior_prompt += (
-                "\nReturn your answer as a python dictionary mapping each "
-                "action to a score from 0 to 10 (10 is the best)."
+                "\nReturn you ranking of the top 5 actions to take. "
+                "Take a deep breath and let's think step by step."
             )
 
             return prior_prompt
@@ -105,7 +120,7 @@ final_answer = ['Platinum (Pt)', 'Palladium (Pd)', 'Silver (Ag)', 'Rhodium (Rh)'
 
 
 class TestState:
-    reward = 30
+    reward = 7
     candidates = [
         "Platinum (Pt)",
         "Palladium (Pd)",

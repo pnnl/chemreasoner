@@ -288,7 +288,7 @@ def symbols_list_to_bulk(symbols_list):
         raise StructureGenerationError(
             f"Unable to create a bulk for the element {symbols_list[0]}.",
         )
-    if len(symbols_list) > 1 and len(symbols_list) < 4:
+    if len(symbols_list) > 0 and len(symbols_list) < 4:
         for sym in symbols_list[1:]:
             try:
                 bulk = convert_alloy(bulk, sym)

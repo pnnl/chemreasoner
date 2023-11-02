@@ -10,10 +10,11 @@ from ase import Atoms
 from ase.data import chemical_symbols
 
 sys.path.append("src")
-from llm import query, ase_interface  # noqa: E402
+from llm import ase_interface  # noqa: E402
+from search.state.reasoner_state import ReasonerState  # noqa: E402
+from evaluation.break_traj_files import break_trajectory  # noqa: E402
 from nnp import oc  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
-from search.reward.llm_reward import llm_adsorption_energy_reward  # noqa: E402
 
 
 class StructureReward(BaseReward):
@@ -30,7 +31,7 @@ class StructureReward(BaseReward):
         self.num_slab_samples = num_slab_samples
         self.num_adslab_samples = num_adslab_samples
 
-    def __call__(self, states: query.QueryState, num_attempts=3):
+    def __call__(self, states: ReasonerState, num_attempts=3):
         """Return the calculated adsorption energy from the predicted catalysts."""
         rewards = []
         for s in states:
@@ -86,10 +87,7 @@ class StructureReward(BaseReward):
         return rewards
 
     def create_structures_and_calculate(
-        self,
-        slab_syms,
-        ads_list,
-        candidates_list,
+        self, slab_syms, ads_list, candidates_list=None, adsorbate_height=1
     ):
         """Create the structures from the symbols and calculate adsorption energies."""
         start_gnn_calls = self.adsorption_calculator.gnn_calls
@@ -109,7 +107,9 @@ class StructureReward(BaseReward):
                             ase_interface.symbols_list_to_bulk(slab_sym)
                             for _ in range(self.num_slab_samples)
                         ]
-                    except ase_interface.StructureGenerationError:
+                        print(slab_samples)
+                    except ase_interface.StructureGenerationError as err:
+                        print(err)
                         slab_syms[i] = None
                         valid_slab_sym = False
 
@@ -121,8 +121,11 @@ class StructureReward(BaseReward):
                     for ads_sym in ads_list:
                         ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
                         name = f"{slab_name}_{ads_sym}"
-                        adslab_ats += self.sample_adslabs(slab_ats, ads_ats, name)
-                        name_candidate_mapping[name] = candidates_list[i]
+                        adslab_ats += self.sample_adslabs(
+                            slab_ats, ads_ats, name, adsorbate_height
+                        )
+                        if candidates_list is not None:
+                            name_candidate_mapping[name] = candidates_list[i]
 
         adslabs_and_energies = self.create_batches_and_calculate(adslab_ats)
 
@@ -244,12 +247,14 @@ class StructureReward(BaseReward):
         )
         return batch_adsorption_energies
 
-    def sample_adslabs(self, slab, ads, name):
+    def sample_adslabs(self, slab, ads, name, adsorbate_height):
         """Sample possible adsorbate+slab combinations."""
         adslabs = []
         for i in range(self.num_adslab_samples):
             print(slab.info)
-            adslab = ase_interface.generate_bulk_ads_pairs(slab, ads)
+            adslab = ase_interface.generate_bulk_ads_pairs(
+                slab, ads, height=adsorbate_height
+            )
             adslabs.append((i, name, adslab))
         return adslabs
 
@@ -308,45 +313,22 @@ class _TestState:
 
 
 if __name__ == "__main__":
-    # test_candidates = [
-    #     "Nickel",
-    #     "Clay",
-    #     "Cobalt oxide",
-    #     "Zeolites",
-    #     "CuO2",
-    #     "Platinum-doped nickel",
-    #     "Nickel-based catalysts",
-    #     "NiMnCu",
-    # ]
-    test_candidates = [
-        ["Ni"],
-        # None,
-        # "Cobalt oxide",
-        # None,
-        # "CuO2",
-        ["Pt", "Ni"],
-        ["Ni"],
-        ["Ni", "Mn", "Cu"],
-    ]
-    test_ads_symbols = ["CO", "H2O", "CO2"]
-    test_ads_preferences = [-1, 1, 1]
-
-    test_state = {
-        "candidates": test_candidates,
-        "ads_symbols": test_ads_symbols,
-        "ads_preferences": test_ads_preferences,
-    }
-    test_state = _TestState(test_candidates, test_ads_symbols, test_ads_preferences)
-    sr = StructureReward(
-        **{
-            "model": "gemnet",
-            "traj_dir": Path("data/output/trajectories/pipeline_test"),
-        }
-    )
-    import time
-
-    start = time.time()
-    reward = sr(test_state)
-    end = time.time()
-    print(end - start)
-    print(reward)
+    heights = np.arange(0.1, 3.0, 0.25)
+    for height in heights:
+        sr = StructureReward(
+            **{
+                "model": "gemnet",
+                "traj_dir": Path("data", "output", f"adsorption_testing_{height}"),
+                "device": "cpu",
+            }
+        )
+        print(
+            sr.create_structures_and_calculate(
+                [["Cu"], ["Pt"], ["Zr"]],
+                ["CO", "phenol", "anisole"],
+                ["Cu", "Pt", "Zr"],
+                height=height,
+            )
+        )
+        for p in Path("data", "output", "adsorption_testing").rglob("*.traj"):
+            break_trajectory(p)
