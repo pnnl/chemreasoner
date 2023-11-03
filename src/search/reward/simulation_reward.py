@@ -340,7 +340,7 @@ if __name__ == "__main__":
                 [["Cu"], ["Pt"], ["Zr"]],
                 ["CO", "phenol", "anisole"],
                 ["Cu", "Pt", "Zr"],
-                height=height,
+                adsorbate_height=height,
             )
         )
         for p in Path("data", "output", "adsorption_testing").rglob("*.traj"):
