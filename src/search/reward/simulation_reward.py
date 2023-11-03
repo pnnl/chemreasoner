@@ -332,7 +332,7 @@ if __name__ == "__main__":
             **{
                 "model": "gemnet",
                 "traj_dir": Path("data", "output", f"adsorption_testing_{height}"),
-                "device": "cpu",
+                "device": "cuda:0",
             }
         )
         print(
