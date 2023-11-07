@@ -157,7 +157,9 @@ def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, position=None) -> 
         raise AdsorbatePlacementError(
             f"Unable to add adsorbate with {len(binding_molecules)} binding molecules."
         )
-    build.add_adsorbate(slab, ads, 3, position=position, mol_index=binding_molecules[0])
+    build.add_adsorbate(
+        slab, ads, height, position=position, mol_index=binding_molecules[0]
+    )
     return slab
 
 

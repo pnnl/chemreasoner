@@ -313,16 +313,17 @@ class _TestState:
         self.ads_preferences = test_ads_preferences
 
 
-def measure_desorption(ats: Atoms, cutoff=2.0):
-    """Determine whether the adsorbate has desorbed."""
+def measure_adsorption(ats: Atoms, cutoff=2.0):
+    """Determine whether the adsorbate has adsorbed."""
     D = ats.get_all_distances()
     adsorbate_ats = ats.get_tags() == 0
-    return any(
-        np.any(
-            np.less(D[np.ix_(adsorbate_ats, ~adsorbate_ats)], 2),
-            axis=1,
-        )
-    )
+    # return not any(
+    #     np.any(
+    #         np.less(D[np.ix_(adsorbate_ats, ~adsorbate_ats)], cutoff),
+    #         axis=1,
+    #     )
+    # )
+    return min(D[np.ix_(adsorbate_ats, ~adsorbate_ats)].flatten())
 
 
 if __name__ == "__main__":
