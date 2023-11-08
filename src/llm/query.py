@@ -28,109 +28,10 @@ logging.getLogger().setLevel(logging.INFO)
 #     "adsorption energies of various adsorbates to various catalysts."
 
 
-def generate_adsorption_energy_list_prompt(
-    adsorbate: str, candidate_list: list[str], reward_template: str = None
-):
-    """Make a query to get a list of adsorption energies."""
-    if reward_template is None:
-        prompt = (
-            "Generate a list of adsorption energies, in eV, "
-            f"for the adsorbate {adsorbate} to the surface of "
-            f"each of the following catalysts: {', '.join(candidate_list)}. "
-            f"Return your answer as a python dictionary mapping catalysts "
-            "to their adsorption energies."
-        )
-    else:
-        vals = {"adsorbate": adsorbate, "candidate_list": candidate_list}
-        prompt = fstr(reward_template, vals)
-    return prompt
-
-
-def generate_expert_prompt(
-    template: str,
-    catalyst_label: str,
-    num_answers: int,
-    candidate_list: list = [],
-    relation_to_candidate_list: str = None,
-    include_list: list = [],
-    exclude_list: list = [],
-):
-    """Generate prompt based on catalysis experts."""
-    if len(candidate_list) != 0 and relation_to_candidate_list is not None:
-        candidate_list_statement = "\n\nYou should start with the following list: "
-        candidate_list_statement += (
-            "["
-            + ", ".join(
-                [
-                    "'" + cand.replace("'", "").replace('"', "").strip() + "'"
-                    for cand in candidate_list
-                ]
-            )
-            + "]. "
-        )
-        candidate_list_statement += "The list that you return should probably not have the same catalysts as this list! "
-        candidate_list_statement += f"Your list of {catalyst_label} may {relation_to_candidate_list} those in the list. "
-        candidate_list_statement += (
-            "Please compare your list to some of the candidates in this list."
-        )
-    elif len(candidate_list) != 0 and relation_to_candidate_list is None:
-        raise ValueError(
-            f"Non-empty candidate list {candidate_list} given with "
-            "relation_to_candidate_list == None"
-        )
-    else:
-        candidate_list_statement = ""
-    if len(include_list) != 0:
-        include_statement = (
-            f"You should include candidate {catalyst_label} "
-            "with the following properties: "
-        )
-        include_statement += ", ".join(include_list)
-        include_statement += ". "
-    else:
-        include_statement = ""
-    if len(exclude_list) != 0:
-        exclude_statement = (
-            f"You should exclude candidate {catalyst_label} "
-            "with the following properties: "
-        )
-
-        exclude_statement += ", ".join(exclude_list)
-        exclude_statement += ". "
-    else:
-        exclude_statement = ""
-    vals = {
-        "catalyst_label": catalyst_label,
-        "candidate_list_statement": candidate_list_statement,
-        "include_statement": include_statement,
-        "exclude_statement": exclude_statement,
-    }
-    return fstr(template, vals)
-
-
 def fstr(fstring_text, vals):
     """Evaluate the provided fstring_text."""
     ret_val = eval(f'f"{fstring_text}"', vals)
     return ret_val
-
-
-def parse_answer(answer: str, num_expected=None):
-    """Parse an answer into a list."""
-    final_answer_location = answer.lower().find("final_answer")
-    if final_answer_location == -1:
-        final_answer_location = answer.lower().find("final answer")
-    if final_answer_location == -1:
-        final_answer_location = answer.lower().find("final")  # last ditch effort
-    if final_answer_location == -1:
-        final_answer_location = 0
-    list_start = answer.find("[", final_answer_location)
-    list_end = answer.find("]", list_start)
-    try:
-        answer_list = literal_eval(answer[list_start : list_end + 1])  # noqa:E203
-    except Exception:
-        answer_list = answer[list_start + 1 : list_end]  # noqa:E203
-        answer_list = [ans.replace("'", "") for ans in answer_list.split(",")]
-    return [ans.replace('"', "").replace("'", "").strip() for ans in answer_list]
 
 
 def init_openai():

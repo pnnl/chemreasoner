@@ -1,10 +1,15 @@
 """Create a class for a reasoner state."""
+import logging
 import re
+import time
 
+from ast import literal_eval
 from copy import deepcopy
 from typing import Union
 
 import numpy as np
+
+logging.getLogger().setLevel(logging.INFO)
 
 
 class ReasonerState:
@@ -55,17 +60,6 @@ class ReasonerState:
             self.info = {"generation": {}, "priors": {}}
         self.reward = reward
         self.debug = debug
-        if any(
-            [
-                "llama" in model
-                for model in [
-                    self.prediction_model,
-                    self.reward_model,
-                    self.embedding_model,
-                ]
-            ]
-        ):
-            init_llama()
 
     @classmethod
     @staticmethod
@@ -125,9 +119,6 @@ class ReasonerState:
             embeddings={},
             num_queries=0,
             query_time=0.0,
-            prediction_model=self.prediction_model,
-            reward_model=self.reward_model,
-            embedding_model=self.embedding_model,
             debug=self.debug,
         )
 
@@ -222,19 +213,14 @@ class ReasonerState:
                     f"Expected {len(self.candidates)}."
                 )
 
-    def query(self):
+    def process_generation(self):
         """Run a query to the LLM and change the state of self."""
         if not self.debug:
             self.answer = self.send_query(
                 self.prompt,
                 system_prompt=self.system_prompt_generation,
-                model=self.prediction_model,
-            )
-            embeddings = run_get_embeddings(
-                [self.prompt, self.answer], model=self.embedding_model
             )
         else:
-            embeddings = [np.random.rand(356) for _ in range(2)]
             self.answer = """5. Zinc oxide (ZnO):
 Zinc oxide is another metal oxide catalyst that can effectively adsorb CHOHCH2. It has a high surface area and can form hydrogen bonds with CHOHCH2, facilitating its adsorption. Zinc oxide catalysts are also cost-effective and commonly used in various catalytic processes.
 
@@ -248,7 +234,6 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
             "candidates_list": self.candidates,
         }
         print(self.candidates)
-        self.embeddings.update({"prompt": embeddings[0], "answer": embeddings[1]})
 
     @property
     def candidates(self):
@@ -294,7 +279,6 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
                     else:
                         answer = self.send_query(
                             adsorption_energy_prompt,
-                            model=self.reward_model,
                             system_prompt=self.system_prompt_reward,
                         )
                         self.info["llm-reward"]["attempted_prompts"][retries - 1][
@@ -348,7 +332,6 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
             f"Failed to parse answer with error: {str(error)}. Returning a penalty value."
         )
         return -10
-        raise error
 
     def send_query(self, prompt, model=None, system_prompt=None):
         """Send the query to OpenAI and increment."""
@@ -403,3 +386,108 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
                 self.info[info_field]["value"] = r
             else:
                 self.info[info_field] = {"value": r}
+
+
+def generate_expert_prompt(
+    template: str,
+    catalyst_label: str,
+    num_answers: int,
+    candidate_list: list = [],
+    relation_to_candidate_list: str = None,
+    include_list: list = [],
+    exclude_list: list = [],
+):
+    """Generate prompt based on catalysis experts."""
+    if len(candidate_list) != 0 and relation_to_candidate_list is not None:
+        candidate_list_statement = "\n\nYou should start with the following list: "
+        candidate_list_statement += (
+            "["
+            + ", ".join(
+                [
+                    "'" + cand.replace("'", "").replace('"', "").strip() + "'"
+                    for cand in candidate_list
+                ]
+            )
+            + "]. "
+        )
+        candidate_list_statement += "The list that you return should probably not have the same catalysts as this list! "
+        candidate_list_statement += f"Your list of {catalyst_label} may {relation_to_candidate_list} those in the list. "
+        candidate_list_statement += (
+            "Please compare your list to some of the candidates in this list."
+        )
+    elif len(candidate_list) != 0 and relation_to_candidate_list is None:
+        raise ValueError(
+            f"Non-empty candidate list {candidate_list} given with "
+            "relation_to_candidate_list == None"
+        )
+    else:
+        candidate_list_statement = ""
+    if len(include_list) != 0:
+        include_statement = (
+            f"You should include candidate {catalyst_label} "
+            "with the following properties: "
+        )
+        include_statement += ", ".join(include_list)
+        include_statement += ". "
+    else:
+        include_statement = ""
+    if len(exclude_list) != 0:
+        exclude_statement = (
+            f"You should exclude candidate {catalyst_label} "
+            "with the following properties: "
+        )
+
+        exclude_statement += ", ".join(exclude_list)
+        exclude_statement += ". "
+    else:
+        exclude_statement = ""
+    vals = {
+        "catalyst_label": catalyst_label,
+        "candidate_list_statement": candidate_list_statement,
+        "include_statement": include_statement,
+        "exclude_statement": exclude_statement,
+    }
+    return fstr(template, vals)
+
+
+def parse_answer(answer: str, num_expected=None):
+    """Parse an answer into a list."""
+    final_answer_location = answer.lower().find("final_answer")
+    if final_answer_location == -1:
+        final_answer_location = answer.lower().find("final answer")
+    if final_answer_location == -1:
+        final_answer_location = answer.lower().find("final")  # last ditch effort
+    if final_answer_location == -1:
+        final_answer_location = 0
+    list_start = answer.find("[", final_answer_location)
+    list_end = answer.find("]", list_start)
+    try:
+        answer_list = literal_eval(answer[list_start : list_end + 1])  # noqa:E203
+    except Exception:
+        answer_list = answer[list_start + 1 : list_end]  # noqa:E203
+        answer_list = [ans.replace("'", "") for ans in answer_list.split(",")]
+    return [ans.replace('"', "").replace("'", "").strip() for ans in answer_list]
+
+
+def fstr(fstring_text, vals):
+    """Evaluate the provided fstring_text."""
+    ret_val = eval(f'f"{fstring_text}"', vals)
+    return ret_val
+
+
+def generate_adsorption_energy_list_prompt(
+    adsorbate: str, candidate_list: list[str], reward_template: str = None
+):
+    """Make a query to get a list of adsorption energies."""
+    if reward_template is None:
+        prompt = (
+            "Generate a list of adsorption energies, in eV, "
+            f"for the adsorbate {adsorbate} to the surface of "
+            f"each of the following catalysts: {', '.join(candidate_list)}. "
+            f"Return your answer as a python dictionary mapping catalysts "
+            "to their adsorption energies."
+        )
+    else:
+        vals = {"adsorbate": adsorbate, "candidate_list": candidate_list}
+        prompt = fstr(reward_template, vals)
+    return prompt
