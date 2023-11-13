@@ -12,6 +12,14 @@ import numpy as np
 logging.getLogger().setLevel(logging.INFO)
 
 
+_example_generation_answer = """5. Zinc oxide (ZnO):
+Zinc oxide is another metal oxide catalyst that can effectively adsorb CHOHCH2. It has a high surface area and can form hydrogen bonds with CHOHCH2, facilitating its adsorption. Zinc oxide catalysts are also cost-effective and commonly used in various catalytic processes.
+
+Finally, here is the Python list final_answer of the top-5 catalysts for the adsorption of CHOHCH2:
+
+final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (Fe2O3)", "Zinc oxide (ZnO)"]"""
+
+
 class ReasonerState:
     """A class for the search tree state."""
 
@@ -149,17 +157,6 @@ class ReasonerState:
             "approximation of the adsorption energy, in eV."
         )
 
-    @property
-    def adsorption_energy_prompts(self):
-        """Return the prompt for this state."""
-        return [
-            generate_adsorption_energy_list_prompt(
-                ads,
-                self.candidates,
-            )
-            for ads in self.ads_symbols
-        ]
-
     def parse_adsorption_energy_answers(
         self, answers: list[str], usage_info: dict[str, list[Union[float, int]]] = {}
     ):
@@ -213,27 +210,19 @@ class ReasonerState:
                     f"Expected {len(self.candidates)}."
                 )
 
-    def process_generation(self):
-        """Run a query to the LLM and change the state of self."""
-        if not self.debug:
-            self.answer = self.send_query(
-                self.prompt,
-                system_prompt=self.system_prompt_generation,
-            )
-        else:
-            self.answer = """5. Zinc oxide (ZnO):
-Zinc oxide is another metal oxide catalyst that can effectively adsorb CHOHCH2. It has a high surface area and can form hydrogen bonds with CHOHCH2, facilitating its adsorption. Zinc oxide catalysts are also cost-effective and commonly used in various catalytic processes.
-
-Finally, here is the Python list final_answer of the top-5 catalysts for the adsorption of CHOHCH2:
-
-final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (Fe2O3)", "Zinc oxide (ZnO)"]"""
-        self.info["generation"] = {
-            "prompt": self.prompt,
-            "system_prompt": self.system_prompt_generation,
-            "answer": self.answer,
-            "candidates_list": self.candidates,
-        }
-        print(self.candidates)
+    def process_generation(
+        self, answer=_example_generation_answer, handle_failure: bool = False
+    ):
+        """process generation answer and store."""
+        try:
+            self.answer = answer
+            self.info["generation"] = {
+                "prompt": self.prompt,
+                "system_prompt": self.system_prompt_generation,
+                "answer": self.answer,
+                "candidates_list": self.candidates,
+            }
+            print(self.candidates)
 
     @property
     def candidates(self):
@@ -243,10 +232,23 @@ final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (F
             [] if self.answer is None else parse_answer(self.answer, self.num_answers)
         )
 
+     @property
+    def adsorption_energy_prompts(self):
+        """Return the prompt for this state."""
+        return [
+            generate_adsorption_energy_list_prompt(
+                ads,
+                self.candidates,
+            )
+            for ads in self.ads_symbols
+        ]
+
+    def process_adsorption_energy(self, answer, handle_failure = True):
+        """Process the return adsorption energy answers into values and store."""
+        ...
+
     def query_adsorption_energy_list(
         self,
-        catalyst_slice=slice(None, None),
-        info_field: str = None,
         allow_requery=True,
     ):
         """Run a query with the LLM and change the state of self."""
