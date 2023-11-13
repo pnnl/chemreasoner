@@ -8,7 +8,9 @@ import numpy as np
 
 from ase import Atoms
 from ase.io import read
+from ase.neighbor_list import build_neighbor_list
 from ase.data import chemical_symbols
+
 
 sys.path.append("src")
 from llm import ase_interface  # noqa: E402
@@ -324,6 +326,23 @@ def measure_adsorption(ats: Atoms, cutoff=2.0):
     #     )
     # )
     return min(D[np.ix_(adsorbate_ats, ~adsorbate_ats)].flatten())
+
+
+def measure_connectivity(ats: Atoms, cutoff=2.0):
+    """Determine whether the adsorbate has adsorbed."""
+    idx = ats.get_tags() == 0
+    ads_atoms = Atoms(
+        symbols=ats.get_atomic_numbers()[idx], positions=ats.get_positions()[idx]
+    )
+
+    conn_matrix = build_neighbor_list(ads_atoms).get_connectivity_matrix()
+    # return not any(
+    #     np.any(
+    #         np.less(D[np.ix_(adsorbate_ats, ~adsorbate_ats)], cutoff),
+    #         axis=1,
+    #     )
+    # )
+    return all(conn_matrix, all)
 
 
 if __name__ == "__main__":
