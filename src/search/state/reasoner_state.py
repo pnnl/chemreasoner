@@ -164,59 +164,6 @@ class ReasonerState:
             [] if self.answer is None else parse_answer(self.answer, self.num_answers)
         )
 
-    def parse_adsorption_energy_answers(
-        self, answers: list[str], usage_info: dict[str, list[Union[float, int]]] = {}
-    ):
-        """Parse the adsorption energies out of the given answers.
-
-        Returns 'None' if parsing fails."""
-        self.info["llm-reward"]["attempts"].append(
-            {
-                "prompt": self.adsorption_energy_prompts,
-                "system_prompt": self.system_prompt_reward,
-                "answer": [],
-                "key_answers": [],
-                "number_answers": [],
-                "input_tokens": usage_info.get(
-                    "input_tokens", [None] * len(self.ads_symbols)
-                ),
-                "output_tokens": usage_info.get(
-                    "output_tokens", [None] * len(self.ads_symbols)
-                ),
-                "time": usage_info.get("time", [None] * len(self.ads_symbols)),
-            }
-        )
-        for i, answer in enumerate(answers):
-            self.info["llm-reward"]["attempted_prompts"][-1]["answer"].append(answer)
-            key_answers = []
-            number_answers = []
-            for line in answer.split("\n"):
-                self.info["llm-reward"]["attempts"][-1]["answer"].append(answer)
-                if ":" in line:
-                    k, number = line.split(":")
-                    number = (
-                        number.lower()
-                        .replace("(ev)", "")
-                        .replace("ev", "")
-                        .replace(",", "")
-                        .strip()
-                    )
-                    if (
-                        re.match(r"^-?\d+(?:\.\d+)$", number) is not None
-                        or number != ""
-                    ):
-                        number_answers.append(abs(float(number)))
-                    key_answers.append(k)
-            self.info["llm-reward"]["attempts"][-1]["key_answers"].append(key_answers)
-            self.info["llm-reward"]["attempts"][-1]["number_answers"].append(
-                number_answers
-            )
-            if not len(number_answers) == len(self.candidates):
-                raise ValueError(
-                    f"Found {len(number_answers)} adsorption energies. "
-                    f"Expected {len(self.candidates)}."
-                )
-
     def process_generation(
         self, answer=_example_generation_answer, handle_failure: bool = False
     ):
