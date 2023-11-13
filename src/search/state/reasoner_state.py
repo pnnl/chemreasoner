@@ -157,6 +157,13 @@ class ReasonerState:
             "approximation of the adsorption energy, in eV."
         )
 
+    @property
+    def candidates(self):
+        """Return the candidate list of the current answer."""
+        return (
+            [] if self.answer is None else parse_answer(self.answer, self.num_answers)
+        )
+
     def parse_adsorption_energy_answers(
         self, answers: list[str], usage_info: dict[str, list[Union[float, int]]] = {}
     ):
@@ -214,25 +221,16 @@ class ReasonerState:
         self, answer=_example_generation_answer, handle_failure: bool = False
     ):
         """process generation answer and store."""
-        try:
-            self.answer = answer
-            self.info["generation"] = {
-                "prompt": self.prompt,
-                "system_prompt": self.system_prompt_generation,
-                "answer": self.answer,
-                "candidates_list": self.candidates,
-            }
-            print(self.candidates)
+        self.answer = answer
+        self.info["generation"] = {
+            "prompt": self.prompt,
+            "system_prompt": self.system_prompt_generation,
+            "answer": self.answer,
+            "candidates_list": self.candidates,
+        }
+        print(self.candidates)
 
     @property
-    def candidates(self):
-        """Return the candidate list of the current answer."""
-
-        return (
-            [] if self.answer is None else parse_answer(self.answer, self.num_answers)
-        )
-
-     @property
     def adsorption_energy_prompts(self):
         """Return the prompt for this state."""
         return [
@@ -243,9 +241,72 @@ class ReasonerState:
             for ads in self.ads_symbols
         ]
 
-    def process_adsorption_energy(self, answer, handle_failure = True):
+    def process_adsorption_energy(self, answer, handle_failure=True):
         """Process the return adsorption energy answers into values and store."""
-        ...
+        if "llm_reward" not in self.info:
+            self.info["llm-reward"] = {"attempted_prompts": []}
+
+        self.info["llm-reward"]["attempted_prompts"].append(
+            {
+                "prompt": self.adsorption_energy_prompts,
+                "system_prompt": self.system_prompt_reward,
+                "answer": [],
+                "key_answers": [],
+                "number_answers": [],
+                "successful": [],
+            }
+        )
+        return_values = []
+        for i, adsorption_energy_prompt in enumerate(self.adsorption_energy_prompts):
+            ans = answer[i]
+            # store the answer
+            self.info["llm-reward"]["attempted_prompts"][-1]["answer"].append(answer)
+
+            key_answers = []
+            number_answers = []
+            try:
+                for line in ans.split("\n"):
+                    if ":" in line:
+                        k, number = line.split(":")
+                        number = (
+                            number.lower()
+                            .replace("(ev)", "")
+                            .replace("ev", "")
+                            .replace(",", "")
+                            .strip()
+                        )
+                        if (
+                            re.match(r"^-?\d+(?:\.\d+)$", number) is not None
+                            or number != ""
+                        ):
+                            number_answers.append(abs(float(number)))
+                        key_answers.append(k)
+                        if not len(number_answers) == len(self.candidates):
+                            raise ValueError(
+                                f"Found {len(number_answers)} adsorption energies. "
+                                f"Expected {len(self.candidates)}."
+                            )
+
+                        # store key_answers and number_answers
+                        self.info["llm-reward"]["attempted_prompts"][-1][
+                            "key_answers"
+                        ].append(key_answers)
+                        self.info["llm-reward"]["attempted_prompts"][-1][
+                            "number_answers"
+                        ].append(number_answers)
+                        # Save the return values
+                        return_values.append(number_answers)
+            except Exception as err:
+                # Save and rerase error
+                self.info["llm-reward"]["attempted_prompts"][-1]["key_answers"].append(
+                    key_answers
+                )
+                self.info["llm-reward"]["attempted_prompts"][-1][
+                    "number_answers"
+                ].append(number_answers)
+                raise err
+
+        return return_values
 
     def query_adsorption_energy_list(
         self,
