@@ -176,6 +176,7 @@ class ReasonerState:
             "candidates_list": self.candidates,
         }
         print(self.candidates)
+        return True
 
     @property
     def adsorption_energy_prompts(self):
@@ -343,18 +344,18 @@ class ReasonerState:
         )
         return -10
 
-    def send_query(self, prompt, model=None, system_prompt=None):
-        """Send the query to OpenAI and increment."""
-        if model is None:
-            model = self.prediction_model
-        start = time.time()
-        answer = run_query(prompt, model=model, system_prompt=system_prompt)
-        end = time.time()
-        self.query_time += end - start
-        self.num_queries += 1
-        return answer
+    # def send_query(self, prompt, model=None, system_prompt=None):
+    #     """Send the query to OpenAI and increment."""
+    #     if model is None:
+    #         model = self.prediction_model
+    #     start = time.time()
+    #     answer = run_query(prompt, model=model, system_prompt=system_prompt)
+    #     end = time.time()
+    #     self.query_time += end - start
+    #     self.num_queries += 1
+    #     return answer
 
-    def similarity(self, states: "list[QueryState]") -> float:
+    def similarity(self, states: "list[ReasonerState]") -> float:
         """Calculate a similarity score of this state with a list of trial states."""
         if (
             "prompt" not in self.embeddings.keys()
