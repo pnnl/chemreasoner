@@ -131,7 +131,7 @@ class ReasonerState:
         )
 
     @property
-    def prompt(self):
+    def prompt_generation(self):
         """Return the prompt for this state."""
         return generate_expert_prompt(
             template=self.template,
@@ -144,12 +144,12 @@ class ReasonerState:
         )
 
     @property
-    def system_prompt_generation(self):
+    def generation_system_prompt(self):
         """Return the system prompt for the generation prompt."""
         return "You are a helpful chemistry expert with extensive knowledge of catalysis. You will give recommendations for catalysts, including chemically accurate descriptions of the interaction between the catalysts and adsorbate(s). Make specific recommendations for catalysts, including their chemical composition. Make sure to follow the formatting instructions. Do not provide disclaimers or notes about your knowledge of catalysis."
 
     @property
-    def system_prompt_reward(self):
+    def reward_system_prompt(self):
         """Return the prompt for this state."""
         return (
             "You are a helpful chemistry expert with extensive knowledge of catalysis. "
@@ -170,8 +170,8 @@ class ReasonerState:
         """process generation answer and store."""
         self.answer = answer
         self.info["generation"] = {
-            "prompt": self.prompt,
-            "system_prompt": self.system_prompt_generation,
+            "prompt": self.generation_prompt,
+            "system_prompt": self.generation_system_prompt,
             "answer": self.answer,
             "candidates_list": self.candidates,
         }
@@ -189,7 +189,7 @@ class ReasonerState:
             for ads in self.ads_symbols
         ]
 
-    def process_adsorption_energy(self, answer, handle_failure=True):
+    def process_adsorption_energy(self, answer):
         """Process the return adsorption energy answers into values and store."""
         if "llm_reward" not in self.info:
             self.info["llm-reward"] = {"attempted_prompts": []}
@@ -197,7 +197,7 @@ class ReasonerState:
         self.info["llm-reward"]["attempted_prompts"].append(
             {
                 "prompt": self.adsorption_energy_prompts,
-                "system_prompt": self.system_prompt_reward,
+                "system_prompt": self.reward_system_prompt,
                 "answer": [],
                 "key_answers": [],
                 "number_answers": [],
@@ -273,7 +273,7 @@ class ReasonerState:
                 self.info["llm-reward"]["attempted_prompts"].append(
                     {
                         "prompt": self.adsorption_energy_prompts,
-                        "system_prompt": self.system_prompt_reward,
+                        "system_prompt": self.reward_system_prompt,
                         "answer": [],
                         "key_answers": [],
                         "number_answers": [],
@@ -290,7 +290,7 @@ class ReasonerState:
                     else:
                         answer = self.send_query(
                             adsorption_energy_prompt,
-                            system_prompt=self.system_prompt_reward,
+                            system_prompt=self.reward_system_prompt,
                         )
                         self.info["llm-reward"]["attempted_prompts"][retries - 1][
                             "answer"
