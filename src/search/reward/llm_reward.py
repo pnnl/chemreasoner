@@ -6,6 +6,7 @@ import numpy as np
 
 sys.path.append("src")
 from llm import query  # noqa: E402
+from search.reward.base_reward import BaseReward  # noqa: E402
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -40,66 +41,82 @@ def unflatten_answers(
     return jagged_answers
 
 
-def llm_adsorption_energy_reward(
-    states: list[query.QueryState],
-    reward_limit: float = 10.0,
-    max_attempts: int = 3,
-    primary_reward: bool = True,
-    penalty_value=-10,
-    llm_function: callable = lambda queries: [_default_answer] * len(queries),
-):
-    """Reward function to return adsorption energy of reactants.
+class LLMRewardFunction(BaseReward):
+    """A class for the llm reward function."""
 
-    The calculated reward is stored in state.reward."""
-    rewards = [None] * len(states)
-    attempts = 0
-    while any([r is None for r in rewards]) or attempts < max_attempts:
-        prompts = []
-        system_prompts = []
-        for i, s in enumerate(states):
-            if rewards[i] is not None:
-                prompts.append(s.generation_prompt)
-                system_prompts.append(s.system_prompt_generation)
+    def __init__(
+        self,
+        llm_function: callable,
+        reward_limit: float = 10.0,
+        max_attempts: int = 3,
+        penalty_value=-10,
+    ):
+        """Create the LLMRewardFunction from given parameters."""
+        self.llm_function = llm_function
+        self.reward_limit = reward_limit
+        self.max_attempts = max_attempts
+        self.penalty_reward = penalty_value
 
-        flatten_idx, flattened_prompts = flatten_prompts(prompts)
+    def __call__(
+        self,
+        states: list[query.QueryState],
+        primary_reward=True,
+    ):
+        """Reward function to return adsorption energy of reactants.
 
-        answers = llm_function(flattened_prompts)
+        The calculated reward is stored in state.reward.
+        """
+        rewards = [None] * len(states)
+        attempts = 0
+        while any([r is None for r in rewards]) or attempts < self.max_attempts:
+            prompts = []
+            system_prompts = []
+            for i, s in enumerate(states):
+                if rewards[i] is not None:
+                    prompts.append(s.generation_prompt)
+                    system_prompts.append(s.system_prompt_generation)
 
-        unflattened_answers = unflatten_answers(flatten_idx, answers)
+            flatten_idx, flattened_prompts = flatten_prompts(prompts)
 
-        loop_counter = 0
-        for i, s in enumerate(states):
-            if rewards[i] is None:
-                try:
-                    values = s.process_adsorption_energy(
-                        unflattened_answers[loop_counter]
-                    )
-                    reward = np.mean(
-                        [
-                            np.mean(cat_values) ** (s.ads_preferences[j])
-                            for j, cat_values in enumerate(values)
-                        ]
-                    )
-                    rewards[i] = reward
+            answers = self.llm_function(flattened_prompts)
 
-                except Exception as err:
-                    if attempts < max_attempts - 1:
-                        logging.warning(
-                            f"Failed to parse answer with error: {str(err)}. "
-                            "Generating new answer."
+            unflattened_answers = unflatten_answers(flatten_idx, answers)
+
+            loop_counter = 0
+            for i, s in enumerate(states):
+                if rewards[i] is None:
+                    try:
+                        values = s.process_adsorption_energy(
+                            unflattened_answers[loop_counter]
                         )
-                    else:
-                        logging.warning(
-                            f"Failed to parse answer with error: {str(err)}. "
-                            "Returning a penalty value."
+                        reward = np.mean(
+                            [
+                                np.mean(cat_values) ** (s.ads_preferences[j])
+                                for j, cat_values in enumerate(values)
+                            ]
                         )
-                        rewards[i] = penalty_value
-                loop_counter += 1
-        attempts += 1
-    # end while
+                        rewards[i] = reward
 
-    # one last loop to save all the values
-    for i, s in enumerate(states):
-        s.set_reward(rewards[i], info_field="llm-reward", primary_reward=True)
+                    except Exception as err:
+                        if attempts < self.max_attempts - 1:
+                            logging.warning(
+                                f"Failed to parse answer with error: {str(err)}. "
+                                "Generating new answer."
+                            )
+                        else:
+                            logging.warning(
+                                f"Failed to parse answer with error: {str(err)}. "
+                                "Returning a penalty value."
+                            )
+                            rewards[i] = self.penalty_value
+                    loop_counter += 1
+            attempts += 1
+        # end while
 
-    return rewards
+        # one last loop to save all the values
+        for i, s in enumerate(states):
+            s.set_reward(
+                rewards[i], info_field="llm-reward", primary_reward=self.primary_reward
+            )
+
+        return rewards
