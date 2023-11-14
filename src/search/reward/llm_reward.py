@@ -49,7 +49,7 @@ class LLMRewardFunction(BaseReward):
         llm_function: callable,
         reward_limit: float = 10.0,
         max_attempts: int = 3,
-        penalty_value=-10,
+        penalty_value: float = -10.0,
     ):
         """Create the LLMRewardFunction from given parameters."""
         self.llm_function = llm_function
