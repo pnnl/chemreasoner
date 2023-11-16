@@ -164,9 +164,7 @@ class ReasonerState:
             [] if self.answer is None else parse_answer(self.answer, self.num_answers)
         )
 
-    def process_generation(
-        self, answer=_example_generation_answer, handle_failure: bool = False
-    ):
+    def process_generation(self, answer=_example_generation_answer):
         """process generation answer and store."""
         self.answer = answer
         self.info["generation"] = {

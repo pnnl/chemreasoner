@@ -57,6 +57,67 @@ class LLMRewardFunction(BaseReward):
         self.max_attempts = max_attempts
         self.penalty_reward = penalty_value
 
+    def run_generation_prompts(self, rewards, states):
+        """Run the generation prompts for the given states where the reward is None."""
+        prompts = []
+        system_prompts = []
+        for i, s in enumerate(states):
+            if rewards[i] is None:
+                prompts.append(s.generation_prompt)
+                system_prompts.append(s.generation_system_prompt)
+
+        generation_answers = self.llm_function(prompts, system_prompts)
+        loop_counter = 0
+        for i, s in enumerate(states):
+            if rewards[i] is None:
+                s.process_generation(generation_answers[loop_counter])
+
+                loop_counter += 1
+
+    def run_adsorption_energy_prompts(self, rewards, states):
+        """Run the generation prompts for the given states where the reward is None."""
+        prompts = []
+        system_prompts = []
+        prompts_idx = []
+        for i, s in enumerate(states):
+            if rewards[i] is None:
+                try:
+                    prompts.append(s.adsorption_energy_prompts)
+                    system_prompts.append(s.reward_system_prompt)
+                    prompts_idx.append(i)
+                except Exception as err:
+                    logging.warning(
+                        f"Failed to generate prompts with error: {str(err)}. "
+                        "Skipping this prompt."
+                    )
+                    if len(prompts) > len(system_prompts):
+                        prompts.pop()
+
+        flatten_idx, flattened_prompts = flatten_prompts(prompts)
+        _, flattened_system_prompts = flatten_prompts(prompts)
+
+        flattened_answers = self.llm_function(
+            flattened_prompts, flattened_system_prompts
+        )
+
+        answers = unflatten_answers(flatten_idx, flattened_answers)
+        for i, p in enumerate(prompts):
+            state_idx = prompts_idx[i]
+            s = states[state_idx]
+            if rewards[state_idx] is None:
+                try:
+                    values = s.process_adsorption_energy(answers[i])
+                    reward = np.mean(
+                        [
+                            np.mean(cat_values) ** (s.ads_preferences[j])
+                            for j, cat_values in enumerate(values)
+                        ]
+                    )
+                    rewards[state_idx] = reward
+
+                except Exception as err:
+                    logging.warning(f"Failed to parse answer with error: {str(err)}.")
+
     def __call__(
         self,
         states: list[query.QueryState],
@@ -69,48 +130,14 @@ class LLMRewardFunction(BaseReward):
         rewards = [None] * len(states)
         attempts = 0
         while any([r is None for r in rewards]) or attempts < self.max_attempts:
-            prompts = []
-            system_prompts = []
-            for i, s in enumerate(states):
-                if rewards[i] is not None:
-                    prompts.append(s.generation_prompt)
-                    system_prompts.append(s.system_prompt_generation)
+            if primary_reward:
+                self.run_generation_prompts(rewards, states)
 
-            flatten_idx, flattened_prompts = flatten_prompts(prompts)
+            self.run_adsorption_energy_prompts(rewards, states)
 
-            answers = self.llm_function(flattened_prompts)
-
-            unflattened_answers = unflatten_answers(flatten_idx, answers)
-
-            loop_counter = 0
-            for i, s in enumerate(states):
-                if rewards[i] is None:
-                    try:
-                        values = s.process_adsorption_energy(
-                            unflattened_answers[loop_counter]
-                        )
-                        reward = np.mean(
-                            [
-                                np.mean(cat_values) ** (s.ads_preferences[j])
-                                for j, cat_values in enumerate(values)
-                            ]
-                        )
-                        rewards[i] = reward
-
-                    except Exception as err:
-                        if attempts < self.max_attempts - 1:
-                            logging.warning(
-                                f"Failed to parse answer with error: {str(err)}. "
-                                "Generating new answer."
-                            )
-                        else:
-                            logging.warning(
-                                f"Failed to parse answer with error: {str(err)}. "
-                                "Returning a penalty value."
-                            )
-                            rewards[i] = self.penalty_value
-                    loop_counter += 1
             attempts += 1
+
+        rewards = [r if r is not None else self.penalty_value for r in rewards]
         # end while
 
         # one last loop to save all the values
