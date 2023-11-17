@@ -57,6 +57,13 @@ class LLMRewardFunction(BaseReward):
         self.max_attempts = max_attempts
         self.penalty_value = penalty_value
 
+    def run_generation_promtps_openai()
+        """Run the generation and adsorbate prompts in one go with function calling.
+        
+        https://platform.openai.com/docs/guides/function-calling
+        """
+        ...
+
     def run_generation_prompts(self, rewards, states):
         """Run the generation prompts for the given states where the reward is None."""
         prompts = []
