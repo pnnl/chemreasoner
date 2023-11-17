@@ -33,55 +33,61 @@ class BeamSearchTree:
         self.end_time = None
         # expand the root node
 
-    def expand_node(self, node):
-        """Expand out possible sub-nodes for given node."""
-        actions, priors = self.policy.get_actions(node)
-        shuffle_idx = list(range(len(priors)))
-        shuffle(shuffle_idx)
-        priors = [priors[i] for i in shuffle_idx]
-        actions = [actions[i] for i in shuffle_idx]
-
-        action_idxs = np.argsort(priors)[-self.num_generate :]  # noqa: E203
-
+    def expand_node(self, nodes):
+        """Expand out possible sub-nodes for a given list of nodes."""
+        actions, priors = self.policy.get_actions(nodes)
         new_nodes = []
-        for i in action_idxs:
-            if priors[i] > 0:
-                a = actions[i]
-                new_nodes.append(a(node))
-        return new_nodes
+        parent_idx = []
+        for i, node in enumerate(nodes):
+            these_priors = priors[i]
+            shuffle_idx = list(range(len(these_priors)))
+            shuffle(shuffle_idx)
+            these_priors = [these_priors[i] for i in shuffle_idx]
+            actions = [actions[i] for i in shuffle_idx]
+
+            action_idxs = np.argsort(these_priors)[-self.num_generate :]  # noqa: E203
+
+            these_new_nodes = []
+            for i in action_idxs:
+                if these_priors[i] > 0:
+                    a = actions[i]
+                    these_new_nodes.append(a(node))
+            new_nodes += these_new_nodes
+            parent_idx += [i] * len(these_new_nodes)
+        return new_nodes, parent_idx
 
     def simulation_policy(self):
         """Simulate a beam search step."""
         if self.start_time is None:
             self.start_timer()
-        nodes = self.nodes[-1]
 
-        successor_nodes = []
-        successor_rewards = []
-        parent_idx = []
-        for i, n in enumerate(nodes):
-            next_nodes = self.expand_node(n)
-            rewards = [self.reward_fn(n) for n in next_nodes]
-            successor_nodes += next_nodes
-            successor_rewards += rewards
-            parent_idx += [i] * len(next_nodes)
+        # expand final layer of nodes
+        successor_nodes, parent_idx = self.expand_node(self.nodes[-1])
+        # calculate their rewards
+        successor_rewards = self.reward_fn(successor_nodes)
+
+        # selected node index
         selected_node_idx = np.argsort(successor_rewards)[
             -self.num_keep :  # noqa: E203
         ]
         generated_idx = np.argsort(successor_rewards)[: -self.num_keep]  # noqa: E203
 
+        # Separate out the top-k rewards
         selected_nodes = [successor_nodes[i] for i in selected_node_idx]
         selected_rewards = [successor_rewards[i] for i in selected_node_idx]
         selected_parents = [parent_idx[i] for i in selected_node_idx]
 
+        # Separate out the other nodes that were not chosen (generated_nodes)
         generated_nodes = [successor_nodes[i] for i in generated_idx]
         generated_node_rewards = [successor_rewards[i] for i in generated_idx]
         generated_parent_idx = [parent_idx[i] for i in generated_idx]
 
+        # Save selected nodes
         self.nodes.append(selected_nodes)
         self.node_rewards.append(selected_rewards)
         self.parent_idx.append(selected_parents)
 
+        # Save the generated_nodes
         self.generated_nodes.append(generated_nodes)
         self.generated_node_rewards.append(generated_node_rewards)
         self.generated_parent_idx.append(generated_parent_idx)

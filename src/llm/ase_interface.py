@@ -157,7 +157,9 @@ def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, position=None) -> 
         raise AdsorbatePlacementError(
             f"Unable to add adsorbate with {len(binding_molecules)} binding molecules."
         )
-    build.add_adsorbate(slab, ads, 3, position=position, mol_index=binding_molecules[0])
+    build.add_adsorbate(
+        slab, ads, height, position=position, mol_index=binding_molecules[0]
+    )
     return slab
 
 
@@ -288,7 +290,7 @@ def symbols_list_to_bulk(symbols_list):
         raise StructureGenerationError(
             f"Unable to create a bulk for the element {symbols_list[0]}.",
         )
-    if len(symbols_list) > 1 and len(symbols_list) < 4:
+    if len(symbols_list) > 0 and len(symbols_list) < 4:
         for sym in symbols_list[1:]:
             try:
                 bulk = convert_alloy(bulk, sym)
@@ -296,6 +298,10 @@ def symbols_list_to_bulk(symbols_list):
                 raise StructureGenerationError(
                     f"Unable to incorporate element {sym} into alloy.",
                 )
+    else:
+        raise StructureGenerationError(
+            f"Incorrect number of symbols given ({len(symbols_list)}).",
+        )
     bulk.info.update({"bulk_syms": symbols_list})
     return bulk
 
