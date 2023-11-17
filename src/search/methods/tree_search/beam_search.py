@@ -36,7 +36,6 @@ class BeamSearchTree:
     def expand_node(self, nodes):
         """Expand out possible sub-nodes for a given list of nodes."""
         actions, priors = self.policy.get_actions(nodes)
-        print(priors)
         new_nodes = []
         parent_idx = []
         for i, node in enumerate(nodes):

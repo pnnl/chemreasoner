@@ -15,10 +15,10 @@ from search.state.reasoner_state import ReasonerState  # noqa: E402
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa: E402
 from search.policy.reasoner_policy import ReasonerPolicy  # noqa: E402
 
-adsorbate = "CO"
+adsorbates = ["CO", "H2O"]
 template = (
     "Generate a list of top-5 {catalyst_label} "
-    f"for the adsorption of {adsorbate}."
+    f"for the adsorption of {' and '.join(adsorbates)}."
     "{include_statement}{exclude_statement}"
     "Provide scientific explanations for each of the catalysts. "
     "Finally, return a python list named final_answer which contains the top-5 catalysts. "
@@ -28,8 +28,8 @@ template = (
 starting_state = ReasonerState(
     template=template,
     reward_template=None,
-    ads_symbols=[adsorbate],
-    ads_preferences=[1],
+    ads_symbols=adsorbates,
+    ads_preferences=[1, -1],
     num_answers=5,
     prediction_model="llama-2",
     reward_model="llama-2",
@@ -48,7 +48,7 @@ def llm_function(prompts, system_prompts):
         print("\n------" * 5)
     else:
         print("\n~~~~~~~" * 5)
-    return [p + s for p, s in zip(prompts, system_prompts)]
+    return ["final_answer =['Pt','Cu','Ag']" for p, s in zip(prompts, system_prompts)]
 
 
 reward_function = LLMRewardFunction(
