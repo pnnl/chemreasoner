@@ -34,7 +34,7 @@ class BeamSearchTree:
         # expand the root node
 
     def expand_node(self, nodes):
-        """Expand out possible sub-nodes for given node."""
+        """Expand out possible sub-nodes for a given list of nodes."""
         actions, priors = self.policy.get_actions(nodes)
         new_nodes = []
         parent_idx = []
@@ -61,26 +61,33 @@ class BeamSearchTree:
         if self.start_time is None:
             self.start_timer()
 
+        # expand final layer of nodes
         successor_nodes, parent_idx = self.expand_node(self.nodes[-1])
+        # calculate their rewards
         successor_rewards = self.reward_fn(successor_nodes)
 
+        # selected node index
         selected_node_idx = np.argsort(successor_rewards)[
             -self.num_keep :  # noqa: E203
         ]
         generated_idx = np.argsort(successor_rewards)[: -self.num_keep]  # noqa: E203
 
+        # Separate out the top-k rewards
         selected_nodes = [successor_nodes[i] for i in selected_node_idx]
         selected_rewards = [successor_rewards[i] for i in selected_node_idx]
         selected_parents = [parent_idx[i] for i in selected_node_idx]
 
+        # Separate out the other nodes that were not chosen (generated_nodes)
         generated_nodes = [successor_nodes[i] for i in generated_idx]
         generated_node_rewards = [successor_rewards[i] for i in generated_idx]
         generated_parent_idx = [parent_idx[i] for i in generated_idx]
 
+        # Save selected nodes
         self.nodes.append(selected_nodes)
         self.node_rewards.append(selected_rewards)
         self.parent_idx.append(selected_parents)
 
+        # Save the generated_nodes
         self.generated_nodes.append(generated_nodes)
         self.generated_node_rewards.append(generated_node_rewards)
         self.generated_parent_idx.append(generated_parent_idx)

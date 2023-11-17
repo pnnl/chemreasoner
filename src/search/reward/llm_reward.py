@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 sys.path.append("src")
-from llm import query  # noqa: E402
+from search.state.reasoner_state import ReasonerState  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
 
 logging.getLogger().setLevel(logging.INFO)
@@ -21,7 +21,7 @@ def flatten_prompts(
     flattend_list = []
     for i in range(len(prompts)):
         for j in range(len(prompts[i])):
-            idx.appned((i, j))
+            idx.append((i, j))
             flattend_list.append(prompts[i][j])
 
     return (idx, flattend_list)
@@ -55,7 +55,7 @@ class LLMRewardFunction(BaseReward):
         self.llm_function = llm_function
         self.reward_limit = reward_limit
         self.max_attempts = max_attempts
-        self.penalty_reward = penalty_value
+        self.penalty_value = penalty_value
 
     def run_generation_prompts(self, rewards, states):
         """Run the generation prompts for the given states where the reward is None."""
@@ -120,7 +120,7 @@ class LLMRewardFunction(BaseReward):
 
     def __call__(
         self,
-        states: list[query.QueryState],
+        states: list[ReasonerState],
         primary_reward=True,
     ):
         """Reward function to return adsorption energy of reactants.
@@ -129,7 +129,7 @@ class LLMRewardFunction(BaseReward):
         """
         rewards = [None] * len(states)
         attempts = 0
-        while any([r is None for r in rewards]) or attempts < self.max_attempts:
+        while any([r is None for r in rewards]) and attempts < self.max_attempts:
             if primary_reward:
                 self.run_generation_prompts(rewards, states)
 
@@ -143,7 +143,7 @@ class LLMRewardFunction(BaseReward):
         # one last loop to save all the values
         for i, s in enumerate(states):
             s.set_reward(
-                rewards[i], info_field="llm-reward", primary_reward=self.primary_reward
+                rewards[i], info_field="llm-reward", primary_reward=primary_reward
             )
 
         return rewards

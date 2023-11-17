@@ -131,7 +131,7 @@ class ReasonerState:
         )
 
     @property
-    def prompt_generation(self):
+    def generation_prompt(self):
         """Return the prompt for this state."""
         return generate_expert_prompt(
             template=self.template,
@@ -365,7 +365,7 @@ class ReasonerState:
 
             relevant_strings = []
         for state in states:
-            relevant_strings.append(state.prompt)
+            relevant_strings.append(state.generation_prompt)
         if not self.debug:
             embeddings += run_get_embeddings(
                 relevant_strings, model=self.embedding_model
