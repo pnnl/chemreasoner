@@ -36,20 +36,21 @@ class BeamSearchTree:
     def expand_node(self, nodes):
         """Expand out possible sub-nodes for a given list of nodes."""
         actions, priors = self.policy.get_actions(nodes)
+        print(priors)
         new_nodes = []
         parent_idx = []
         for i, node in enumerate(nodes):
-            priors = priors[i]
-            shuffle_idx = list(range(len(priors)))
+            these_priors = priors[i]
+            shuffle_idx = list(range(len(these_priors)))
             shuffle(shuffle_idx)
-            priors = [priors[i] for i in shuffle_idx]
+            these_priors = [these_priors[i] for i in shuffle_idx]
             actions = [actions[i] for i in shuffle_idx]
 
-            action_idxs = np.argsort(priors)[-self.num_generate :]  # noqa: E203
+            action_idxs = np.argsort(these_priors)[-self.num_generate :]  # noqa: E203
 
             these_new_nodes = []
             for i in action_idxs:
-                if priors[i] > 0:
+                if these_priors[i] > 0:
                     a = actions[i]
                     these_new_nodes.append(a(node))
             new_nodes += these_new_nodes
