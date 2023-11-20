@@ -29,12 +29,15 @@ class StructureReward(BaseReward):
     def __init__(
         self,
         llm_function: callable,
+        penalty_value: float = -10,
         nnp_class="oc",
         num_slab_samples=8,
         num_adslab_samples=8,
         **nnp_kwargs,
     ):
         """Select the class of nnp for the reward function."""
+        self.llm_function = llm_function
+        self.penalty_value = penalty_value
         if nnp_class == "oc":
             self.adsorption_calculator = oc.OCAdsorptionCalculator(**nnp_kwargs)
         else:
@@ -106,31 +109,26 @@ class StructureReward(BaseReward):
     ):
         """Return the calculated adsorption energy from the predicted catalysts."""
         rewards = []
-        for s in states:
+        slab_syms = [None] * len(states)
+        attempts = 0
+        while any([r is None for r in rewards]) and attempts < self.max_attempts:
+            if primary_reward:
+                self.run_generation_prompts(slab_syms, states)
+
+            self.run_slab_sym_prompts(slab_syms, states)
+
+            attempts += 1
+
+        for i, s in enumerate(states):
             ads_list = s.ads_symbols
-
-            retries = 0
-            successful = False
-            error: Exception
-            while retries < num_attempts and not successful:
-                try:
-                    s.query()
-                    candidates_list = s.candidates
-                    slab_syms = ase_interface.llm_answer_to_symbols(
-                        candidates_list, debug=s.debug
-                    )
-                    successful = True
-                except Exception as err:
-                    retries += 1
-                    error = err
-                    print(err)
-
-            if not successful:
-                print(
-                    f"Unable to get atomic symbols with error {error}. "
-                    "Returning a penalty value."
+            candidates_list = s.candidates
+            if slab_syms[i] is None:
+                logging.warning(
+                    f"Unable to parse the answer:\n\n {s.answer}."
+                    "\n\nInto catalyst symbols. "
+                    "Returning the penalty value for that answer."
                 )
-                rewards.append(-10)
+                rewards[i] = self.penalty_value
             else:
                 (
                     adslabs_and_energies,
