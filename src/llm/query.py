@@ -204,10 +204,11 @@ if __name__ == "__main__":
 
     client = AsyncOpenAI()
 
-    stream = await client.chat.completions.create(
-        prompt="Say this is a test",
-        messages=[{"role": "user", "content": "Say this is a test"}],
-        stream=True,
-    )
-    async for part in stream:
-        print(part.choices[0].delta.content or "")
+    async def test():
+        stream = await client.chat.completions.create(
+            prompt="Say this is a test",
+            messages=[{"role": "user", "content": "Say this is a test"}],
+            stream=True,
+        )
+        async for part in stream:
+            print(part.choices[0].delta.content or "")
