@@ -64,7 +64,10 @@ class StructureReward(BaseReward):
     def run_slab_sym_prompts(
         self, slab_syms: list[list[str]], states: list[ReasonerState]
     ):
-        """Run the generation prompts for the given states where the reward is None."""
+        """Run the generation prompts for the given states where the reward is None.
+
+        Updates the given "slab_syms" list in-place.
+        """
         prompts = []
         system_prompts = []
         prompts_idx = []
