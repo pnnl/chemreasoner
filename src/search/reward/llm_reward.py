@@ -111,19 +111,19 @@ class LLMRewardFunction(BaseReward):
         for i, p in enumerate(prompts):
             state_idx = prompts_idx[i]
             s = states[state_idx]
-            if rewards[state_idx] is None:
-                try:
-                    values = s.process_adsorption_energy(answers[i])
-                    reward = np.mean(
-                        [
-                            np.mean(cat_values) ** (s.ads_preferences[j])
-                            for j, cat_values in enumerate(values)
-                        ]
-                    )
-                    rewards[state_idx] = reward
 
-                except Exception as err:
-                    logging.warning(f"Failed to parse answer with error: {str(err)}.")
+            try:
+                values = s.process_adsorption_energy(answers[i])
+                reward = np.mean(
+                    [
+                        np.mean(cat_values) ** (s.ads_preferences[j])
+                        for j, cat_values in enumerate(values)
+                    ]
+                )
+                rewards[state_idx] = reward
+
+            except Exception as err:
+                logging.warning(f"Failed to parse answer with error: {str(err)}.")
 
     def __call__(
         self,

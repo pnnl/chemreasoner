@@ -254,6 +254,41 @@ class ReasonerState:
 
         return return_values
 
+    @property
+    def catalyst_symbols_prompt(self):
+        """Turn this state's answer into a prompt for symbols_parsing."""
+        example_format = ""
+        for i, ans in enumerate(self.candidates):
+            example_format += f"{ans}: [list_{i}]\n"
+
+        answer_string = ", ".join(self.candidates)
+        prompt = (
+            f"Consider the following list of catalysts:\n{answer_string}.\n\n"
+            "For each catalyst, return the list of chemical symbols that make up the "
+            "catalyst. If a catalyst does not have a chemical symbol, return None. "
+            "If a catalyst is already a chemical formula, repeat the elements in the "
+            "chemical formula.\n\n"
+            "Format your list as:\n"
+            f"{example_format}"
+        )
+        return prompt
+
+    def process_catalyst_symbols(self, answer):
+        """Turn parse out the symbols from the llm answer."""
+        answer_list_parsed = [None] * len(answer)
+        for line in answer.split("\n"):
+            if ":" in line:
+                cat, syms = line.split(":")
+                idx = self.candidates.index(cat)  # ensure ording is preserved
+                syms_list = list(
+                    {s.strip() for s in syms.strip().strip("[").strip("]").split(",")}
+                )  # Use a set for unique elements only
+                if syms_list == ["None"]:
+                    syms_list = None
+                answer_list_parsed[idx] = syms_list
+
+        return answer_list_parsed
+
     def query_adsorption_energy_list(
         self,
         allow_requery=True,

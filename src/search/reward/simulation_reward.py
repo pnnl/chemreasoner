@@ -1,4 +1,5 @@
 """Module for reward funciton by calculation of adsorption energies in simulation."""
+import logging
 import sys
 import uuid
 
@@ -19,12 +20,19 @@ from evaluation.break_traj_files import break_trajectory  # noqa: E402
 from nnp import oc  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
 
+logging.getLogger().setLevel(logging.INFO)
+
 
 class StructureReward(BaseReward):
     """Calculate the reward for answers based on adsorption simulations."""
 
     def __init__(
-        self, nnp_class="oc", num_slab_samples=8, num_adslab_samples=8, **nnp_kwargs
+        self,
+        llm_function: callable,
+        nnp_class="oc",
+        num_slab_samples=8,
+        num_adslab_samples=8,
+        **nnp_kwargs,
     ):
         """Select the class of nnp for the reward function."""
         if nnp_class == "oc":
@@ -34,7 +42,65 @@ class StructureReward(BaseReward):
         self.num_slab_samples = num_slab_samples
         self.num_adslab_samples = num_adslab_samples
 
-    def __call__(self, states: ReasonerState, num_attempts=3):
+    def run_generation_prompts(
+        self, slab_syms: list[list[str]], states: list[ReasonerState]
+    ):
+        """Run the generation prompts for the given states where the reward is None."""
+        prompts = []
+        system_prompts = []
+        for i, s in enumerate(states):
+            if slab_syms[i] is None:
+                prompts.append(s.generation_prompt)
+                system_prompts.append(s.generation_system_prompt)
+
+        generation_answers = self.llm_function(prompts, system_prompts)
+        loop_counter = 0
+        for i, s in enumerate(states):
+            if slab_syms[i] is None:
+                s.process_generation(generation_answers[loop_counter])
+
+                loop_counter += 1
+
+    def run_slab_sym_prompts(
+        self, slab_syms: list[list[str]], states: list[ReasonerState]
+    ):
+        """Run the generation prompts for the given states where the reward is None."""
+        prompts = []
+        system_prompts = []
+        prompts_idx = []
+        for i, s in enumerate(states):
+            if slab_syms[i] is None:
+                try:
+                    prompts.append(s.catalyst_symbols_prompt)
+                    system_prompts.append(None)
+                    prompts_idx.append(i)
+                except Exception as err:
+                    logging.warning(
+                        f"Failed to generate prompts with error: {str(err)}. "
+                        "Skipping this prompt."
+                    )
+                    if len(prompts) > len(system_prompts):
+                        prompts.pop()
+
+        answers = self.llm_function(
+            prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
+        )
+
+        for i, p in enumerate(prompts):
+            state_idx = prompts_idx[i]
+            s = states[state_idx]
+            try:
+                slab_syms[state_idx] = s.process_catalyst_symbols(answers[i])
+
+            except Exception as err:
+                logging.warning(f"Failed to parse answer with error: {str(err)}.")
+
+    def __call__(
+        self,
+        states: list[ReasonerState],
+        num_attempts: int = 3,
+        primary_reward: bool = True,
+    ):
         """Return the calculated adsorption energy from the predicted catalysts."""
         rewards = []
         for s in states:
