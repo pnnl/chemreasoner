@@ -55,8 +55,12 @@ def run_get_embeddings(strings, model="text-embedding-ada-002"):
 
 
 # @backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=120)
-def run_query(
-    query, model="gpt-3.5-turbo", system_prompt=None, max_pause=0, **gpt_kwargs
+def run_prompts(
+    prompts,
+    system_prompts=None,
+    model="gpt-3.5-turbo",
+    max_pause=0,
+    **gpt_kwargs,
 ):
     """Query language model for a list of k candidates."""
     gpt_kwargs["temperature"] = gpt_kwargs.get("temperature", 0.6)
@@ -65,18 +69,29 @@ def run_query(
     now = datetime.datetime.now()
     logging.info(f"New query at time: {now}")
 
+    if system_prompts is None:
+        system_prompts = [None] * len(prompts)
+
     # output = openai.Completion.create(
     #     model="text-davinci-003", max_tokens=1300, temperature=1, prompt=query
     # )
 
     if model == "text-davinci-003":
+        init_openai()
         random_wait = np.random.randint(low=0, high=max_pause + 1)
         time.sleep(random_wait)
-        output = openai.Completion.create(model=model, prompt=query, **gpt_kwargs)
+        output = openai.Completion.create(model=model, prompt=prompts, **gpt_kwargs)
         answer = output["choices"][0]["text"]
     elif "gpt-3.5" in model or "gpt-4" in model:
+        init_openai()
+
         random_wait = np.random.randint(low=0, high=max_pause + 1)
         time.sleep(random_wait)
+
+        messages = []
+        for i, p in prompts:
+            if system_prompts[i] is not None:
+                messages.append({"role": "system", "content": system_prompts[i]})
         if system_prompt is not None:
             messages = [{"role": "system", "content": system_prompt}]
         else:
@@ -171,16 +186,28 @@ def llama_get_embeddings(strings):
     return last_hidden_states
 
 
-init_openai()
-
 if __name__ == "__main__":
-    llama_key = os.getenv("LLAMA_KEY")
-    login(llama_key)
-    llama_tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-13b-chat-hf")
-    llama_model = LlamaForCausalLM.from_pretrained("meta-llama/Llama-2-13b-chat-hf")
+    # llama_key = os.getenv("LLAMA_KEY")
+    # login(llama_key)
+    # llama_tokenizer = LlamaTokenizer.from_pretrained("meta-llama/Llama-2-13b-chat-hf")
+    # llama_model = LlamaForCausalLM.from_pretrained("meta-llama/Llama-2-13b-chat-hf")
 
-    logging.info(
-        llama_get_embeddings(
-            ["This is the query, is it?", "Making a western movie is a cowboy thing."],
-        )
+    # logging.info(
+    #     llama_get_embeddings(
+    #         ["This is the query, is it?", "Making a western movie is a cowboy thing."],
+    #     )
+    # )
+
+    from openai import AsyncOpenAI
+
+    init_openai()
+
+    client = AsyncOpenAI()
+
+    stream = await client.chat.completions.create(
+        prompt="Say this is a test",
+        messages=[{"role": "user", "content": "Say this is a test"}],
+        stream=True,
     )
+    async for part in stream:
+        print(part.choices[0].delta.content or "")
