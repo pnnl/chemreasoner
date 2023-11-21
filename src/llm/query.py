@@ -1,4 +1,5 @@
 """Functions and classes for querying OpenAI."""
+import asyncio
 import datetime
 import logging
 import os
@@ -17,7 +18,8 @@ from transformers import AutoTokenizer, LlamaForCausalLM, LlamaTokenizer
 from transformers import pipeline
 
 import openai
-from openai.embeddings_utils import get_embeddings, cosine_similarity
+
+# from openai.embeddings_utils import get_embeddings, cosine_similarity
 
 
 logging.getLogger().setLevel(logging.INFO)
@@ -34,10 +36,16 @@ def fstr(fstring_text, vals):
     return ret_val
 
 
+global openai_client
+openai_client = None
+
+
 def init_openai():
     """Initialize connection to OpenAI."""
-    openai.api_key = os.getenv("OPENAI_API_KEY_DEV")
-    return
+    global openai_client
+    if openai_client is None:
+        openai_client = AsyncOpenAI()
+        openai.api_key = os.getenv("OPENAI_API_KEY_DEV")
 
 
 query_counter = 0
@@ -45,7 +53,7 @@ tok_sent = 0
 tok_recieved = 0
 
 
-@backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=120)
+@backoff.on_exception(backoff.expo, Exception, max_time=120)
 def run_get_embeddings(strings, model="text-embedding-ada-002"):
     """Query language model for a list of k candidates."""
     if model == "text-embedding-ada-002":
@@ -54,18 +62,43 @@ def run_get_embeddings(strings, model="text-embedding-ada-002"):
         return llama_get_embeddings(strings)
 
 
+async def parallel_openai_chat_completion(
+    prompt, system_prompt=None, model="gpt-3.5-turbo", **kwargs
+):
+    """Run chat completion calls on openai, in parallel."""
+    global openai_client
+    messages = []
+    if system_prompt is not None:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": "Say this is a test"})
+    return await client.chat.completions.create(
+        messages=messages, model=model, **kwargs
+    )
+
+
+async def openai_chat_async_evaluation(prompts, system_prompts, model, **kwargs):
+    completions = [
+        parallel_openai_chat_completion(p, system_prompts[i])
+        for i, p in enumerate(prompts)
+    ]
+
+    print("gathering")
+    answers = await asyncio.gather(*completions)
+    return answers
+
+
 # @backoff.on_exception(backoff.expo, openai.error.OpenAIError, max_time=120)
 def run_prompts(
     prompts,
     system_prompts=None,
     model="gpt-3.5-turbo",
     max_pause=0,
-    **gpt_kwargs,
+    **kwargs,
 ):
     """Query language model for a list of k candidates."""
-    gpt_kwargs["temperature"] = gpt_kwargs.get("temperature", 0.6)
-    gpt_kwargs["top_p"] = gpt_kwargs.get("top_p", 0.3)
-    gpt_kwargs["max_tokens"] = gpt_kwargs.get("max_tokens", 1300)
+    kwargs["temperature"] = kwargs.get("temperature", 0.6)
+    kwargs["top_p"] = kwargs.get("top_p", 0.3)
+    kwargs["max_tokens"] = kwargs.get("max_tokens", 1300)
     now = datetime.datetime.now()
     logging.info(f"New query at time: {now}")
 
@@ -84,23 +117,15 @@ def run_prompts(
         answer = output["choices"][0]["text"]
     elif "gpt-3.5" in model or "gpt-4" in model:
         init_openai()
-
-        random_wait = np.random.randint(low=0, high=max_pause + 1)
-        time.sleep(random_wait)
-
-        messages = []
-        for i, p in prompts:
-            if system_prompts[i] is not None:
-                messages.append({"role": "system", "content": system_prompts[i]})
-        if system_prompt is not None:
-            messages = [{"role": "system", "content": system_prompt}]
-        else:
-            messages = []
-        messages.append({"role": "user", "content": query})
-        output = openai.ChatCompletion.create(
-            model=model, messages=messages, **gpt_kwargs
+        return asyncio.run(
+            openai_chat_async_evaluation(
+                prompts,
+                system_prompts=system_prompts,
+                model="gpt-3.5-turbo",
+                **kwargs,
+            )
         )
-        answer = output["choices"][0]["message"]["content"]
+
     elif "llama" in model:
         global llama_generator
         sys_prompt = "" if system_prompt is None else system_prompt
@@ -198,17 +223,51 @@ if __name__ == "__main__":
     #     )
     # )
 
+    messages = [{"role": "user", "content": "Say this is a test"} for _ in range(3)]
+
     from openai import AsyncOpenAI
 
     init_openai()
 
     client = AsyncOpenAI()
 
-    async def test():
-        stream = await client.chat.completions.create(
-            prompt="Say this is a test",
-            messages=[{"role": "user", "content": "Say this is a test"}],
-            stream=True,
-        )
-        async for part in stream:
-            print(part.choices[0].delta.content or "")
+    # help(client.chat.completions.create)
+
+    # async def test():
+    #     for message in messages:
+    #         stream = await client.chat.completions.create(
+    #             prompt="Say this is a test",
+    #             messages=[{"role": "user", "content": "Say this is a test"}],
+    #             stream=True,
+    #         )
+
+    #     async for part in stream:
+    #         print(part.choices[0].delta.content or "")
+
+    # import asyncio
+
+    # async def async_myfunc(dictionary):
+    #     # Your async function logic here
+    #     # This is just a placeholder, replace it with your actual async function
+    #     await asyncio.sleep(1)  # Simulating an asynchronous operation
+    #     return dictionary["value"] * 2  # Replace with your actual logic
+
+    # async def async_process_input_list(input_list):
+    #     tasks = [async_myfunc(dictionary) for dictionary in input_list]
+    #     results = await asyncio.gather(*tasks)
+    #     return results
+
+    # # Example usage
+    # input_list = [
+    #     {"role": "user", "content": "Say this is a test"},
+    #     {"role": "user", "content": "This is another test"},
+    #     {"role": "user", "content": "Final test"},
+    # ]
+
+    # # Run the event loop
+    # loop = asyncio.get_event_loop()
+    # result = loop.run_until_complete(async_process_input_list(input_list))
+
+    print("testing run prompts")
+
+    print(run_prompts(["test1", "test2", "test3"], model="gpt-3.5-turbo"))
