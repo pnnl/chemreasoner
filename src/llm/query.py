@@ -44,7 +44,7 @@ def init_openai():
     """Initialize connection to OpenAI."""
     global openai_client
     if openai_client is None:
-        openai_client = AsyncOpenAI()
+        openai_client = openai.AsyncOpenAI()
         openai.api_key = os.getenv("OPENAI_API_KEY_DEV")
 
 
@@ -71,7 +71,7 @@ async def parallel_openai_chat_completion(
     if system_prompt is not None:
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": "Say this is a test"})
-    return await client.chat.completions.create(
+    return await openai_client.chat.completions.create(
         messages=messages, model=model, **kwargs
     )
 
