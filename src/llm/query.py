@@ -82,7 +82,6 @@ async def openai_chat_async_evaluation(prompts, system_prompts, model, **kwargs)
         for i, p in enumerate(prompts)
     ]
 
-    print("gathering")
     answers = await asyncio.gather(*completions)
     return answers
 
@@ -117,7 +116,7 @@ def run_prompts(
         answer = output["choices"][0]["text"]
     elif "gpt-3.5" in model or "gpt-4" in model:
         init_openai()
-        return asyncio.run(
+        answer_objects = asyncio.run(
             openai_chat_async_evaluation(
                 prompts,
                 system_prompts=system_prompts,
@@ -125,6 +124,8 @@ def run_prompts(
                 **kwargs,
             )
         )
+        answer_strings = [a.choices[0].message.content for a in answer_objects]
+        return answer_strings
 
     elif "llama" in model:
         global llama_generator

@@ -1,4 +1,8 @@
+import sys
+
 from unittest import TestCase
+
+from llm.query import run_prompts
 
 
 class TestBeamSearch(TestCase):
