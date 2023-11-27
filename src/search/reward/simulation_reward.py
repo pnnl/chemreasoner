@@ -382,34 +382,67 @@ class _TestState:
         self.ads_preferences = test_ads_preferences
 
 
-def measure_adsorption(ats: Atoms, cutoff=2.0):
-    """Determine whether the adsorbate has adsorbed."""
-    D = ats.get_all_distances()
-    adsorbate_ats = ats.get_tags() == 0
-    # return not any(
-    #     np.any(
-    #         np.less(D[np.ix_(adsorbate_ats, ~adsorbate_ats)], cutoff),
-    #         axis=1,
-    #     )
-    # )
-    return min(D[np.ix_(adsorbate_ats, ~adsorbate_ats)].flatten())
+class AdsorbedStructureChecker:
+    """A class to check whether an adsorbed structure is correct or not.
 
+    Uses convention created by Open Catalysis:
+    https://github.com/Open-Catalyst-Project/ocp/blob/main/DATASET.md
 
-def measure_connectivity(ats: Atoms, cutoff=2.0):
-    """Determine whether the adsorbate has adsorbed."""
-    idx = ats.get_tags() == 0
-    ads_atoms = Atoms(
-        symbols=ats.get_atomic_numbers()[idx], positions=ats.get_positions()[idx]
-    )
+    "0 - no anomaly
+    1 - adsorbate dissociation
+    2 - adsorbate desorption
+    3 - surface reconstruction [not implemented in this code]
+    4 - incorrect CHCOH placement, appears to be CHCO with a lone, uninteracting, H far
+    off in the unit cell [not implemented in this code]"
+    """
 
-    conn_matrix = build_neighbor_list(ads_atoms).get_connectivity_matrix()
-    # return not any(
-    #     np.any(
-    #         np.less(D[np.ix_(adsorbate_ats, ~adsorbate_ats)], cutoff),
-    #         axis=1,
-    #     )
-    # )
-    return all(conn_matrix, all)
+    all_clear_code = 0
+    adsorbate_dissociation_code = 1
+    desorption_code = 2
+    surface_reconstruction = 3  # unused
+    incorrect_CHCOH = 4  # unused
+
+    def __call__(self, ats: Atoms):
+        """Check the given structure for errors."""
+        if not self.check_dissociation(ats):
+            return self.adsorbate_dissociation_code
+        elif not self.check_adsorption(ats):
+            return self.desorption_code
+        else:
+            return self.all_clear_code
+
+    def check_adsorption(self, ats: Atoms):
+        """Mesure whether or not the atoms adsorbed"""
+        return self.check_connectivity(ats)
+
+    @staticmethod
+    def measure_adsorption_distance(ats: Atoms, cutoff=2.0) -> float:
+        """Determine whether the adsorbate has adsorbed."""
+        D = ats.get_all_distances()
+        adsorbate_ats = ats.get_tags() == 0
+        # return not any(
+        #     np.any(
+        #         np.less(D[np.ix_(adsorbate_ats, ~adsorbate_ats)], cutoff),
+        #         axis=1,
+        #     )
+        # )
+        return min(D[np.ix_(adsorbate_ats, ~adsorbate_ats)].flatten())
+
+    def measure_dissociation(self, ats: Atoms):
+        """Determine whether the adsorbate has dissociated."""
+        idx = ats.get_tags() == 0
+        ads_atoms = Atoms(
+            symbols=ats.get_atomic_numbers()[idx], positions=ats.get_positions()[idx]
+        )
+        ads_atoms.set_cell(ats.get_cell())
+
+        return self.check_connectivity(ads_atoms)
+
+    @staticmethod
+    def check_connectivity(ats: Atoms):
+        """Check the connectivity matrix of the given atoms."""
+        conn_matrix = build_neighbor_list(ats).get_connectivity_matrix()
+        return all(conn_matrix, all)
 
 
 if __name__ == "__main__":
