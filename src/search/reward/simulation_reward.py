@@ -9,7 +9,6 @@ import numpy as np
 
 from ase import Atoms
 from ase.io import read
-from ase.neighbor_list import build_neighbor_list
 from ase.data import chemical_symbols
 
 
@@ -140,7 +139,10 @@ class StructureReward(BaseReward):
                 )
 
                 final_reward = self.parse_adsorption_energies(
-                    adslabs_and_energies, name_candidate_mapping, candidates_list
+                    adslabs_and_energies,
+                    name_candidate_mapping,
+                    candidates_list,
+                    s.ads_preferences,
                 )
 
                 rewards.append(final_reward)
@@ -210,37 +212,40 @@ class StructureReward(BaseReward):
         )
 
     def parse_adsorption_energies(
-        self, adslabs_and_energies, name_candidate_mapping, candidates_list
+        self,
+        adslabs_and_energies,
+        name_candidate_mapping,
+        candidates_list,
+        ads_preferences,
     ):
         """Parse adsorption energies to get the reward value."""
         # Parse out the rewards into candidate/adsorbate
         reward_values = {}
-        for idx, name, energy in adslabs_and_energies:
+        for idx, name, energy, valid_structure in adslabs_and_energies:
             cand = name_candidate_mapping[name]
             ads = name.split("_")[-1]
-            if cand in reward_values.keys():
-                if name.split("_")[-1] in reward_values[cand].keys():
-                    reward_values[cand][ads] += [energy]
+            if valid_structure:
+                if cand in reward_values.keys():
+                    if name.split("_")[-1] in reward_values[cand].keys():
+                        reward_values[cand][ads] += [energy]
+                    else:
+                        reward_values[cand][ads] = [energy]
                 else:
-                    reward_values[cand][ads] = [energy]
-            else:
-                reward_values[cand] = {ads: [energy]}
+                    reward_values[cand] = {ads: [energy]}
 
         # aggregate the rewards
         rewards = []
         for cand in candidates_list:
             if cand in reward_values.keys():
                 rewards.append(
-                    np.mean(
-                        [
-                            -((min(reward_values[cand][ads])) ** s.ads_preferences[i])
-                            for i, ads in enumerate(reward_values[cand].keys())
-                        ]
-                    )
+                    [
+                        -((min(reward_values[cand][ads])) ** ads_preferences[i])
+                        for i, ads in enumerate(reward_values[cand].keys())
+                    ]
                 )
             else:  # Handle default here TODO: determine some logic/pentaly for this
                 print(cand)
-                return -10
+                return rewards.append(self.penalty_value)
 
         final_reward = np.mean(rewards)
 
@@ -275,7 +280,8 @@ class StructureReward(BaseReward):
                 # Get pre calculated values if they exists. Otherwise, create batch
                 ads_calc = self.adsorption_calculator.get_prediction(name, idx)
                 if ads_calc is not None:
-                    results.append((idx, name, ads_calc))
+                    valid = self.adsorption_calculator.get_validity(name, idx)
+                    results.append((idx, name, ads_calc, valid))
                 else:
                     adslab_batch.append(adslab)
                     fname_batch.append(str(fname) + f"-{uuid.uuid4()}")
@@ -295,14 +301,14 @@ class StructureReward(BaseReward):
 
         return results
 
-    @staticmethod
-    def unpack_batch_results(batch_results, fname_batch):
+    def unpack_batch_results(self, batch_results, fname_batch):
         """Unpack a collection of batch results."""
         results = []
         for i, res in enumerate(batch_results):
             idx = Path(fname_batch[i]).stem.split("-")[0]
             name = str(Path(fname_batch[i]).parent)
-            results.append((idx, name, res))
+            valid = self.adsorption_calculator.get_validity(name, idx)
+            results.append((idx, name, res, valid))
         return results
 
     def calculate_batch(self, adslab_batch, fname_batch):
@@ -380,69 +386,6 @@ class _TestState:
         self.candidates = test_candidates
         self.ads_symbols = test_ads_symbols
         self.ads_preferences = test_ads_preferences
-
-
-class AdsorbedStructureChecker:
-    """A class to check whether an adsorbed structure is correct or not.
-
-    Uses convention created by Open Catalysis:
-    https://github.com/Open-Catalyst-Project/ocp/blob/main/DATASET.md
-
-    "0 - no anomaly
-    1 - adsorbate dissociation
-    2 - adsorbate desorption
-    3 - surface reconstruction [not implemented in this code]
-    4 - incorrect CHCOH placement, appears to be CHCO with a lone, uninteracting, H far
-    off in the unit cell [not implemented in this code]"
-    """
-
-    all_clear_code = 0
-    adsorbate_dissociation_code = 1
-    desorption_code = 2
-    surface_reconstruction = 3  # unused
-    incorrect_CHCOH = 4  # unused
-
-    def __call__(self, ats: Atoms):
-        """Check the given structure for errors."""
-        if not self.check_dissociation(ats):
-            return self.adsorbate_dissociation_code
-        elif not self.check_adsorption(ats):
-            return self.desorption_code
-        else:
-            return self.all_clear_code
-
-    def check_adsorption(self, ats: Atoms):
-        """Mesure whether or not the atoms adsorbed"""
-        return self.check_connectivity(ats)
-
-    @staticmethod
-    def measure_adsorption_distance(ats: Atoms, cutoff=2.0) -> float:
-        """Determine whether the adsorbate has adsorbed."""
-        D = ats.get_all_distances()
-        adsorbate_ats = ats.get_tags() == 0
-        # return not any(
-        #     np.any(
-        #         np.less(D[np.ix_(adsorbate_ats, ~adsorbate_ats)], cutoff),
-        #         axis=1,
-        #     )
-        # )
-        return min(D[np.ix_(adsorbate_ats, ~adsorbate_ats)].flatten())
-
-    def measure_dissociation(self, ats: Atoms):
-        """Determine whether the adsorbate has dissociated."""
-        idx = ats.get_tags() == 0
-        ads_atoms = Atoms(
-            symbols=ats.get_atomic_numbers()[idx], positions=ats.get_positions()[idx]
-        )
-        ads_atoms.set_cell(ats.get_cell())
-
-        return self.check_connectivity(ads_atoms)
-
-    @staticmethod
-    def check_connectivity(ats: Atoms):
-        """Check the connectivity matrix of the given atoms."""
-        conn_matrix = build_neighbor_list(ats).get_connectivity_matrix()
-        return all(conn_matrix, all)
 
 
 if __name__ == "__main__":

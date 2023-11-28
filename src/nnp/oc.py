@@ -17,6 +17,7 @@ import numpy as np
 from ase import Atoms
 from ase.constraints import FixAtoms
 from ase.io import Trajectory, write
+from ase.neighbor_list import build_neighbor_list
 from ase.optimize import BFGS
 
 from ocpmodels.common.relaxation.ase_utils import OCPCalculator, batch_to_atoms
@@ -48,7 +49,14 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         8: -7.204,
     }
 
-    def __init__(self, model: str, traj_dir: Path, batch_size=40, device="cuda:0"):
+    def __init__(
+        self,
+        model: str,
+        traj_dir: Path,
+        batch_size=40,
+        device="cuda:0",
+        adsorbed_structure_checker=None,
+    ):
         """Createobject from model class (gemnet or equiformer).
 
         Downloads weights if they are not available.
@@ -90,6 +98,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             raise ValueError(f"Unkown model {self.model}.")
         with open(self.config_path, "r") as f:
             self.config = yaml.safe_load(f)
+
+        if adsorbed_structure_checker is None:
+            self.adsorbed_structure_checker = AdsorbedStructureChecker()
 
         self.traj_dir = traj_dir
         self.traj_dir.mkdir(parents=True, exist_ok=True)
@@ -236,31 +247,31 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
         # adsorption_energy = adslab_e - slab_ref - ads_ref
 
-        json_fnames_ids = dict()
-        for i, at_name in enumerate(atoms_names):
-            json_fname = str((self.traj_dir / at_name).parent / "adsorption.json")
-            json_id = (self.traj_dir / at_name).stem.split("-")[0]
+        # json_fnames_ids = dict()
+        # for i, at_name in enumerate(atoms_names):
+        #     json_fname = str((self.traj_dir / at_name).parent / "adsorption.json")
+        #     json_id = (self.traj_dir / at_name).stem.split("-")[0]
 
-            if json_fname in json_fnames_ids.keys():
-                json_fnames_ids[json_fname].update(
-                    {
-                        json_id: {
-                            "adsorption_energy": adslab_e[i],
-                            "adslab_energy": adslab_e[i],
-                            "ads_reference_energy": ads_ref[i],
-                            "slab_reference_energy": slab_ref[i],
-                        }
-                    }
-                )
-            else:
-                json_fnames_ids[json_fname] = {
-                    json_id: {
-                        "adsorption_energy": adslab_e[i],
-                        "adslab_energy": adslab_e[i],
-                        "ads_reference_energy": ads_ref[i],
-                        "slab_reference_energy": slab_ref[i],
-                    }
-                }
+        #     if json_fname in json_fnames_ids.keys():
+        #         json_fnames_ids[json_fname].update(
+        #             {
+        #                 json_id: {
+        #                     "adsorption_energy": adslab_e[i],
+        #                     "adslab_energy": adslab_e[i],
+        #                     "ads_reference_energy": ads_ref[i],
+        #                     "slab_reference_energy": slab_ref[i],
+        #                 }
+        #             }
+        #         )
+        #     else:
+        #         json_fnames_ids[json_fname] = {
+        #             json_id: {
+        #                 "adsorption_energy": adslab_e[i],
+        #                 "adslab_energy": adslab_e[i],
+        #                 "ads_reference_energy": ads_ref[i],
+        #                 "slab_reference_energy": slab_ref[i],
+        #             }
+        #         }
 
         json_fnames = [
             (self.traj_dir / at_name).parent / "adsorption.json"
@@ -272,6 +283,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
         # save the results into files to avoid recalculations
         for i, json_fname in enumerate(json_fnames):
+            validity = self.adsorbed_structure_checker(adslabs[i])
             self.write_json(
                 json_fname,
                 {
@@ -280,6 +292,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                         "adslab_energy": adslab_e[i],
                         "ads_reference_energy": ads_ref[i],
                         "slab_reference_energy": slab_ref[i],
+                        "validity": validity,
                     }
                 },
             )
@@ -412,6 +425,24 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         else:
             return None
 
+    def get_validity(self, adslab_name, idx) -> Optional[float]:
+        """Get the adsorption energy from adslab_name for given idx.
+
+        If the calculation has not been done, returns None."""
+        if self.adsorption_path(adslab_name).exists():
+            with open(
+                self.adsorption_path(adslab_name),
+                "r",
+            ) as f:
+                data = json.load(f)
+            if idx in data.keys() and "validity" in data[idx].keys():
+                validity = data[idx]["validity"]
+                return validity
+            else:
+                return None
+        else:
+            return None
+
     def slab_path(self, slab_name: str) -> Path:
         """Return the path to the slab file for slab_name."""
         slab_dir = self.traj_dir / "slabs"
@@ -468,6 +499,69 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     def adsorption_path(self, adslab_name):
         """Retunr the path to the adsorption energy file for given adslab."""
         return self.traj_dir / adslab_name / "adsorption.json"
+
+
+class AdsorbedStructureChecker:
+    """A class to check whether an adsorbed structure is correct or not.
+
+    Uses convention created by Open Catalysis:
+    https://github.com/Open-Catalyst-Project/ocp/blob/main/DATASET.md
+
+    "0 - no anomaly
+    1 - adsorbate dissociation
+    2 - adsorbate desorption
+    3 - surface reconstruction [not implemented in this code]
+    4 - incorrect CHCOH placement, appears to be CHCO with a lone, uninteracting, H far
+    off in the unit cell [not implemented in this code]"
+    """
+
+    all_clear_code = 0
+    adsorbate_dissociation_code = 1
+    desorption_code = 2
+    surface_reconstruction = 3  # unused
+    incorrect_CHCOH = 4  # unused
+
+    def __call__(self, ats: Atoms):
+        """Check the given structure for errors."""
+        if not self.check_dissociation(ats):
+            return self.adsorbate_dissociation_code
+        elif not self.check_adsorption(ats):
+            return self.desorption_code
+        else:
+            return self.all_clear_code
+
+    def check_adsorption(self, ats: Atoms):
+        """Mesure whether or not the atoms adsorbed"""
+        return self.check_connectivity(ats)
+
+    @staticmethod
+    def measure_adsorption_distance(ats: Atoms, cutoff=2.0) -> float:
+        """Determine whether the adsorbate has adsorbed."""
+        D = ats.get_all_distances()
+        adsorbate_ats = ats.get_tags() == 0
+        # return not any(
+        #     np.any(
+        #         np.less(D[np.ix_(adsorbate_ats, ~adsorbate_ats)], cutoff),
+        #         axis=1,
+        #     )
+        # )
+        return min(D[np.ix_(adsorbate_ats, ~adsorbate_ats)].flatten())
+
+    def measure_dissociation(self, ats: Atoms):
+        """Determine whether the adsorbate has dissociated."""
+        idx = ats.get_tags() == 0
+        ads_atoms = Atoms(
+            symbols=ats.get_atomic_numbers()[idx], positions=ats.get_positions()[idx]
+        )
+        ads_atoms.set_cell(ats.get_cell())
+
+        return self.check_connectivity(ads_atoms)
+
+    @staticmethod
+    def check_connectivity(ats: Atoms):
+        """Check the connectivity matrix of the given atoms."""
+        conn_matrix = build_neighbor_list(ats).get_connectivity_matrix()
+        return all(conn_matrix, all)
 
 
 def order_of_magnitude(number):
