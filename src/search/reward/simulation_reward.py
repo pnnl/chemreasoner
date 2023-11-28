@@ -30,8 +30,8 @@ class StructureReward(BaseReward):
         llm_function: callable,
         penalty_value: float = -10,
         nnp_class="oc",
-        num_slab_samples=8,
-        num_adslab_samples=8,
+        num_slab_samples=16,
+        num_adslab_samples=16,
         **nnp_kwargs,
     ):
         """Select the class of nnp for the reward function."""
@@ -226,12 +226,12 @@ class StructureReward(BaseReward):
             ads = name.split("_")[-1]
             if valid_structure:
                 if cand in reward_values.keys():
-                    if name.split("_")[-1] in reward_values[cand].keys():
-                        reward_values[cand][ads] += [energy]
-                    else:
-                        reward_values[cand][ads] = [energy]
+                    reward_values[cand][ads] += [energy]
                 else:
                     reward_values[cand] = {ads: [energy]}
+            else:
+                if cand not in reward_values.keys():
+                    reward_values[cand] = {ads: []}
 
         # aggregate the rewards
         rewards = []
@@ -240,6 +240,8 @@ class StructureReward(BaseReward):
                 rewards.append(
                     [
                         -((min(reward_values[cand][ads])) ** ads_preferences[i])
+                        if reward_values[cand][ads] > 0
+                        else self.penalty_value
                         for i, ads in enumerate(reward_values[cand].keys())
                     ]
                 )
