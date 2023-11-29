@@ -55,11 +55,11 @@ class StructureReward(BaseReward):
                 prompts.append(s.generation_prompt)
                 system_prompts.append(s.generation_system_prompt)
 
-        generation_answers = self.llm_function(prompts, system_prompts)
+        generation_results = self.llm_function(prompts, system_prompts)
         loop_counter = 0
         for i, s in enumerate(states):
             if slab_syms[i] is None:
-                s.process_generation(generation_answers[loop_counter])
+                s.process_generation(generation_results[loop_counter])
 
                 loop_counter += 1
 

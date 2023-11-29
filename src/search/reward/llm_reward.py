@@ -73,11 +73,11 @@ class LLMRewardFunction(BaseReward):
                 prompts.append(s.generation_prompt)
                 system_prompts.append(s.generation_system_prompt)
 
-        generation_answers = self.llm_function(prompts, system_prompts)
+        generation_results = self.llm_function(prompts, system_prompts)
         loop_counter = 0
         for i, s in enumerate(states):
             if rewards[i] is None:
-                s.process_generation(generation_answers[loop_counter])
+                s.process_generation(generation_results[loop_counter])
 
                 loop_counter += 1
 
@@ -103,11 +103,11 @@ class LLMRewardFunction(BaseReward):
         flatten_idx, flattened_prompts = flatten_prompts(prompts)
         _, flattened_system_prompts = flatten_prompts(prompts)
 
-        flattened_answers = self.llm_function(
+        flattened_results = self.llm_function(
             flattened_prompts, flattened_system_prompts
         )
 
-        answers = unflatten_answers(flatten_idx, flattened_answers)
+        answers = unflatten_answers(flatten_idx, flattened_results)
         for i, p in enumerate(prompts):
             state_idx = prompts_idx[i]
             s = states[state_idx]
