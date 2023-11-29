@@ -112,7 +112,7 @@ def run_prompts(
         init_openai()
         random_wait = np.random.randint(low=0, high=max_pause + 1)
         time.sleep(random_wait)
-        output = openai.Completion.create(model=model, prompt=prompts, **gpt_kwargs)
+        output = openai.Completion.create(model=model, prompt=prompts, **kwargs)
         answer = output["choices"][0]["text"]
     elif "gpt-3.5" in model or "gpt-4" in model:
         init_openai()

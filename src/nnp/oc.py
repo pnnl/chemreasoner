@@ -57,7 +57,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         device="cuda:0",
         adsorbed_structure_checker=None,
     ):
-        """Createobject from model class (gemnet or equiformer).
+        """Create object from model class (gemnet or equiformer).
 
         Downloads weights if they are not available.
         """
