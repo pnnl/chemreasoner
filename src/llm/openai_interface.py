@@ -27,7 +27,7 @@ async def parallel_openai_text_completion(
 
     if system_prompt is not None:
         messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": "Say this is a test"})
+    messages.append({"role": "user", "content": prompt})
     return await openai_client.chat.completions.create(
         messages=messages, model=model, **kwargs
     )
@@ -53,7 +53,7 @@ async def parallel_openai_chat_completion(
     messages = []
     if system_prompt is not None:
         messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": "Say this is a test"})
+    messages.append({"role": "user", "content": prompt})
     return await openai_client.chat.completions.create(
         messages=messages, model=model, **kwargs
     )
@@ -110,5 +110,18 @@ def run_openai_prompts(
         return [{"answers": a, "usages": u} for a, u in zip(answer_strings, usages)]
 
 
+_test_prompt = (
+    "What are the top-3 catalysts that perform the hydrodeoxygenation reaction and demonstrate higher adsorption energy for acetate?. You should include candidate catalysts with the following properties: high conversion. Provide scientific explanations for each of the catalysts. Finally, return a python list named final_answer which contains the top-5 catalysts."
+    "Take a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
+)
+_test_system_prompt = (
+    "You are a helpful chemistry expert with extensive knowledge of "
+    "catalysis. You will give recommendations for catalysts, including "
+    "chemically accurate descriptions of the interaction between the catalysts "
+    "and adsorbate(s). Make specific recommendations for catalysts, including "
+    "their chemical composition. Make sure to follow the formatting "
+    "instructions. Do not provide disclaimers or notes about your knowledge of "
+    "catalysis."
+)
 if __name__ == "__main__":
-    print(run_openai_prompts(["test1", "test2"]))
+    print(run_openai_prompts([_test_prompt] * 20, [_test_system_prompt] * 20))

@@ -146,7 +146,15 @@ class ReasonerState:
     @property
     def generation_system_prompt(self):
         """Return the system prompt for the generation prompt."""
-        return "You are a helpful chemistry expert with extensive knowledge of catalysis. You will give recommendations for catalysts, including chemically accurate descriptions of the interaction between the catalysts and adsorbate(s). Make specific recommendations for catalysts, including their chemical composition. Make sure to follow the formatting instructions. Do not provide disclaimers or notes about your knowledge of catalysis."
+        return (
+            "You are a helpful chemistry expert with extensive knowledge of "
+            "catalysis. You will give recommendations for catalysts, including "
+            "chemically accurate descriptions of the interaction between the catalysts "
+            "and adsorbate(s). Make specific recommendations for catalysts, including "
+            "their chemical composition. Make sure to follow the formatting "
+            "instructions. Do not provide disclaimers or notes about your knowledge of "
+            "catalysis."
+        )
 
     @property
     def reward_system_prompt(self):

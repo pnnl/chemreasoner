@@ -70,7 +70,7 @@ async def parallel_openai_chat_completion(
     messages = []
     if system_prompt is not None:
         messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": "Say this is a test"})
+    messages.append({"role": "user", "content": prompt})
     return await openai_client.chat.completions.create(
         messages=messages, model=model, **kwargs
     )
