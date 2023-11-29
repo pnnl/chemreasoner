@@ -28,7 +28,6 @@ async def parallel_openai_text_completion(
     if system_prompt is not None:
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": "Say this is a test"})
-    print(kwargs["max_tokens"])
     return await openai_client.chat.completions.create(
         messages=messages, model=model, **kwargs
     )
@@ -101,8 +100,14 @@ def run_openai_prompts(
             )
         )
         answer_strings = [a.choices[0].message.content for a in answer_objects]
-        # usages = [[a.choices[0].message.content for a in answer_objects]]
-        return answer_strings  # [{"answer": a, "usage": u} for a, u in zip(answer_strings, usages)]
+        usages = [
+            {
+                "completion_tokens": a.usage.completion_tokens,
+                "prompt_tokens": a.usage.prompt_tokens,
+            }
+            for a in answer_objects
+        ]
+        return [{"answers": a, "usages": u} for a, u in zip(answer_strings, usages)]
 
 
 if __name__ == "__main__":
