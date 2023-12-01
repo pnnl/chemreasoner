@@ -90,7 +90,7 @@ class LlamaLLM:
         for i in range(0, len(processed_prompts), batch_size):
             print("running prompts ", i, i + batch_size)
             batch_prompts = [
-                generate_prompt(x)
+                self.generate_prompt(x)
                 for x in processed_prompts[i : i + batch_size]  # noqa
             ]
             answers = self.llm.generate(batch_prompts, sampling_params)
