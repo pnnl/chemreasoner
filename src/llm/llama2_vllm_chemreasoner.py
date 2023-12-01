@@ -113,39 +113,11 @@ class LlamaLLM:
         )
 
 
-def generate_prompt(prompt):
-    sys_prompt = prompt["generation_prompt"]["system"]
-    user_prompt = prompt["generation_prompt"]["user"]
-    gen_prompt = (
-        "<s>[INST] <<SYS>>\n"
-        + sys_prompt
-        + "\n<</SYS>>"
-        + "\n\n"
-        + user_prompt
-        + " [/INST]"
-    )
-    return gen_prompt
-
-
-def run_llama(model_dir, outpath, num_gpus, batch_size):
-    llm, sampling_params = init_llama(num_gpus, model_dir)
-    prompts = json.load(open("/people/spru445/json_database.json", "r"))
-
-    for i in range(0, len(prompts), batch_size):
-        print("running prompts ", i, i + batch_size)
-        batch_prompts = [generate_prompt(x) for x in prompts[i : i + batch_size]]
-        # print(batch_prompts)
-        answers = llm.generate(batch_prompts, sampling_params)
-        for output in answers:
-            generated_text = output.outputs[0].text
-            prompts[i]["generation_prompt"]["llama_answer"] = generated_text
-
-
 if __name__ == "__main__":
-    # test_llama(num_gpus=8, model_dir='/qfs/projects/va_aprx/')
-    run_llama(
-        outpath="llama_output.json",
-        num_gpus=2,
-        model_dir="/qfs/projects/va_aprx/",
-        batch_size=4,
-    )
+    pass
+    # run_llama(
+    #     outpath="llama_output.json",
+    #     num_gpus=2,
+    #     model_dir="/qfs/projects/va_aprx/",
+    #     batch_size=4,
+    # )
