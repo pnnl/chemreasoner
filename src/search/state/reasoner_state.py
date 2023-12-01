@@ -172,14 +172,17 @@ class ReasonerState:
             [] if self.answer is None else parse_answer(self.answer, self.num_answers)
         )
 
-    def process_generation(self, answer=_example_generation_answer):
+    def process_generation(
+        self, results  # ={"answer": _example_generation_answer, "usage": 0}
+    ):
         """process generation answer and store."""
-        self.answer = answer
+        self.answer = results["answer"]
         self.info["generation"] = {
             "prompt": self.generation_prompt,
             "system_prompt": self.generation_system_prompt,
             "answer": self.answer,
             "candidates_list": self.candidates,
+            "usage": results["usage"],
         }
         print(self.candidates)
         return True
@@ -195,7 +198,9 @@ class ReasonerState:
             for ads in self.ads_symbols
         ]
 
-    def process_adsorption_energy(self, answer):
+    def process_adsorption_energy(
+        self, results  # =None[{"answer": _example_generation_answer, "usage": 0}]*len()
+    ):
         """Process the return adsorption energy answers into values and store."""
         if "llm_reward" not in self.info:
             self.info["llm-reward"] = {"attempted_prompts": []}
@@ -208,13 +213,17 @@ class ReasonerState:
                 "key_answers": [],
                 "number_answers": [],
                 "successful": [],
+                "usage": [],
             }
         )
         return_values = []
         for i, adsorption_energy_prompt in enumerate(self.adsorption_energy_prompts):
-            ans = answer[i]
+            ans = results[i]["answer"]
             # store the answer
-            self.info["llm-reward"]["attempted_prompts"][-1]["answer"].append(answer)
+            self.info["llm-reward"]["attempted_prompts"][-1]["answer"].append(ans)
+            self.info["llm-reward"]["attempted_prompts"][-1]["usage"].append(
+                results[i]["usage"]
+            )
 
             key_answers = []
             number_answers = []
