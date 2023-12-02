@@ -82,7 +82,7 @@ class LlamaLLM:
 
         answers = []
         for i in range(0, len(processed_prompts), batch_size):
-            print("running prompts ", i, i + batch_size)
+            print(f"Running prompts {i}, to {i+1}")
             batch_prompts = [
                 self.generate_prompt(x)
                 for x in processed_prompts[i : i + batch_size]  # noqa
