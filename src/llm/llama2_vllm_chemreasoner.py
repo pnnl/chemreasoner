@@ -1,6 +1,11 @@
 """Functions to run llama inferences."""
+import logging
+
 from pathlib import Path
 from vllm import LLM, SamplingParams
+
+
+logging.getLogger().setLevel(logging.INFO)
 
 # os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 # os.environ["CUDA_VISIBLE_DEVICES"] = "3,4"
@@ -82,7 +87,7 @@ class LlamaLLM:
 
         answers = []
         for i in range(0, len(processed_prompts), batch_size):
-            print(f"Running prompts {i}, to {i+1}")
+            logging.info(f"Running prompts {i}, to {i+1}")
             batch_prompts = [
                 self.generate_prompt(x)
                 for x in processed_prompts[i : i + batch_size]  # noqa

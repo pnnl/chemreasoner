@@ -19,9 +19,6 @@ from transformers import pipeline
 
 import openai
 
-# from openai.embeddings_utils import get_embeddings, cosine_similarity
-
-
 logging.getLogger().setLevel(logging.INFO)
 
 
