@@ -1,6 +1,4 @@
 """Functions to run llama inferences."""
-import os
-
 from pathlib import Path
 from vllm import LLM, SamplingParams
 
