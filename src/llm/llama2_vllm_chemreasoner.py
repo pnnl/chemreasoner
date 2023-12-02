@@ -1,11 +1,7 @@
+"""Functions to run llama inferences."""
 import os
 
 from pathlib import Path
-import torch
-import json
-from huggingface_hub import login
-from transformers import AutoTokenizer, LlamaForCausalLM
-from transformers import pipeline
 from vllm import LLM, SamplingParams
 
 # os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
