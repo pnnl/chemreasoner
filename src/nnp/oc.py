@@ -17,7 +17,7 @@ import numpy as np
 from ase import Atoms
 from ase.constraints import FixAtoms
 from ase.io import Trajectory, write
-from ase.neighbor_list import build_neighbor_list
+from ase.neighborlist import build_neighbor_list
 from ase.optimize import BFGS
 
 from ocpmodels.common.relaxation.ase_utils import OCPCalculator, batch_to_atoms
