@@ -130,12 +130,13 @@ class MonteCarloTree:
                 _, priors = self.policy.get_actions(
                     current_node
                 )  # calculate new priors
+                priors = priors[0]
                 if sum(priors.flatten()) != 0:
                     self.add_node(current_node, priors)
                     self.children_idx[current_idx, action_idx] = len(self.nodes) - 1
                     current_idx = len(self.nodes) - 1
 
-                    reward = self.reward_fn(current_node)
+                    reward = self.reward_fn([current_node])[0]
                     self.node_rewards = np.append(self.node_rewards, reward)
                 else:  # Further progressing this state is not possible.
                     history_stack.pop()
