@@ -80,6 +80,8 @@ def create_bulk(name):
     # return ats
 
 
+
+
 def generate_bulk_ads_pairs(
     bulk: Atoms,
     ads: str,
@@ -138,6 +140,46 @@ def generate_bulk_ads_pairs(
         else:
             num_tries += 1
     return new_bulk
+
+
+
+from ocdata.core import Adsorbate, AdsorbateSlabConfig, Bulk, Slab
+def generate_bulk_ads_pairs_adsml(
+    bulk: Atoms,
+    ads_smiles: str,
+    adsorbate_db_path: str,
+    # site: Union[str, list[str]] = None,
+    # height=3.0,
+) -> Union[Atoms, list[Atoms]]:
+    """Add adsorbate to a bulk in the given locations using AdsorbML.
+
+    usage example:
+    new_bulk = generate_bulk_ads_pairs(bulk=cu, ads_smiles='*CO', adsorbate_db_path="../chemreasoner/data/input_data/oc/oc_20_adsorbates.pkl")
+    """
+
+    
+    # num_tries = 0
+    # adsorbate_db_path  = "../chemreasoner/data/input_data/oc/oc_20_adsorbates.pkl"
+    adsorbate = Adsorbate(adsorbate_smiles_from_db=ads_smiles, adsorbate_db_path = adsorbate_db_path)
+    bulk = Bulk(bulk_atoms=bulk)
+
+    specific_millers = (1,1,1)
+    slabs = Slab.from_bulk_get_specific_millers(bulk = bulk, specific_millers=specific_millers)
+    # TODO: which miller indices to use?
+    # other options from ocdata:  from_bulk_get_random_slab,from_bulk_get_all_slabs, from_precomputed_slabs_pkl
+
+
+    slab = slabs[0] # TODO: there could be multiple slabs for a given set of miller indices
+                    # have to decide whether we consider random ones or all of them
+    
+    heuristic_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode="heuristic")
+    random_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode="random_site_heuristic_placement", num_sites = 4)
+    # TODO: what's the value to use for num_sites
+    # TODO: do we consider just mode="heuristic"?
+
+    adslabs = [*heuristic_adslabs.atoms_list, *random_adslabs.atoms_list]
+    
+    return adslabs
 
 
 def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, position=None) -> Atoms:
