@@ -147,7 +147,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         device=None,
         fname=None,
         fmax=0.005,
-        steps=100,
+        steps=150,
         **bfgs_kwargs,
     ):
         """Relax the postitions of the given atoms.
@@ -171,7 +171,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         atoms_names,
         device=None,
         fmax=0.005,
-        steps=2,
+        steps=150,
         **bfgs_kwargs,
     ):
         """Relax the postitions of the given atoms. Setting device overrides self."""
