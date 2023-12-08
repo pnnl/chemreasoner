@@ -394,11 +394,12 @@ if __name__ == "__main__":
     heights = np.arange(0.1, 3.0, 0.25)
     for height in heights:
         sr = StructureReward(
+            llm_function=None,
             **{
                 "model": "gemnet",
-                "traj_dir": Path("data", "output", f"adsorption_testing_{height}"),
-                "device": "cuda:0",
-            }
+                "traj_dir": Path("data", "output", "adsorption_testing_debug"),
+                "device": "cpu",
+            },
         )
         print(
             sr.create_structures_and_calculate(
