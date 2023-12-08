@@ -30,8 +30,8 @@ class StructureReward(BaseReward):
         llm_function: callable,
         penalty_value: float = -10,
         nnp_class="oc",
-        num_slab_samples=16,
-        num_adslab_samples=16,
+        num_slab_samples=2,
+        num_adslab_samples=2,
         **nnp_kwargs,
     ):
         """Select the class of nnp for the reward function."""
