@@ -173,7 +173,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         atoms_names,
         device=None,
         fmax=0.005,
-        steps=100,
+        steps=2,
         **bfgs_kwargs,
     ):
         """Relax the postitions of the given atoms. Setting device overrides self."""
@@ -562,8 +562,8 @@ class AdsorbedStructureChecker:
     @staticmethod
     def check_connectivity(ats: Atoms):
         """Check the connectivity matrix of the given atoms."""
-        conn_matrix = build_neighbor_list(ats).get_connectivity_matrix()
-        return all(conn_matrix, all)
+        conn_matrix = build_neighbor_list(ats).get_connectivity_matrix(sparse=False)
+        return np.all(conn_matrix)
 
 
 def order_of_magnitude(number):
