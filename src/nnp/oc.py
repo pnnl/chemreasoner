@@ -525,7 +525,7 @@ class AdsorbedStructureChecker:
 
     def __call__(self, ats: Atoms):
         """Check the given structure for errors."""
-        if not self.check_dissociation(ats):
+        if not self.check_adsorption(ats):
             return self.adsorbate_dissociation_code
         elif not self.check_adsorption(ats):
             return self.desorption_code
@@ -533,7 +533,7 @@ class AdsorbedStructureChecker:
             return self.all_clear_code
 
     def check_adsorption(self, ats: Atoms):
-        """Mesure whether or not the atoms adsorbed"""
+        """Mesure whether or not the atoms adsorbed."""
         return self.check_connectivity(ats)
 
     @staticmethod
