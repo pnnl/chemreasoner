@@ -63,9 +63,11 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """
         self.gnn_calls = 0
         self.gnn_time = 0
-        self.device = device
+        # self.device = device
+        self.device = "cpu"
         self.batch_size = batch_size
         self.model = model
+        self.model_weights_paths  = Path("/Users/pana982/models/chemreasoner")
         if self.model == "gemnet":
             self.model_path = self.model_weights_paths / "gemnet_t_direct_h512_all.pt"
             if not self.model_path.exists():

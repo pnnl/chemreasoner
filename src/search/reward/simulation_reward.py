@@ -27,7 +27,7 @@ class StructureReward(BaseReward):
 
     def __init__(
         self,
-        llm_function: callable,
+        llm_function: callable ,
         penalty_value: float = -10,
         nnp_class="oc",
         num_slab_samples=16,
@@ -394,7 +394,7 @@ if __name__ == "__main__":
     heights = np.arange(0.1, 3.0, 0.25)
     for height in heights:
         sr = StructureReward(
-            **{
+            **{"llm_function": None,
                 "model": "gemnet",
                 "traj_dir": Path("data", "output", f"adsorption_testing_{height}"),
                 "device": "cuda:0",
