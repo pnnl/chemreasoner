@@ -45,7 +45,6 @@ def init_openai():
         openai.api_key = os.getenv("OPENAI_API_KEY_DEV")
 
 
-global llama_model
 llama_model = None
 
 
@@ -53,10 +52,10 @@ def init_llama(
     model_dir="meta-llama/Llama-2-13b-chat-hf", num_gpus=1, **kwargs_sampling_params
 ):
     """Initialize the llama model and load in on the gpu."""
+    global llama_model
     if llama_model is None:
         from src.llm.llama2_vllm_chemreasoner import LlamaLLM
 
-        global llama_model
         llama_model = LlamaLLM(model_dir=model_dir, num_gpus=num_gpus)
 
 
