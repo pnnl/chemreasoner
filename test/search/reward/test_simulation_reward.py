@@ -22,6 +22,16 @@ from nnp import oc  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
 from search.reward.simulation_reward import StructureReward  # noqa: E402
 
+traj_dir = Path("data", "output", "adsorption_unittest")
+sr = StructureReward(
+    llm_function=None,
+    **{
+        "model": "gemnet",
+        "traj_dir": traj_dir,
+        "device": "cpu",
+    },
+)
+
 
 class TestBeamSearch(unittest.TestCase):
     """Calculate the reward for answers based on adsorption simulations."""
@@ -97,20 +107,6 @@ class TestBeamSearch(unittest.TestCase):
 logging.getLogger().setLevel(logging.INFO)
 
 if __name__ == "__main__":
-    traj_dir = Path("data", "output", "adsorption_unittest")
-
-    sr = StructureReward(
-        llm_function=None,
-        **{
-            "model": "gemnet",
-            "traj_dir": traj_dir,
-            "device": "cpu",
-        },
-    )
-
-    for p in traj_dir.rglob("*.traj"):
-        break_trajectory(p)
-
     unittest.main()
 
     shutil.rmtree(traj_dir)
