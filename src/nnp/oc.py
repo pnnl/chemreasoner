@@ -163,7 +163,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         atoms = atoms.copy()
         self.prepare_atoms(atoms)
 
-        atoms.set_calculator(self.get_ase_calculator)
+        atoms.calc = self.get_ase_calculator
         opt = BFGS(
             atoms, trajectory=self.traj_dir / fname if fname is not None else None
         )
