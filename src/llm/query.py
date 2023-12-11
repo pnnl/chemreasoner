@@ -4,20 +4,20 @@ import datetime
 import logging
 import os
 import re
+import sys
 import time
 
 from ast import literal_eval
 from copy import deepcopy
 
 import backoff
-import torch
 
-from huggingface_hub import login
 import numpy as np
-from transformers import AutoTokenizer, LlamaForCausalLM, LlamaTokenizer
-from transformers import pipeline
 
 import openai
+
+sys.path.append("src")
+
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -45,18 +45,24 @@ def init_openai():
         openai.api_key = os.getenv("OPENAI_API_KEY_DEV")
 
 
+global llama_model
+llama_model = None
+
+
+def init_llama(
+    model_dir="meta-llama/Llama-2-13b-chat-hf", num_gpus=1, **kwargs_sampling_params
+):
+    """Initialize the llama model and load in on the gpu."""
+    if llama_model is None:
+        from src.llm.llama2_vllm_chemreasoner import LlamaLLM
+
+        global llama_model
+        llama_model = LlamaLLM(model_dir=model_dir, num_gpus=num_gpus)
+
+
 query_counter = 0
 tok_sent = 0
 tok_recieved = 0
-
-
-@backoff.on_exception(backoff.expo, Exception, max_time=120)
-def run_get_embeddings(strings, model="text-embedding-ada-002"):
-    """Query language model for a list of k candidates."""
-    if model == "text-embedding-ada-002":
-        return get_embeddings(strings, engine=model)
-    elif "llama" in model:
-        return llama_get_embeddings(strings)
 
 
 async def parallel_openai_chat_completion(
@@ -105,13 +111,7 @@ def run_prompts(
     #     model="text-davinci-003", max_tokens=1300, temperature=1, prompt=query
     # )
 
-    if model == "text-davinci-003":
-        init_openai()
-        random_wait = np.random.randint(low=0, high=max_pause + 1)
-        time.sleep(random_wait)
-        output = openai.Completion.create(model=model, prompt=prompts, **kwargs)
-        answer = output["choices"][0]["text"]
-    elif "gpt-3.5" in model or "gpt-4" in model:
+    if "gpt-3.5" in model or "gpt-4" in model:
         init_openai()
         answer_objects = asyncio.run(
             openai_chat_async_evaluation(
@@ -125,88 +125,17 @@ def run_prompts(
         return answer_strings
 
     elif "llama" in model:
-        global llama_generator
-        sys_prompt = "" if system_prompt is None else system_prompt
-        answer = generate_cand(llama_generator, sys_prompt, query)
-    logging.info(f"--------------------\nQ: {query}\n--------------------")
+        init_llama()
+        global llama_model
 
-    global query_counter
-    query_counter += 1
-    logging.info(f"Num queries run: {query_counter}")
+        answer_strings = llama_model(prompts, system_prompts, **kwargs)
+        return answer_strings
 
-    if "llama" not in model:
-        global tok_sent
-        tok_sent += output["usage"]["prompt_tokens"]
-        logging.info(f"Total num tok sent: {tok_sent}")
-
-    now = datetime.datetime.now()
-    logging.info(f"Answer recieved at time: {now}")
-
-    logging.info(f"--------------------\nA: {answer}\n--------------------")
-
-    if "llama" not in model:
-        global tok_recieved
-        tok_recieved += output["usage"]["completion_tokens"]
-        logging.info(f"Total num tok recieved: {tok_recieved}\n\n")
-
-    return answer
+    else:
+        raise ValueError(f"Unkown model: {model}")
 
 
 llama_generator = None
-
-
-def get_device():
-    """Get proper device for llama."""
-    if torch.cuda.is_available():
-        return f"cuda:{torch.cuda.device_count() - 1}"
-    else:
-        return "cpu"
-
-
-def init_llama(llama_weights="meta-llama/Llama-2-13b-chat-hf"):
-    """Initialize the llama model and load in on the gpu."""
-    device = get_device()
-    global llama_generator  # , llama_model, llama_tokenizer
-    # if llama_model is None:
-
-    #     llama_model = LlamaForCausalLM.from_pretrained(llama_weights)
-    #     llama_model.to(device)
-    if llama_generator is None:
-        llama_key = os.getenv("LLAMA_KEY")
-        login(llama_key)
-        llama_generator = pipeline(model=llama_weights, device=device)
-
-    # if llama_tokenizer is None:
-    #     llama_tokenizer = LlamaTokenizer(model=llama_weights)
-
-
-def generate_cand(generator, sys_prompt, user_prompt):
-    # sys_prompt =  prompt['generation_prompt']['system']
-    # user_prompt = prompt['generation_prompt']['user']
-    gen_prompt = (
-        "<s>[INST] <<SYS>>\n"
-        + sys_prompt
-        + "\n<</SYS>>"
-        + "\n\n"
-        + user_prompt
-        + " [/INST]"
-    )
-    # print(gen_prompt)
-    answer = generator(gen_prompt)
-    return answer[0]["generated_text"].split("[/INST]")[-1]
-
-
-def llama_get_embeddings(strings):
-    """Get the embeddings with the given llama model."""
-
-    global llama_model, llama_tokenizer
-    input_ids = torch.tensor(llama_tokenizer.encode(strings)).unsqueeze(0)
-    logging.info(f"Input_ids:\n{input_ids}")
-    outputs = llama_model(input_ids)
-    logging.info(f"model_outputs:\n{outputs}")
-    last_hidden_states = outputs[0]
-    logging.info(f"last_hidden_states:\n{last_hidden_states}")
-    return last_hidden_states
 
 
 if __name__ == "__main__":

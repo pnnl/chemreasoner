@@ -176,6 +176,7 @@ class ReasonerState:
         self, results  # ={"answer": _example_generation_answer, "usage": 0}
     ):
         """process generation answer and store."""
+        print(results)
         self.answer = results["answer"]
         self.info["generation"] = {
             "prompt": self.generation_prompt,
