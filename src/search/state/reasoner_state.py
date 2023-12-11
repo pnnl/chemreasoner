@@ -176,14 +176,19 @@ class ReasonerState:
         self, results  # ={"answer": _example_generation_answer, "usage": 0}
     ):
         """process generation answer and store."""
-        print(results)
+        if isinstance(results, str):
+            self.answer = results
+            usage = None
+        else:
+            self.answer = results["answer"]
+            usage = results["usage"]
         self.answer = results["answer"]
         self.info["generation"] = {
             "prompt": self.generation_prompt,
             "system_prompt": self.generation_system_prompt,
             "answer": self.answer,
             "candidates_list": self.candidates,
-            "usage": results["usage"],
+            "usage": usage,
         }
         print(self.candidates)
         return True
@@ -219,12 +224,16 @@ class ReasonerState:
         )
         return_values = []
         for i, adsorption_energy_prompt in enumerate(self.adsorption_energy_prompts):
+            if isinstance(results[i], str):
+                ans = results[i]
+                usage = None
+            else:
+                ans = results[i]["answer"]
+                usage = results[i]["usage"]
             ans = results[i]["answer"]
             # store the answer
             self.info["llm-reward"]["attempted_prompts"][-1]["answer"].append(ans)
-            self.info["llm-reward"]["attempted_prompts"][-1]["usage"].append(
-                results[i]["usage"]
-            )
+            self.info["llm-reward"]["attempted_prompts"][-1]["usage"].append(usage)
 
             key_answers = []
             number_answers = []
@@ -291,8 +300,15 @@ class ReasonerState:
         )
         return prompt
 
-    def process_catalyst_symbols(self, answer):
+    def process_catalyst_symbols(self, result):
         """Turn parse out the symbols from the llm answer."""
+        if isinstance(result, str):
+            answer = result
+            usage = None
+        else:
+            answer = result["answer"]
+            usage = result["usage"]
+        self.info["symbols"] = {"answer": answer, "usage": usage}
         answer_list_parsed = [None] * len(answer)
         for line in answer.split("\n"):
             if ":" in line:
@@ -305,6 +321,7 @@ class ReasonerState:
                     syms_list = None
                 answer_list_parsed[idx] = syms_list
 
+        self.info["symbols"]["symbols"] = answer_list_parsed
         return answer_list_parsed
 
     def query_adsorption_energy_list(

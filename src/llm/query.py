@@ -33,7 +33,6 @@ def fstr(fstring_text, vals):
     return ret_val
 
 
-global openai_client
 openai_client = None
 
 
