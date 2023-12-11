@@ -25,11 +25,9 @@ from search.reward.simulation_reward import StructureReward  # noqa: E402
 traj_dir = Path("data", "output", "adsorption_unittest")
 sr = StructureReward(
     llm_function=None,
-    **{
-        "model": "gemnet",
-        "traj_dir": traj_dir,
-        "device": "cpu",
-    },
+    num_slab_samples=3,
+    num_adslab_samples=3,
+    **{"model": "gemnet", "traj_dir": traj_dir, "device": "cpu", "steps": 3},
 )
 
 
@@ -108,5 +106,4 @@ logging.getLogger().setLevel(logging.INFO)
 
 if __name__ == "__main__":
     unittest.main()
-
     shutil.rmtree(traj_dir)
