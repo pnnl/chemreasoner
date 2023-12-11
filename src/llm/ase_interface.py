@@ -144,6 +144,28 @@ def generate_bulk_ads_pairs(
 
 
 from ocdata.core import Adsorbate, AdsorbateSlabConfig, Bulk, Slab
+
+def generate_bulk_ads_pairs2(
+    bulk: Atoms,
+    ads: str,
+    mode: str = "heuristic",
+    num_sites: int = 100
+) -> Union[Atoms, list[Atoms]]:
+    
+    bulk = Bulk(bulk_atoms=bulk)
+    # specific_millers might have to be changed based on the type of the crystal (cubic, etc)
+    slabs = Slab.from_bulk_get_specific_millers(bulk = bulk, specific_millers=(0,0,1))
+    slab = slabs[0]
+    binding_molecules = ads.info.get("binding_sites", np.array([0]))
+    adsorbate = Adsorbate(ads, adsorbate_binding_indices=binding_molecules)
+    heuristic_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode=mode, num_sites=num_sites)
+    # random_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode="random_site_heuristic_placement", num_sites = 12)
+    # adslabs = [*heuristic_adslabs.atoms_list, *random_adslabs.atoms_list]
+    adslabs = heuristic_adslabs.atoms_list
+
+    return adslabs
+
+
 class BulkAds:
     def __init__(self, 
                 bulk: Atoms,
@@ -162,7 +184,7 @@ class BulkAds:
         adsorbate = Adsorbate(adsorbate_smiles_from_db=ads_smiles, adsorbate_db_path = adsorbate_db_path)
         bulk = Bulk(bulk_atoms=bulk)
     
-        specific_millers = (1,1,1)
+        specific_millers = (0,0,1)
         slabs = Slab.from_bulk_get_specific_millers(bulk = bulk, specific_millers=specific_millers)
         # TODO: which miller indices to use?
         # other options from ocdata:  from_bulk_get_random_slab,from_bulk_get_all_slabs, from_precomputed_slabs_pkl
