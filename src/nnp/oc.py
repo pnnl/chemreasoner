@@ -55,6 +55,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         traj_dir: Path,
         batch_size=40,
         device="cuda:0",
+        ads_tag=0,
         adsorbed_structure_checker=None,
     ):
         """Create object from model class (gemnet or equiformer).
@@ -68,6 +69,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.batch_size = batch_size
         self.model = model
         self.model_weights_paths  = Path("/Users/pana982/models/chemreasoner")
+        self.ads_tag = ads_tag # gihan
         if self.model == "gemnet":
             self.model_path = self.model_weights_paths / "gemnet_t_direct_h512_all.pt"
             if not self.model_path.exists():
@@ -228,7 +230,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             bulk_ats = Atoms()
             e_ref = 0
             for i, t in enumerate(ats.get_tags()):
-                if t == 0:  # part of the adsorbate
+                if t == self.ads_tag:  # part of the adsorbate
                     e_ref += self.ads_references[ats.get_atomic_numbers()[i]]
                 else:  # part of the bulk
                     bulk_ats.append(ats[i])

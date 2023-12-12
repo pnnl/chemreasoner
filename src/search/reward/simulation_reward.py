@@ -44,6 +44,8 @@ class StructureReward(BaseReward):
         self.num_slab_samples = num_slab_samples
         self.num_adslab_samples = num_adslab_samples
 
+
+
     def run_generation_prompts(
         self, slab_syms: list[list[str]], states: list[ReasonerState]
     ):
@@ -333,7 +335,7 @@ class StructureReward(BaseReward):
         )
         batch_adsorption_energies = (
             self.adsorption_calculator.batched_adsorption_calculation(
-                batch_relaxed, fname_batch
+                batch_relaxed, fname_batch, self.adsorption_calculator.ads_tag
             )
         )
         return batch_adsorption_energies
@@ -414,30 +416,51 @@ class _TestState:
 
 
 if __name__ == "__main__":
-    heights = np.arange(0.1, 3.0, 0.25)
+    # heights = np.arange(0.1, 3.0, 0.25)
+    heights = np.arange(0.1)
     for height in heights:
         sr = StructureReward(
             **{"llm_function": None,
                 "model": "gemnet",
-                "traj_dir": Path("data", "output", f"adsorption_testing_{height}"),
+                "traj_dir": Path("data", "output", f"random"),
                 "device": "cuda:0",
+                "num_adslab_samples":1,
             }
         )
-        print(
-            sr.create_structures_and_calculate(
-                [["Cu"], ["Pt"], ["Zr"]],
-                ["CO", "phenol", "anisole"],
-                ["Cu", "Pt", "Zr"],
-                adsorbate_height=height
-            )
+
+        sr2 = StructureReward(
+            **{"llm_function": None,
+                "model": "gemnet",
+                "traj_dir": Path("data", "output", f"adsml"),
+                "device": "cuda:0",
+                "ads_tag": 2
+            }
+
         )
+        # print(
+        #     sr.create_structures_and_calculate(
+        #         [["Cu"], ["Pt"], ["Zr"]],
+        #         ["CO", "phenol", "anisole"],
+        #         ["Cu", "Pt", "Zr"],
+        #         adsorbate_height=height
+        #     )
+        # )
+
+        # print(
+        #     sr.create_structures_and_calculate(
+        #         [["Cu"]],
+        #         ["CO"],
+        #         ["Cu"],
+        #         adsorbate_height=height
+        #     )
+        # )
+        
         print(
-            sr.create_structures_and_calculate(
-                [["Cu"], ["Pt"], ["Zr"]],
-                ["CO", "phenol", "anisole"],
-                ["Cu", "Pt", "Zr"],
-                adsorbate_height=height,
-                placement_type='adsml' # or 'random'
+            sr2.create_structures_and_calculate(
+                [["Cu"]],
+                ["CO"],
+                ["Cu"],
+                placement_type='adsml' # or None for random placement
             )
         )
 

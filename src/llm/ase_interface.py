@@ -157,7 +157,7 @@ def generate_bulk_ads_pairs2(
     slabs = Slab.from_bulk_get_specific_millers(bulk = bulk, specific_millers=(0,0,1))
     slab = slabs[0]
     binding_molecules = ads.info.get("binding_sites", np.array([0]))
-    adsorbate = Adsorbate(ads, adsorbate_binding_indices=binding_molecules)
+    adsorbate = Adsorbate(ads, adsorbate_binding_indices = list(binding_molecules) )
     heuristic_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode=mode, num_sites=num_sites)
     # random_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode="random_site_heuristic_placement", num_sites = 12)
     # adslabs = [*heuristic_adslabs.atoms_list, *random_adslabs.atoms_list]
