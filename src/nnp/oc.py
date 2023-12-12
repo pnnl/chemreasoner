@@ -54,6 +54,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         model: str,
         traj_dir: Path,
         batch_size=40,
+        fmax=0.005,
+        steps=150,
         device="cuda:0",
         adsorbed_structure_checker=None,
     ):
@@ -65,6 +67,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.gnn_time = 0
         self.device = device
         self.batch_size = batch_size
+        self.fmax = fmax
+        self.steps = steps
         self.model = model
         if self.model == "gemnet":
             self.model_path = self.model_weights_paths / "gemnet_t_direct_h512_all.pt"
@@ -146,18 +150,20 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         atoms: Atoms,
         device=None,
         fname=None,
-        fmax=0.005,
-        steps=150,
+        fmax=None,
+        steps=None,
         **bfgs_kwargs,
     ):
         """Relax the postitions of the given atoms.
 
         Setting device overrides self.device
         """
+        fmax = fmax if fmax is not None else self.fmax
+        steps = steps if steps is not None else self.steps
         atoms = atoms.copy()
         self.prepare_atoms(atoms)
 
-        atoms.set_calculator(self.get_ase_calculator)
+        atoms.calc = self.get_ase_calculator
         opt = BFGS(
             atoms, trajectory=self.traj_dir / fname if fname is not None else None
         )
@@ -170,12 +176,15 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         atoms: list[Atoms],
         atoms_names,
         device=None,
-        fmax=0.005,
-        steps=150,
+        batch_size=None,
+        fmax=None,
+        steps=None,
         **bfgs_kwargs,
     ):
         """Relax the postitions of the given atoms. Setting device overrides self."""
         atoms = self.copy_atoms_list(atoms)
+        fmax = fmax if fmax is not None else self.fmax
+        steps = steps if steps is not None else self.steps
         # Set up calculation for oc
         self.prepare_atoms_list(atoms)
         # convert to torch geometric batch
@@ -188,7 +197,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         try:
             relax_opt = self.config["task"]["relax_opt"]
         except KeyError:
-            relax_opt = {"memory": 100}  # only need to set memory and traj_dir
+            relax_opt = {"memory": steps}  # only need to set memory and traj_dir
 
         relax_opt["traj_dir"] = self.traj_dir
         # assume 100 steps every time
