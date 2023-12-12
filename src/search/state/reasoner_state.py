@@ -182,7 +182,7 @@ class ReasonerState:
         else:
             self.answer = results["answer"]
             usage = results["usage"]
-        self.answer = results["answer"]
+
         self.info["generation"] = {
             "prompt": self.generation_prompt,
             "system_prompt": self.generation_system_prompt,

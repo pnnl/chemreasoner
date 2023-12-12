@@ -64,7 +64,7 @@ class TestBeamSearch(unittest.TestCase):
         for p in traj_dir.rglob("*.traj"):
             break_trajectory(p)
         assert answers is not None
-        shutil.rmtree(traj_dir)
+        # shutil.rmtree(traj_dir)
 
     def test_parse_adsorption_energies(TestCase):
         """Parse adsorption energies to get the reward value."""
