@@ -9,6 +9,7 @@ from search.reward.llm_reward import LLMRewardFunction  # noqa: E402
 from search.state.reasoner_state import ReasonerState  # noqa: E402
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa: E402
 from search.policy.reasoner_policy import ReasonerPolicy  # noqa: E402
+from search.policy.random_policy import RandomUniformPolicy  # noqa: E402
 
 adsorbates = ["CO", "H2O"]
 template = (
@@ -64,6 +65,7 @@ test_reward_function = LLMRewardFunction(
 
 class TestBeamSearch(unittest.TestCase):
     def test_simulation_policy(TestCase):
+        assert False
         search = BeamSearchTree(
             starting_state.copy(), policy, test_reward_function, 4, 2
         )
@@ -97,6 +99,22 @@ class TestBeamSearch(unittest.TestCase):
 
     def test_expand_node(TestCase):
         """Tets to make sure expanding the node has the expected behavior."""
+
+        class TestState:
+            def __init__(self, val):
+                self.val = val
+
+        test_policy = RandomUniformPolicy(
+            [(i, lambda s: TestState(s["val"] + str(i))) for i in range(4)]
+        )
+        test_reward = lambda s: int(s["val"][-1]) // 2  # noqa
+
+        search = BeamSearchTree(starting_state.copy(), test_policy, test_reward, 3, 2)
+
+        for i in range(4):
+            search.simulation_policy()
+
+        print(vars(search))
 
 
 if __name__ == "__main__":
