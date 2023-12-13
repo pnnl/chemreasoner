@@ -80,6 +80,8 @@ def create_bulk(name):
     # return ats
 
 
+
+
 def generate_bulk_ads_pairs(
     bulk: Atoms,
     ads: str,
@@ -139,6 +141,34 @@ def generate_bulk_ads_pairs(
         else:
             num_tries += 1
     return new_bulk
+
+
+
+from ocdata.core import Adsorbate, AdsorbateSlabConfig, Bulk, Slab
+
+def generate_bulk_ads_pairs2(
+    bulk: Atoms,
+    ads: str,
+    mode: str = "heuristic",
+    num_sites: int = 100
+) -> Union[Atoms, list[Atoms]]:
+    
+    bulk = Bulk(bulk_atoms=bulk)
+    # specific_millers might have to be changed based on the type of the crystal (cubic, etc)
+    slabs = Slab.from_bulk_get_specific_millers(bulk = bulk, specific_millers=(0,0,1))
+    slab = slabs[0]
+    binding_molecules = ads.info.get("binding_sites", np.array([0]))
+    adsorbate = Adsorbate(ads, adsorbate_binding_indices = list(binding_molecules) )
+    heuristic_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode=mode, num_sites=num_sites)
+    num_random_slabs = num_sites - len(heuristic_adslabs.atoms_list)
+    print("number of random slabs: ", num_random_slabs)
+    random_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode="random_site_heuristic_placement", num_sites = num_random_slabs)
+    adslabs = [*heuristic_adslabs.atoms_list, *random_adslabs.atoms_list]
+    # adslabs = heuristic_adslabs.atoms_list
+
+    return adslabs
+
+
 
 
 def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, position=None) -> Atoms:

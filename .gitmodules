@@ -7,3 +7,6 @@
 [submodule "ext/MAZE-sim"]
 	path = ext/MAZE-sim
 	url = https://github.com/kul-group/MAZE-sim.git
+[submodule "ext/Open-Catalyst-Dataset"]
+	path = ext/Open-Catalyst-Dataset
+	url = https://github.com/Open-Catalyst-Project/Open-Catalyst-Dataset.git

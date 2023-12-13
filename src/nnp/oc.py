@@ -54,9 +54,10 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         model: str,
         traj_dir: Path,
         batch_size=40,
+        device="cpu",
+        ads_tag=0,
         fmax=0.005,
         steps=150,
-        device="cuda:0",
         adsorbed_structure_checker=None,
     ):
         """Create object from model class (gemnet or equiformer).
@@ -66,12 +67,16 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.gnn_calls = 0
         self.gnn_time = 0
         self.device = device
+        # self.device = "cpu"
         self.batch_size = batch_size
         self.fmax = fmax
         self.steps = steps
         self.model = model
+        # self.model_weights_paths  = Path("/Users/pana982/models/chemreasoner")
+        self.ads_tag = ads_tag  # gihan
         if self.model == "gemnet":
             self.model_path = self.model_weights_paths / "gemnet_t_direct_h512_all.pt"
+            # print('model path', self.model_path)
             if not self.model_path.exists():
                 print("Downloading weights for gemnet...")
                 wget.download(
@@ -176,7 +181,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         atoms: list[Atoms],
         atoms_names,
         device=None,
-        batch_size=None,
         fmax=None,
         steps=None,
         **bfgs_kwargs,
@@ -235,7 +239,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             bulk_ats = Atoms()
             e_ref = 0
             for i, t in enumerate(ats.get_tags()):
-                if t == 0:  # part of the adsorbate
+                if t == self.ads_tag:  # part of the adsorbate
                     e_ref += self.ads_references[ats.get_atomic_numbers()[i]]
                 else:  # part of the bulk
                     bulk_ats.append(ats[i])
@@ -243,6 +247,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             bulk_atoms.append(bulk_ats.copy())
         # convert to torch geometric batch
         batch = Batch.from_data_list(self.ats_to_graphs.convert_all(bulk_atoms))
+        # device='cpu'
         batch = batch.to(device if device is not None else self.device)
 
         calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)

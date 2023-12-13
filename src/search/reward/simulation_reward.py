@@ -159,7 +159,12 @@ class StructureReward(BaseReward):
         return rewards
 
     def create_structures_and_calculate(
-        self, slab_syms, ads_list, candidates_list=None, adsorbate_height=1
+        self,
+        slab_syms,
+        ads_list,
+        candidates_list=None,
+        adsorbate_height=1,
+        placement_type=None,
     ):
         """Create the structures from the symbols and calculate adsorption energies."""
         start_gnn_calls = self.adsorption_calculator.gnn_calls
@@ -190,14 +195,24 @@ class StructureReward(BaseReward):
                             slab_samples, slab_name
                         )
                 if slab_ats is not None:
-                    for ads_sym in ads_list:
-                        ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
-                        name = f"{slab_name}_{ads_sym}"
-                        adslab_ats += self.sample_adslabs(
-                            slab_ats, ads_ats, name, adsorbate_height
-                        )
-                        if candidates_list is not None:
-                            name_candidate_mapping[name] = candidates_list[i]
+                    if placement_type == None:
+                        for ads_sym in ads_list:
+                            ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
+                            name = f"{slab_name}_{ads_sym}"
+                            adslab_ats += self.sample_adslabs(
+                                slab_ats, ads_ats, name, adsorbate_height
+                            )
+                            if candidates_list is not None:
+                                name_candidate_mapping[name] = candidates_list[i]
+
+                    elif placement_type == "adsml":
+                        for ads_sym in ads_list:
+                            ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
+                            name = f"{slab_name}_{ads_sym}"
+                            adslab_ats += self.sample_adslabs2(slab_ats, ads_ats, name)
+
+                            if candidates_list is not None:
+                                name_candidate_mapping[name] = candidates_list[i]
 
         adslabs_and_energies = self.create_batches_and_calculate(adslab_ats)
 
@@ -316,11 +331,11 @@ class StructureReward(BaseReward):
     def calculate_batch(self, adslab_batch, fname_batch):
         """Calculate adsorption energies for a batch of atoms objects."""
         batch_relaxed = self.adsorption_calculator.batched_relax_atoms(
-            adslab_batch, fname_batch
+            atoms=adslab_batch, atoms_names=fname_batch
         )
         batch_adsorption_energies = (
             self.adsorption_calculator.batched_adsorption_calculation(
-                batch_relaxed, fname_batch
+                atoms=batch_relaxed, atoms_names=fname_batch
             )
         )
         return batch_adsorption_energies
@@ -334,6 +349,16 @@ class StructureReward(BaseReward):
                 slab, ads, height=adsorbate_height
             )
             adslabs.append((i, name, adslab))
+        return adslabs
+
+    def sample_adslabs2(self, slab, ads, name):
+        """Sample possible adsorbate+slab combinations."""
+        adslabs = []
+        # for i in range(self.num_adslab_samples):
+        # print(slab.info)
+        adslab = ase_interface.generate_bulk_ads_pairs2(slab, ads)
+        adslabs = [(i, name, adslab[i]) for i in range(len(adslab))]
+
         return adslabs
 
     @staticmethod
@@ -391,25 +416,48 @@ class _TestState:
 
 
 if __name__ == "__main__":
-    heights = np.arange(0.1, 3.0, 0.25)
+    # heights = np.arange(0.1, 3.0, 0.25)
+    heights = np.arange(0.1)
     for height in heights:
         sr = StructureReward(
-            llm_function=None,
             **{
                 "llm_function": None,
                 "model": "gemnet",
                 "traj_dir": Path("data", "output", f"random"),
                 "device": "cuda:0",
                 "num_adslab_samples": 1,
-            },
+            }
         )
+
+        sr2 = StructureReward(
+            **{
+                "llm_function": None,
+                "model": "gemnet",
+                "traj_dir": Path("data", "output", f"adsml3"),
+                "device": "cpu",
+                "ads_tag": 2,
+            }
+        )
+        # print(
+        #     sr.create_structures_and_calculate(
+        #         [["Cu"], ["Pt"], ["Zr"]],
+        #         ["CO", "phenol", "anisole"],
+        #         ["Cu", "Pt", "Zr"],
+        #         adsorbate_height=height
+        #     )
+        # )
+
         print(
-            sr.create_structures_and_calculate(
+            sr2.create_structures_and_calculate(
                 [["Cu"], ["Pt"], ["Zr"]],
                 ["CO", "phenol", "anisole"],
                 ["Cu", "Pt", "Zr"],
-                adsorbate_height=height,
+                placement_type="adsml",  # or None for random placement
             )
         )
-        for p in Path("data", "output", "adsorption_testing").rglob("*.traj"):
+
+        for p in Path("data", "output", "adsml3").rglob("*.traj"):
             break_trajectory(p)
+
+
+# model weights have to placed in data/model_weights
