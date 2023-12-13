@@ -56,6 +56,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         batch_size=40,
         device="cpu",
         ads_tag=0,
+        fmax=0.005,
+        steps=150,
         adsorbed_structure_checker=None,
     ):
         """Create object from model class (gemnet or equiformer).
@@ -69,7 +71,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.batch_size = batch_size
         self.model = model
         # self.model_weights_paths  = Path("/Users/pana982/models/chemreasoner")
-        self.ads_tag = ads_tag # gihan
+        self.ads_tag = ads_tag  # gihan
         if self.model == "gemnet":
             self.model_path = self.model_weights_paths / "gemnet_t_direct_h512_all.pt"
             # print('model path', self.model_path)
@@ -151,8 +153,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         atoms: Atoms,
         device=None,
         fname=None,
-        fmax=0.005,
-        steps=150,
+        fmax=None,
+        steps=None,
         **bfgs_kwargs,
     ):
         """Relax the postitions of the given atoms.
@@ -175,8 +177,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         atoms: list[Atoms],
         atoms_names,
         device=None,
-        fmax=0.005,
-        steps=150,
+        fmax=None,
+        steps=None,
         **bfgs_kwargs,
     ):
         """Relax the postitions of the given atoms. Setting device overrides self."""

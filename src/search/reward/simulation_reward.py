@@ -420,12 +420,21 @@ if __name__ == "__main__":
     heights = np.arange(0.1)
     for height in heights:
         sr = StructureReward(
+<<<<<<< HEAD
             **{"llm_function": None,
                 "model": "gemnet",
                 "traj_dir": Path("data", "output", f"random"),
                 "device": "cuda:0",
                 "num_adslab_samples":1,
             }
+=======
+            llm_function=None,
+            **{
+                "model": "gemnet",
+                "traj_dir": Path("data", "output", "adsorption_testing_debug"),
+                "device": "cpu",
+            },
+>>>>>>> master
         )
 
         sr2 = StructureReward(
