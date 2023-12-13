@@ -459,9 +459,9 @@ if __name__ == "__main__":
         print(
             sr2.create_structures_and_calculate(
                 # [["Cu", "Pt"]],
-                [["Zr"]],
+                [["Cu"]],
                 ["CO"],
-                ["Zr"],
+                ["Cu"],
                 placement_type='adsml' # or None for random placement
             )
         )
