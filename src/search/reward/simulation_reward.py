@@ -432,7 +432,6 @@ if __name__ == "__main__":
             **{"llm_function": None,
                 "model": "gemnet",
                 "traj_dir": Path("data", "output", f"adsml3"),
-                # "device": "cuda:0",
                 "device": "cpu",
                 "ads_tag": 2,
             }
@@ -446,22 +445,12 @@ if __name__ == "__main__":
         #         adsorbate_height=height
         #     )
         # )
-
-        # print(
-        #     sr.create_structures_and_calculate(
-        #         [["Cu"]],
-        #         ["CO"],
-        #         ["Cu"],
-        #         adsorbate_height=height
-        #     )
-        # )
         
         print(
             sr2.create_structures_and_calculate(
-                # [["Cu", "Pt"]],
-                [["Cu"]],
-                ["CO"],
-                ["Cu"],
+                [["Cu"], ["Pt"], ["Zr"]],
+                ["CO", "phenol", "anisole"],
+                ["Cu", "Pt", "Zr"],
                 placement_type='adsml' # or None for random placement
             )
         )
