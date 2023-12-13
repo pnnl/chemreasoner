@@ -42,10 +42,12 @@ class BeamSearchTree:
             these_priors = priors[i]
             shuffle_idx = list(range(len(these_priors)))
             shuffle(shuffle_idx)
-            these_priors = [these_priors[i] for i in shuffle_idx]
-            actions = [actions[i] for i in shuffle_idx]
+            these_priors_shuffled = [these_priors[i] for i in shuffle_idx]
 
-            action_idxs = np.argsort(these_priors)[-self.num_generate :]  # noqa: E203
+            shuffled_action_idxs = np.argsort(these_priors_shuffled)[
+                -self.num_generate :  # noqa: E203
+            ]
+            action_idxs = [shuffle_idx[s_idx] for s_idx in shuffled_action_idxs]
 
             these_new_nodes = []
             for i in action_idxs:
