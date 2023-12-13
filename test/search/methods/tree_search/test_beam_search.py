@@ -95,6 +95,9 @@ class TestBeamSearch(unittest.TestCase):
 
         assert parallel_time > sequential_time * 2
 
+    def test_expand_node(TestCase):
+        """Tets to make sure expanding the node has the expected behavior."""
+
 
 if __name__ == "__main__":
     unittest.main()

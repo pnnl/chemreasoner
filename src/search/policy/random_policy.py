@@ -28,6 +28,11 @@ class RandomUniformPolicy:
         """Whether to stop the search early. Always False for this policy."""
         return False
 
+    @property
+    def num_actions(self):
+        """Return the nummber of possible actions."""
+        return len(self.actions)
+
 
 class WeightedPolicy:
     """Policy that perturbs atoms, adds atoms, removes atoms."""
@@ -58,3 +63,8 @@ class WeightedPolicy:
     def early_stopping(*args):
         """Whether to stop the search early. Always False for this policy."""
         return False
+
+    @property
+    def num_actions(self):
+        """Return the nummber of possible actions."""
+        return len(self.actions)
