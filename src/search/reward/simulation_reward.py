@@ -396,9 +396,11 @@ if __name__ == "__main__":
         sr = StructureReward(
             llm_function=None,
             **{
+                "llm_function": None,
                 "model": "gemnet",
-                "traj_dir": Path("data", "output", "adsorption_testing_debug"),
-                "device": "cpu",
+                "traj_dir": Path("data", "output", f"random"),
+                "device": "cuda:0",
+                "num_adslab_samples": 1,
             },
         )
         print(
