@@ -27,7 +27,7 @@ class StructureReward(BaseReward):
 
     def __init__(
         self,
-        llm_function: callable ,
+        llm_function: callable,
         penalty_value: float = -10,
         nnp_class="oc",
         num_slab_samples=16,
@@ -43,8 +43,6 @@ class StructureReward(BaseReward):
             raise NotImplementedError(f"No such nnp class {nnp_class}.")
         self.num_slab_samples = num_slab_samples
         self.num_adslab_samples = num_adslab_samples
-
-
 
     def run_generation_prompts(
         self, slab_syms: list[list[str]], states: list[ReasonerState]
@@ -161,7 +159,12 @@ class StructureReward(BaseReward):
         return rewards
 
     def create_structures_and_calculate(
-        self, slab_syms, ads_list, candidates_list=None, adsorbate_height=1, placement_type=None
+        self,
+        slab_syms,
+        ads_list,
+        candidates_list=None,
+        adsorbate_height=1,
+        placement_type=None,
     ):
         """Create the structures from the symbols and calculate adsorption energies."""
         start_gnn_calls = self.adsorption_calculator.gnn_calls
@@ -193,7 +196,6 @@ class StructureReward(BaseReward):
                         )
                 if slab_ats is not None:
                     if placement_type == None:
-
                         for ads_sym in ads_list:
                             ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
                             name = f"{slab_name}_{ads_sym}"
@@ -203,7 +205,7 @@ class StructureReward(BaseReward):
                             if candidates_list is not None:
                                 name_candidate_mapping[name] = candidates_list[i]
 
-                    elif placement_type == 'adsml':
+                    elif placement_type == "adsml":
                         for ads_sym in ads_list:
                             ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
                             name = f"{slab_name}_{ads_sym}"
@@ -211,8 +213,6 @@ class StructureReward(BaseReward):
 
                             if candidates_list is not None:
                                 name_candidate_mapping[name] = candidates_list[i]
-
-                    
 
         adslabs_and_energies = self.create_batches_and_calculate(adslab_ats)
 
@@ -350,15 +350,15 @@ class StructureReward(BaseReward):
             )
             adslabs.append((i, name, adslab))
         return adslabs
-    
+
     def sample_adslabs2(self, slab, ads, name):
         """Sample possible adsorbate+slab combinations."""
         adslabs = []
         # for i in range(self.num_adslab_samples):
-            # print(slab.info)
+        # print(slab.info)
         adslab = ase_interface.generate_bulk_ads_pairs2(slab, ads)
-        adslabs = [ (i, name, adslab[i]) for i in range(len(adslab)) ]
-        
+        adslabs = [(i, name, adslab[i]) for i in range(len(adslab))]
+
         return adslabs
 
     @staticmethod
@@ -420,31 +420,23 @@ if __name__ == "__main__":
     heights = np.arange(0.1)
     for height in heights:
         sr = StructureReward(
-<<<<<<< HEAD
-            **{"llm_function": None,
+            **{
+                "llm_function": None,
                 "model": "gemnet",
                 "traj_dir": Path("data", "output", f"random"),
                 "device": "cuda:0",
-                "num_adslab_samples":1,
+                "num_adslab_samples": 1,
             }
-=======
-            llm_function=None,
-            **{
-                "model": "gemnet",
-                "traj_dir": Path("data", "output", "adsorption_testing_debug"),
-                "device": "cpu",
-            },
->>>>>>> master
         )
 
         sr2 = StructureReward(
-            **{"llm_function": None,
+            **{
+                "llm_function": None,
                 "model": "gemnet",
                 "traj_dir": Path("data", "output", f"adsml3"),
                 "device": "cpu",
                 "ads_tag": 2,
             }
-
         )
         # print(
         #     sr.create_structures_and_calculate(
@@ -454,13 +446,13 @@ if __name__ == "__main__":
         #         adsorbate_height=height
         #     )
         # )
-        
+
         print(
             sr2.create_structures_and_calculate(
                 [["Cu"], ["Pt"], ["Zr"]],
                 ["CO", "phenol", "anisole"],
                 ["Cu", "Pt", "Zr"],
-                placement_type='adsml' # or None for random placement
+                placement_type="adsml",  # or None for random placement
             )
         )
 
