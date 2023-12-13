@@ -54,7 +54,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         model: str,
         traj_dir: Path,
         batch_size=40,
-        device="cuda:0",
+        device="cpu",
         ads_tag=0,
         adsorbed_structure_checker=None,
     ):
@@ -64,14 +64,15 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """
         self.gnn_calls = 0
         self.gnn_time = 0
-        # self.device = device
-        self.device = "cpu"
+        self.device = device
+        # self.device = "cpu"
         self.batch_size = batch_size
         self.model = model
-        self.model_weights_paths  = Path("/Users/pana982/models/chemreasoner")
+        # self.model_weights_paths  = Path("/Users/pana982/models/chemreasoner")
         self.ads_tag = ads_tag # gihan
         if self.model == "gemnet":
             self.model_path = self.model_weights_paths / "gemnet_t_direct_h512_all.pt"
+            # print('model path', self.model_path)
             if not self.model_path.exists():
                 print("Downloading weights for gemnet...")
                 wget.download(
@@ -238,6 +239,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             bulk_atoms.append(bulk_ats.copy())
         # convert to torch geometric batch
         batch = Batch.from_data_list(self.ats_to_graphs.convert_all(bulk_atoms))
+        # device='cpu'
         batch = batch.to(device if device is not None else self.device)
 
         calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)

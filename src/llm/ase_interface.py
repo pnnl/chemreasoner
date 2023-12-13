@@ -159,52 +159,14 @@ def generate_bulk_ads_pairs2(
     binding_molecules = ads.info.get("binding_sites", np.array([0]))
     adsorbate = Adsorbate(ads, adsorbate_binding_indices = list(binding_molecules) )
     heuristic_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode=mode, num_sites=num_sites)
-    # random_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode="random_site_heuristic_placement", num_sites = 12)
-    # adslabs = [*heuristic_adslabs.atoms_list, *random_adslabs.atoms_list]
-    adslabs = heuristic_adslabs.atoms_list
+    num_random_slabs = num_sites - len(heuristic_adslabs.atoms_list)
+    print("number of random slabs: ", num_random_slabs)
+    random_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode="random_site_heuristic_placement", num_sites = num_random_slabs)
+    adslabs = [*heuristic_adslabs.atoms_list, *random_adslabs.atoms_list]
+    # adslabs = heuristic_adslabs.atoms_list
 
     return adslabs
 
-
-class BulkAds:
-    def __init__(self, 
-                bulk: Atoms,
-                ads_smiles: str,
-                adsorbate_db_path: str,
-                num_rand_slabs: int=4):
-
-
-        """
-        usage: 
-        bulkads = BulkAds(bulk=bulk, ads_smiles='*CO',adsorbate_db_path= "../chemreasoner/data/input_data/oc/oc_20_adsorbates.pkl")
-        new_bulk = bulkads(id)
-        """
-        # num_tries = 0
-        # adsorbate_db_path  = "../chemreasoner/data/input_data/oc/oc_20_adsorbates.pkl"
-        adsorbate = Adsorbate(adsorbate_smiles_from_db=ads_smiles, adsorbate_db_path = adsorbate_db_path)
-        bulk = Bulk(bulk_atoms=bulk)
-    
-        specific_millers = (0,0,1)
-        slabs = Slab.from_bulk_get_specific_millers(bulk = bulk, specific_millers=specific_millers)
-        # TODO: which miller indices to use?
-        # other options from ocdata:  from_bulk_get_random_slab,from_bulk_get_all_slabs, from_precomputed_slabs_pkl
-    
-    
-        slab = slabs[0] # TODO: there could be multiple slabs for a given set of miller indices
-                        # have to decide whether we consider random ones or all of them
-        
-        heuristic_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode="heuristic")
-        random_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode="random_site_heuristic_placement", num_sites = num_rand_slabs)
-        # TODO: what's the value to use for num_sites
-        # TODO: do we consider just mode="heuristic"?
-    
-        # self.adslabs = [*heuristic_adslabs.atoms_list, *random_adslabs.atoms_list]
-        self.adslabs = [ *random_adslabs.atoms_list]
-    
-        
-    def __call__(self, id):
-
-        return self.adslabs[id]
 
 
 

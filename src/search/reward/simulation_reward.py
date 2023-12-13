@@ -331,11 +331,11 @@ class StructureReward(BaseReward):
     def calculate_batch(self, adslab_batch, fname_batch):
         """Calculate adsorption energies for a batch of atoms objects."""
         batch_relaxed = self.adsorption_calculator.batched_relax_atoms(
-            adslab_batch, fname_batch
+            atoms=adslab_batch, atoms_names=fname_batch
         )
         batch_adsorption_energies = (
             self.adsorption_calculator.batched_adsorption_calculation(
-                batch_relaxed, fname_batch, self.adsorption_calculator.ads_tag
+                atoms=batch_relaxed, atoms_names=fname_batch
             )
         )
         return batch_adsorption_energies
@@ -431,9 +431,10 @@ if __name__ == "__main__":
         sr2 = StructureReward(
             **{"llm_function": None,
                 "model": "gemnet",
-                "traj_dir": Path("data", "output", f"adsml"),
-                "device": "cuda:0",
-                "ads_tag": 2
+                "traj_dir": Path("data", "output", f"adsml3"),
+                # "device": "cuda:0",
+                "device": "cpu",
+                "ads_tag": 2,
             }
 
         )
@@ -457,12 +458,16 @@ if __name__ == "__main__":
         
         print(
             sr2.create_structures_and_calculate(
-                [["Cu"]],
+                # [["Cu", "Pt"]],
+                [["Zr"]],
                 ["CO"],
-                ["Cu"],
+                ["Zr"],
                 placement_type='adsml' # or None for random placement
             )
         )
 
-        for p in Path("data", "output", "adsorption_testing").rglob("*.traj"):
+        for p in Path("data", "output", "adsml3").rglob("*.traj"):
             break_trajectory(p)
+
+
+# model weights have to placed in data/model_weights
