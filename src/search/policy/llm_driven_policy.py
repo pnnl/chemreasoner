@@ -96,6 +96,11 @@ class LLMDrivenReasonerPolicy(ReasonerPolicy):
 
         return actions, new_priors
 
+    @property
+    def num_actions(self):
+        """Return the number of possible actions."""
+        return super().num_actions
+
 
 _answer = """To generate a list of top-5 monometallic catalysts for the adsorption of *CH2CH2OH, we need to consider catalysts that can effectively interact with the adsorbate and promote its adsorption. Here are the top-5 catalysts along with their scientific explanations:
 

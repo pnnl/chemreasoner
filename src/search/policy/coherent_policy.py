@@ -103,6 +103,11 @@ class CoherentPolicy(ReasonerPolicy):
 
         return actions, new_priors
 
+    @property
+    def num_actions(self):
+        """Return the number of possible actions."""
+        return super().num_actions
+
 
 if __name__ == "__main__":
     from llm.automate_prompts import get_initial_state_oc
