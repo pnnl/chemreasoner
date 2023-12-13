@@ -18,3 +18,8 @@ class BasePolicy(metaclass=ABCMeta):
     def early_stopping(self):
         """Whether or not to stop the search early."""
         ...
+
+    @property
+    def num_actions(self):
+        """Return the number of possible actions."""
+        ...
