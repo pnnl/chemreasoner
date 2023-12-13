@@ -69,6 +69,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.device = device
         # self.device = "cpu"
         self.batch_size = batch_size
+        self.fmax = fmax
+        self.steps = steps
         self.model = model
         # self.model_weights_paths  = Path("/Users/pana982/models/chemreasoner")
         self.ads_tag = ads_tag  # gihan
@@ -161,10 +163,12 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
         Setting device overrides self.device
         """
+        fmax = fmax if fmax is not None else self.fmax
+        steps = steps if steps is not None else self.steps
         atoms = atoms.copy()
         self.prepare_atoms(atoms)
 
-        atoms.set_calculator(self.get_ase_calculator)
+        atoms.calc = self.get_ase_calculator
         opt = BFGS(
             atoms, trajectory=self.traj_dir / fname if fname is not None else None
         )
@@ -183,6 +187,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     ):
         """Relax the postitions of the given atoms. Setting device overrides self."""
         atoms = self.copy_atoms_list(atoms)
+        fmax = fmax if fmax is not None else self.fmax
+        steps = steps if steps is not None else self.steps
         # Set up calculation for oc
         self.prepare_atoms_list(atoms)
         # convert to torch geometric batch
@@ -195,7 +201,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         try:
             relax_opt = self.config["task"]["relax_opt"]
         except KeyError:
-            relax_opt = {"memory": 100}  # only need to set memory and traj_dir
+            relax_opt = {"memory": steps}  # only need to set memory and traj_dir
 
         relax_opt["traj_dir"] = self.traj_dir
         # assume 100 steps every time
@@ -365,7 +371,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     def prepare_atoms(atoms: Atoms, constraints: bool = True) -> None:
         """Prepare an atoms object for simulation."""
         if constraints:
-            cons = FixAtoms(indices=[atom.index for atom in atoms if (atom.tag > 1)])
+            cons = FixAtoms(indices=[atom.index for atom in atoms if (atom.tag == 0)])
             atoms.set_constraint(cons)
         atoms.center(vacuum=13.0, axis=2)
         atoms.set_pbc(True)

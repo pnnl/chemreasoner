@@ -95,6 +95,7 @@ def generate_bulk_ads_pairs(
     while not valid:
         new_bulk = bulk.copy()
         new_ads = ads.copy()
+        new_ads.set_tags([2] * len(new_ads))
 
         # randomly select the binding location
         site_name = random.choice(list(new_bulk.info["adsorbate_info"]["sites"]))
@@ -126,7 +127,7 @@ def generate_bulk_ads_pairs(
             position=position,
         )
         new_bulk.center(vacuum=13.0, axis=2)
-        ads_mask = np.argwhere(new_bulk.get_tags() == 0)
+        ads_mask = np.argwhere(new_bulk.get_tags() == 2)
         if "translation" in new_ads.info.keys():
             pos = new_bulk.get_positions()
             pos[ads_mask] += new_ads.info["translation"]
@@ -312,6 +313,16 @@ def llm_answer_to_symbols_prompt(answer: list[str]):
     return prompt
 
 
+def ase_to_oc_tag(tag: int) -> int:
+    """Returns the proper oc tag given the ase tag."""
+    if tag == 0:
+        return 2
+    if tag == 1:
+        return 1
+    else:
+        return 0
+
+
 def symbols_list_to_bulk(symbols_list):
     """Return a bulk from a list of symbols that constructs it."""
     try:
@@ -333,6 +344,7 @@ def symbols_list_to_bulk(symbols_list):
             f"Incorrect number of symbols given ({len(symbols_list)}).",
         )
     bulk.info.update({"bulk_syms": symbols_list})
+    bulk.set_tags([ase_to_oc_tag(t) for t in bulk.get_tags()])
     return bulk
 
 
