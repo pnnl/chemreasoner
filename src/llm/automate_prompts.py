@@ -6,6 +6,7 @@ import pandas as pd
 sys.path.append("src")
 from llm import query  # noqa: E402
 from search.policy.reasoner_policy import ReasonerPolicy  # noqa: E402
+from search.state.reasoner_state import ReasonerState  # noqa: E402
 
 
 def find_all(string, sub):
@@ -26,13 +27,13 @@ def get_initial_state_oc(
     template = (
         "Generate a list of top-5 {catalyst_label} "
         f"for the adsorption of {adsorbate}."
-        "{include_statement}{exclude_statement}"
+        "{include_statement} {exclude_statement}"
         "Provide scientific explanations for each of the catalysts. "
         "Finally, return a python list named final_answer which contains the top-5 catalysts. "
         "{candidate_list_statement}"
         r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
     )
-    starting_state = query.QueryState(
+    starting_state = ReasonerState(
         template=template,
         reward_template=None,
         ads_symbols=[adsorbate],
@@ -71,7 +72,7 @@ def non_rwgs_template_generator(
         r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
     )
 
-    qs = query.QueryState(
+    qs = ReasonerState(
         template=template,
         reward_template=None,
         ads_symbols=[adsorbate],
@@ -148,7 +149,7 @@ def parse_rwgs_questions(
         "{candidate_list_statement}"
         r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
     )
-    qs = query.QueryState(
+    qs = ReasonerState(
         template=template,
         reward_template=None,
         ads_symbols=ads_symbols,
