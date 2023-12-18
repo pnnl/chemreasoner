@@ -243,13 +243,13 @@ class ReasonerPolicy:
 
     def check_relationship_to_candidate_list(self, state):
         """Ensure a relationship to candidate list exists if candidate list does."""
-        if state.relation_to_candidate_list is None and state.candidates is not None:
+        if state.relation_to_candidate_list is None and len(state.candidates) != 0:
             for i, a in enumerate(self.actions):
                 if isinstance(a, RelationToCandidateListChanger):
                     self.weights[i] = 1
                 else:
                     self.weights[i] = 0
-        elif state.candidates is None:
+        elif len(state.candidates) == 0:
             for i, a in enumerate(self.actions):
                 if isinstance(a, RelationToCandidateListChanger):
                     self.weights[i] = 0

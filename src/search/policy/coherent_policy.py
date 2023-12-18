@@ -10,6 +10,7 @@ from sklearn.exceptions import NotFittedError
 
 sys.path.append("src")
 from search.policy.reasoner_policy import ReasonerPolicy  # noqa:402
+from search.state.reasoner_state import ReasonerState  # noqa:402
 
 
 class CoherentPolicy(ReasonerPolicy):
@@ -104,10 +105,24 @@ class CoherentPolicy(ReasonerPolicy):
         return actions, new_priors
 
 
-if __name__ == "__main__":
-    from llm.automate_prompts import get_initial_state_oc
+def coherent_measure(
+    states: list[ReasonerState], llm_function: callable = None
+) -> float:
+    """Measure the coherence of a given sequence of states."""
+    prompts = []
+    system_prompts = []
+    answers = []
+    for s in states:
+        prompts.append(s.generation_prompt)
+        system_prompts.append(s.generation_system_prompt)
+        answers.append(s.answer)
+    return -np.inf
 
-    s, _ = get_initial_state_oc("H20", "gpt-3.5-turbo", "gpt-3.5-turbo")
-    p = CoherentPolicy(0.4)
-    print(p.temperature)
-    print(p.get_actions(s))
+
+if __name__ == "__main__":
+    import pickle
+
+    with open("data/example_trajectory.pkl", "rb") as f:
+        states = pickle.load(f)
+
+    coherent_measure(states)
