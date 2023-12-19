@@ -156,7 +156,7 @@ def generate_bulk_ads_pairs2(
     bulk = Bulk(bulk_atoms=bulk)
     # specific_millers might have to be changed based on the type of the crystal (cubic, etc)
     slabs = Slab.from_bulk_get_specific_millers(bulk = bulk, specific_millers=(0,0,1))
-    slabs = [s for s in slabs if s.shift==0.0]
+    slabs = [s for s in slabs if s.shift==0.0] # selecting the slabs with shift=0
 
     
     binding_molecules = ads.info.get("binding_sites", np.array([0]))
@@ -169,7 +169,7 @@ def generate_bulk_ads_pairs2(
     if num_sites < len(heuristic_adslabs):
         adslabs = [heuristic_adslabs[i] for i in range(num_sites)]
 
-    if num_sites > len(heuristic_adslabs):
+    elif num_sites > len(heuristic_adslabs):
         num_random_slabs = (num_sites - len(heuristic_adslabs))//len(slabs)
 
         random_adslabs=[]

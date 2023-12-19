@@ -208,7 +208,13 @@ class StructureReward(BaseReward):
                     elif placement_type == "adsml":
                         for ads_sym in ads_list:
                             ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
-                            slab_ats = ase_interface.symbols_list_to_bulk(slab_sym)
+                            # slab_ats = ase_interface.symbols_list_to_bulk(slab_sym)
+                            # slab_samples = [
+                            #     ase_interface.symbols_list_to_bulk(slab_sym)
+                            #     for _ in range(self.num_slab_samples)
+                            #     ]
+                            # slab_ats = self.adsorption_calculator.choose_slab(
+                            # slab_samples, slab_name)
                             slab_ats.center(vacuum=13.0, axis=2)
 
                             name = f"{slab_name}_{ads_sym}"
@@ -461,9 +467,9 @@ if __name__ == "__main__":
         # )
         print(
             sr2.create_structures_and_calculate(
-                [["Pt"]],
+                [["Cu","Pt"]],
                 ["CO"],
-                ["Pt"],
+                ["CuPt"],
                 placement_type="adsml",  # or None for random placement
             )
         )
