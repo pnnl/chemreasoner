@@ -205,20 +205,13 @@ class StructureReward(BaseReward):
                             if candidates_list is not None:
                                 name_candidate_mapping[name] = candidates_list[i]
 
-                    elif placement_type == "adsml":
+                    elif placement_type == "heuristic":
                         for ads_sym in ads_list:
                             ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
-                            # slab_ats = ase_interface.symbols_list_to_bulk(slab_sym)
-                            # slab_samples = [
-                            #     ase_interface.symbols_list_to_bulk(slab_sym)
-                            #     for _ in range(self.num_slab_samples)
-                            #     ]
-                            # slab_ats = self.adsorption_calculator.choose_slab(
-                            # slab_samples, slab_name)
                             slab_ats.center(vacuum=13.0, axis=2)
 
                             name = f"{slab_name}_{ads_sym}"
-                            adslab_ats += self.sample_adslabs2(slab_ats, ads_ats, name)
+                            adslab_ats += self.sample_adslabs_heuristic(slab_ats, ads_ats, name)
 
                             if candidates_list is not None:
                                 name_candidate_mapping[name] = candidates_list[i]
@@ -360,12 +353,12 @@ class StructureReward(BaseReward):
             adslabs.append((i, name, adslab))
         return adslabs
 
-    def sample_adslabs2(self, slab, ads, name):
+    def sample_adslabs_heuristic(self, slab, ads, name):
         """Sample possible adsorbate+slab combinations."""
         adslabs = []
         # for i in range(self.num_adslab_samples):
         # print(slab.info)
-        adslab = ase_interface.generate_bulk_ads_pairs2(slab, ads, num_sites=self.num_adslab_samples)
+        adslab = ase_interface.generate_bulk_ads_pairs_heuristic(slab, ads, num_sites=self.num_adslab_samples)
         adslabs = [(i, name, adslab[i]) for i in range(len(adslab))]
 
         return adslabs
@@ -425,58 +418,77 @@ class _TestState:
 
 
 if __name__ == "__main__":
-    # heights = np.arange(0.1, 3.0, 0.25)
-    heights = np.arange(0.1)
-    for height in heights:
-        sr = StructureReward(
-            **{
-                "llm_function": None,
-                "model": "gemnet",
-                "traj_dir": Path("data", "output", f"random"),
-                "device": "cuda:0",
-                "num_adslab_samples": 1,
-            }
-        )
+    
 
-        sr2 = StructureReward(
-            **{
-                "llm_function": None,
-                "model": "gemnet",
-                "traj_dir": Path("data", "output", f"adsml3"),
-                "device": "cpu",
-                "ads_tag": 2,
-                "num_adslab_samples": 1
-            }
-        )
-        # print(
-        #     sr.create_structures_and_calculate(
-        #         [["Cu"], ["Pt"], ["Zr"]],
-        #         ["CO", "phenol", "anisole"],
-        #         ["Cu", "Pt", "Zr"],
-        #         adsorbate_height=height
-        #     )
-        # )
+    # traj_dir = "random"
+    traj_dir = "heuristic"
 
-        # print(
-        #     sr2.create_structures_and_calculate(
-        #         [["Cu"], ["Pt"], ["Zr"]],
-        #         ["CO", "phenol", "anisole"],
-        #         ["Cu", "Pt", "Zr"],
-        #         placement_type="adsml",  # or None for random placement
-        #     )
-        # )
-        print(
-            sr2.create_structures_and_calculate(
-                [["Cu","Pt"]],
-                ["CO"],
-                ["CuPt"],
-                placement_type="adsml",  # or None for random placement
+    if "random" in traj_dir:
+
+        # heights = np.arange(0.1, 3.0, 0.25)
+        heights = [3.25]
+        for height in heights:
+            sr = StructureReward(
+                **{
+                    "llm_function": None,
+                    "model": "gemnet",
+                    "traj_dir": Path("data", "output", f"{traj_dir}"),
+                    "device": "cpu",
+                    "ads_tag": 2,
+                    "num_adslab_samples": 1,
+                }
             )
-        )
-        
 
-        for p in Path("data", "output", "adsml3").rglob("*.traj"):
-            break_trajectory(p)
+
+            # print(
+            #     sr.create_structures_and_calculate(
+            #         [["Cu"], ["Pt"], ["Zr"]],
+            #         ["CO", "phenol", "anisole"],
+            #         ["Cu", "Pt", "Zr"],
+            #         adsorbate_height=height
+            #     )
+            # )
+
+
+            print(
+                sr.create_structures_and_calculate(
+                    [["Cu"]],
+                    ["CO"],
+                    ["Cu"],
+                    adsorbate_height=height
+                )
+            )
+            
+
+            for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
+                break_trajectory(p)
+
+
+    elif "heuristic" in traj_dir:
+        print("using heuristic methods")
+        sr = StructureReward(
+                **{
+                    "llm_function": None,
+                    "model": "gemnet",
+                    "traj_dir": Path("data", "output", f"{traj_dir}"),
+                    "device": "cpu",
+                    "ads_tag": 2,
+                    "num_adslab_samples": 1
+                }
+            )
+        
+        print(
+                sr.create_structures_and_calculate(
+                    [["Cu"]],
+                    ["phenol"],
+                    ["Cu"],
+                    placement_type="heuristic"
+                )
+            )
+            
+
+        for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
+                break_trajectory(p)
 
 
 # model weights have to placed in data/model_weights

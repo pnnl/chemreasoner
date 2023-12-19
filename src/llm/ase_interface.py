@@ -11,7 +11,7 @@ import ase.build as build
 from ase.data import reference_states, atomic_numbers
 
 import numpy as np
-
+from ocdata.core import Adsorbate, AdsorbateSlabConfig, Bulk, Slab
 
 with open(Path("data", "input_data", "oc", "oc_20_adsorbates.pkl"), "rb") as f:
     oc_20_ads_structures = pickle.load(f)
@@ -143,10 +143,7 @@ def generate_bulk_ads_pairs(
     return new_bulk
 
 
-
-from ocdata.core import Adsorbate, AdsorbateSlabConfig, Bulk, Slab
-
-def generate_bulk_ads_pairs2(
+def generate_bulk_ads_pairs_heuristic(
     bulk: Atoms,
     ads: str,
     mode: str = "heuristic",
