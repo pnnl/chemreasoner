@@ -208,6 +208,9 @@ class StructureReward(BaseReward):
                     elif placement_type == "adsml":
                         for ads_sym in ads_list:
                             ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
+                            slab_ats = ase_interface.symbols_list_to_bulk(slab_sym)
+                            slab_ats.center(vacuum=13.0, axis=2)
+
                             name = f"{slab_name}_{ads_sym}"
                             adslab_ats += self.sample_adslabs2(slab_ats, ads_ats, name)
 
@@ -356,7 +359,7 @@ class StructureReward(BaseReward):
         adslabs = []
         # for i in range(self.num_adslab_samples):
         # print(slab.info)
-        adslab = ase_interface.generate_bulk_ads_pairs2(slab, ads)
+        adslab = ase_interface.generate_bulk_ads_pairs2(slab, ads, num_sites=self.num_adslab_samples)
         adslabs = [(i, name, adslab[i]) for i in range(len(adslab))]
 
         return adslabs
@@ -436,6 +439,7 @@ if __name__ == "__main__":
                 "traj_dir": Path("data", "output", f"adsml3"),
                 "device": "cpu",
                 "ads_tag": 2,
+                "num_adslab_samples": 1
             }
         )
         # print(
@@ -447,14 +451,23 @@ if __name__ == "__main__":
         #     )
         # )
 
+        # print(
+        #     sr2.create_structures_and_calculate(
+        #         [["Cu"], ["Pt"], ["Zr"]],
+        #         ["CO", "phenol", "anisole"],
+        #         ["Cu", "Pt", "Zr"],
+        #         placement_type="adsml",  # or None for random placement
+        #     )
+        # )
         print(
             sr2.create_structures_and_calculate(
-                [["Cu"], ["Pt"], ["Zr"]],
-                ["CO", "phenol", "anisole"],
-                ["Cu", "Pt", "Zr"],
+                [["Pt"]],
+                ["CO"],
+                ["Pt"],
                 placement_type="adsml",  # or None for random placement
             )
         )
+        
 
         for p in Path("data", "output", "adsml3").rglob("*.traj"):
             break_trajectory(p)

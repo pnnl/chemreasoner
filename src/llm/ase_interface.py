@@ -156,15 +156,36 @@ def generate_bulk_ads_pairs2(
     bulk = Bulk(bulk_atoms=bulk)
     # specific_millers might have to be changed based on the type of the crystal (cubic, etc)
     slabs = Slab.from_bulk_get_specific_millers(bulk = bulk, specific_millers=(0,0,1))
-    slab = slabs[0]
+    slabs = [s for s in slabs if s.shift==0.0]
+
+    
     binding_molecules = ads.info.get("binding_sites", np.array([0]))
     adsorbate = Adsorbate(ads, adsorbate_binding_indices = list(binding_molecules) )
-    heuristic_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode=mode, num_sites=num_sites)
-    num_random_slabs = num_sites - len(heuristic_adslabs.atoms_list)
-    print("number of random slabs: ", num_random_slabs)
-    random_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode="random_site_heuristic_placement", num_sites = num_random_slabs)
-    adslabs = [*heuristic_adslabs.atoms_list, *random_adslabs.atoms_list]
+    heuristic_adslabs = []
+    for slab in slabs:
+         h_slabs = AdsorbateSlabConfig(slab, adsorbate, mode=mode, num_sites=num_sites)
+         heuristic_adslabs.extend(h_slabs.atoms_list)
+
+    if num_sites < len(heuristic_adslabs):
+        adslabs = [heuristic_adslabs[i] for i in range(num_sites)]
+
+    if num_sites > len(heuristic_adslabs):
+        num_random_slabs = (num_sites - len(heuristic_adslabs))//len(slabs)
+
+        random_adslabs=[]
+        for slab in slabs:
+            r_slabs = AdsorbateSlabConfig(slab, adsorbate, mode="random_site_heuristic_placement", num_sites = num_random_slabs)
+            random_adslabs.extend(r_slabs.atoms_list)
+
+        adslabs = heuristic_adslabs + random_adslabs
+
+    # num_random_slabs = num_sites - len(heuristic_adslabs.atoms_list)
+    # print("number of random slabs: ", num_random_slabs)
+    # random_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode="random_site_heuristic_placement", num_sites = num_random_slabs)
+    # adslabs = [*heuristic_adslabs.atoms_list, *random_adslabs.atoms_list]
     # adslabs = heuristic_adslabs.atoms_list
+
+    
 
     return adslabs
 
