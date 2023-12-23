@@ -1,7 +1,11 @@
 """Class for the reasoner policy."""
+import sys
 from collections.abc import Callable
 
 import numpy as np
+
+sys.path.append("sys")
+from search.state.reasoner_state import ReasonerState  # noqa:402
 
 
 _include_property_types = [
@@ -257,8 +261,8 @@ class ReasonerPolicy:
                     self.weights[i] = 1
 
     def get_actions(
-        self, states: list[object]
-    ) -> tuple[list[Callable[object, object]], list[np.array]]:
+        self, states: list[ReasonerState]
+    ) -> tuple[list[Callable], list[np.array]]:
         """Return a actions and prior_logits for given state."""
         priors = []
         for state in states:
