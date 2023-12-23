@@ -195,7 +195,7 @@ class StructureReward(BaseReward):
                             slab_samples, slab_name
                         )
                 if slab_ats is not None:
-                    if placement_type == None:
+                    if placement_type is None:
                         for ads_sym in ads_list:
                             ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
                             name = f"{slab_name}_{ads_sym}"
@@ -416,48 +416,51 @@ class _TestState:
 
 
 if __name__ == "__main__":
-    # heights = np.arange(0.1, 3.0, 0.25)
+    heights = np.arange(0.1, 3.0, 0.25)
     heights = np.arange(0.1)
-    for height in heights:
-        sr = StructureReward(
-            **{
-                "llm_function": None,
-                "model": "gemnet",
-                "traj_dir": Path("data", "output", f"random"),
-                "device": "cuda:0",
-                "num_adslab_samples": 1,
-            }
-        )
+    # for height in heights:
+    # sr = StructureReward(
+    #     **{
+    #         "llm_function": None,
+    #         "model": "gemnet",
+    #         "traj_dir": Path("data", "output", f"random"),
+    #         "device": "cuda:0",
+    #         "num_adslab_samples": 1,
+    #     }
+    # )
 
-        sr2 = StructureReward(
-            **{
-                "llm_function": None,
-                "model": "gemnet",
-                "traj_dir": Path("data", "output", f"adsml3"),
-                "device": "cpu",
-                "ads_tag": 2,
-            }
-        )
-        # print(
-        #     sr.create_structures_and_calculate(
-        #         [["Cu"], ["Pt"], ["Zr"]],
-        #         ["CO", "phenol", "anisole"],
-        #         ["Cu", "Pt", "Zr"],
-        #         adsorbate_height=height
-        #     )
-        # )
+    sr2 = StructureReward(
+        num_adslab_samples=4,
+        **{
+            "llm_function": None,
+            "model": "gemnet",
+            "traj_dir": Path("data", "output", "example_trajs"),
+            "device": "cpu",
+            "ads_tag": 2,
+        },
+    )
+    # print(
+    #     sr.create_structures_and_calculate(
+    #         [["Cu"], ["Pt"], ["Zr"]],
+    #         ["CO", "phenol", "anisole"],
+    #         ["Cu", "Pt", "Zr"],
+    #         adsorbate_height=height
+    #     )
+    # )
 
-        print(
-            sr2.create_structures_and_calculate(
-                [["Cu"], ["Pt"], ["Zr"]],
-                ["CO", "phenol", "anisole"],
-                ["Cu", "Pt", "Zr"],
-                placement_type="adsml",  # or None for random placement
-            )
+    print(
+        sr2.create_structures_and_calculate(
+            [["Cu"], ["Zr", "Ru"]],
+            ["*CO", "CO2", "*OHCH3", "*CHOH"],
+            ["Cu", "ZrRu"],
+            placement_type=None,
+            adsorbate_height=1.87,  # or None for random placement
         )
+    )
 
-        for p in Path("data", "output", "adsml3").rglob("*.traj"):
-            break_trajectory(p)
+    for p in Path("data", "output", "example_trajs").rglob("*.traj"):
+        print(p)
+        break_trajectory(p, prefix=p.stem)
 
 
 # model weights have to placed in data/model_weights

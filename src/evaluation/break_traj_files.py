@@ -12,7 +12,7 @@ def order_of_magnitude(number):
     return int(np.log10(number))
 
 
-def break_trajectory(traj_path: Path, dirname: str = None):
+def break_trajectory(traj_path: Path, dirname: str = None, prefix=""):
     """Break trajectory into a directory of xyz files."""
     if isinstance(traj_path, str):
         traj_path = Path(traj_path)
@@ -26,7 +26,7 @@ def break_trajectory(traj_path: Path, dirname: str = None):
     traj = Trajectory(filename=traj_path)
     mag = order_of_magnitude(len(traj))
     for i, ats in enumerate(traj):
-        write(dir_path / f"{str(i).zfill(mag+1)}.xyz", ats)
+        write(dir_path / f"{prefix}-{str(i).zfill(mag+1)}.xyz", ats)
 
 
 if __name__ == "__main__":

@@ -9,52 +9,32 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.exceptions import NotFittedError
 
 sys.path.append("src")
-from search.policy.reasoner_policy import ReasonerPolicy  # noqa:402
+from search.policy.reasoner_policy import (  # noqa:402
+    CatalystLabelChanger,
+    IncludePropertyAdder,
+    ExcludePropertyAdder,
+    RelationToCandidateListChanger,
+)
+from search.policy.base_policy import BasePolicy  # noqa:402
 from search.state.reasoner_state import ReasonerState  # noqa:402
 
+action_name_keys = {
+    "catalyst_type": CatalystLabelChanger,
+    "inclusion_criteria": IncludePropertyAdder,
+    "exclusion_criteria": ExcludePropertyAdder,
+    "relationship_to_candidate_list": RelationToCandidateListChanger,
+}
 
-class CoherentPolicy(ReasonerPolicy):
+
+class CoherentPolicy(BasePolicy):
     """A polocy like the Reasoner policy, but it promotes more coherent prompts."""
 
     def __init__(
         self,
-        temperature: float = 0.6,
-        include_property_types: list[str] = None,
-        exclude_property_types: list[str] = None,
-        relationship_to_candidate_list_types: list[str] = None,
-        catalyst_label_types: list[str] = None,
-        try_oxides: bool = True,
+        max_num_actions: int = 10,
     ):
         """Create the underlying ReasonerPolicy."""
-        super().__init__(
-            include_property_types,
-            exclude_property_types,
-            relationship_to_candidate_list_types,
-            catalyst_label_types,
-            try_oxides,
-        )
-        self.temperature = temperature
-        self.min_max = MinMaxScaler()
-        self.min_max.fit([[0]])  # initialize one value
-
-    def set_min_max_data(self, x: float):
-        """Set the min max function from data."""
-        x = [[x]]
-        self.min_max.fit(x)
-
-    def update_min_max_data(self, x: float):
-        """Set the min max function from data."""
-        x = [[x]]
-        self.min_max.partial_fit(x)
-
-    def transform_reward(self, x: float):
-        """Set the min max function from data."""
-        x = [[x]]
-        try:
-            return self.min_max.transform(x)[0][0]
-        except NotFittedError:
-            self.update_min_max_data(x)
-            return self.min_max.transform(x)[0][0]
+        self.max_num_actions
 
     @classmethod
     @staticmethod

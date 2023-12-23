@@ -1,4 +1,5 @@
 """Create a class for a reasoner state."""
+import json
 import logging
 import re
 import time
@@ -29,6 +30,7 @@ class ReasonerState:
         reward_template: str,
         ads_symbols: list[str],
         ads_preferences: list[float] = None,
+        priors_template: str = None,
         catalyst_label: str = "catalysts",
         num_answers: int = 3,
         prev_candidate_list: list[str] = [],
@@ -41,6 +43,7 @@ class ReasonerState:
         query_time: float = 0.0,
         info: dict = None,
         reward: float = None,
+        root_prompt: str = None,
         debug=False,
         **kwargs,
     ):
@@ -52,6 +55,7 @@ class ReasonerState:
             self.ads_preferences = [1] * len(self.ads_symbols)
         else:
             self.ads_preferences = ads_preferences.copy()
+        self.priors_template = priors_template
         self.catalyst_label = catalyst_label
         self.num_answers = num_answers
         self.prev_candidate_list = prev_candidate_list.copy()
@@ -69,6 +73,11 @@ class ReasonerState:
         self.reward = reward
         self.debug = debug
 
+        if root_prompt is None:
+            self.root_prompt = self.generation_prompt
+        else:
+            self.roo_prompt = root_prompt
+
     @classmethod
     @staticmethod
     def from_dict(data: dict):  # TODO: Add defaults
@@ -78,6 +87,7 @@ class ReasonerState:
             reward_template=data.get("reward_template"),
             ads_symbols=data.get("ads_symbols").copy(),
             ads_preferences=data.get("ads_preferences", None),
+            priors_template=data.get("priors_template", None),
             catalyst_label=data.get("catalyst_label"),
             prev_candidate_list=data.get("prev_candidate_list", []).copy(),
             relation_to_candidate_list=data.get("relation_to_candidate_list", None),
@@ -89,6 +99,7 @@ class ReasonerState:
             query_time=data.get("query_time", 0.0),
             info=deepcopy(data.get("self.info", {})),
             reward=data.get("reward", None),
+            root_prompt=data.get("root_prompt", None),
             debug=data.get("debug", False),
         )
 
@@ -99,6 +110,7 @@ class ReasonerState:
             reward_template=self.reward_template,
             ads_symbols=self.ads_symbols.copy(),
             ads_preferences=self.ads_preferences.copy(),
+            priors_template=self.priors_template,
             catalyst_label=self.catalyst_label,
             prev_candidate_list=self.prev_candidate_list.copy(),
             relation_to_candidate_list=self.relation_to_candidate_list,
@@ -109,6 +121,7 @@ class ReasonerState:
             num_queries=self.num_queries,
             query_time=self.query_time,
             info=deepcopy(self.info),
+            root_prompt=self.root_prompt,
             reward=self.reward,
             debug=self.debug,
         )
@@ -119,6 +132,9 @@ class ReasonerState:
             template=self.template,
             reward_template=self.reward_template,
             ads_symbols=self.ads_symbols.copy(),
+            ads_preferences=self.ads_preferences.copy(),
+            priors_template=self.priors_template,
+            catalyst_label=self.catalyst_label,
             prev_candidate_list=self.candidates,
             relation_to_candidate_list=self.relation_to_candidate_list,
             include_list=self.include_list.copy(),
@@ -126,6 +142,7 @@ class ReasonerState:
             answer=None,
             embeddings={},
             num_queries=0,
+            root_prompt=self.root_prompt,
             query_time=0.0,
             debug=self.debug,
         )
@@ -175,7 +192,7 @@ class ReasonerState:
     def process_generation(
         self, results  # ={"answer": _example_generation_answer, "usage": 0}
     ):
-        """process generation answer and store."""
+        """Process generation answer and store."""
         if isinstance(results, str):
             self.answer = results
             usage = None
@@ -323,6 +340,131 @@ class ReasonerState:
 
         self.info["symbols"]["symbols"] = answer_list_parsed
         return answer_list_parsed
+
+    @property
+    def priors_prompt(self):
+        """Return the priors prompt for the current state."""
+        if self.priors_template is None:
+            raise ValueError(
+                "Cannot generate priors prompt because priors template is None."
+            )
+        current_state = {
+            "catalyst_type": self.catalyst_label,
+            "inclusion_criteria": self.include_properties,
+            "exclusion_criteria": self.exclude_properties,
+            "relationship_to_candidate_list": self.relation_to_candidate_list,
+        }
+        actions_keys = list(current_state.keys())
+        actions_descriptions = [
+            "change the type of catalyst to search for",
+            "add a new inclusion criteria ",
+            "add a new exclusion criteria",
+            "change the relationship to the candidate list",
+        ]
+        template_entries = {
+            "current_state": current_state,
+            "action_keys": actions_keys,
+            "action_space": actions_descriptions,
+        }
+        template_entries.update({"root_prompt": self.root_prompt})
+        guidelines = [
+            "Your catalyst type may be a category similar to, different from, or be a "
+            f"subclass of {self.catalyst_labels}",
+            "Your new category, inclusion criteria, exclusion criteria, and "
+            "relationship should not contradict those in the current $search_state.",
+        ]
+        if self.generation_prompt != self.root_prompt:
+            current_p_a_condition = (
+                f"$current_prompt = {self.generation_prompt}"
+                "\n\n$current_answer = {self.answer}"
+            )
+            current_conditioning = (
+                "$search_state, $root_prompt, $current_question and $current_answer"
+            )
+            template_entries.update(
+                {
+                    "root_prompt": self.root_prompt,
+                    "current_prompt_answer": current_p_a_condition,
+                    "current_conditioning": current_conditioning,
+                }
+            )
+            guidelines.append(
+                "Your suggestions should use scientific explanations from the answers "
+                "and explanations in $current_answer"
+            )
+        else:
+            current_conditioning = "$search_state and $root_prompt"
+            template_entries.update(
+                {
+                    "root_prompt": self.root_prompt,
+                    "current_prompt_answer": "",
+                    "current_conditioning": current_conditioning,
+                }
+            )
+        guidelines += [
+            "Your suggestions should not include MOFs, Zeolites, non-metals",
+            "Your suggestions should not repeat categories from $search_state",
+        ]
+        guidelines_list = "\n".join([f"{i}) {g}" for i, g in enumerate(guidelines)])
+        guidelines_string = (
+            "Your answers should use the following guidelines:\n" + guidelines_list
+        )
+        template_entries.update({"guidelines": guidelines_string})
+        keys_string = ", ".join(['"' + k + '"' for k in list(current_state.keys())])
+        template_entries.update(
+            {
+                "final_task": "Let's think step-by-step, explain your "
+                "thought process, with scientific justifications, then return your "
+                "answer as a dictionary mapping from "
+                f"[{keys_string}] "
+                "to lists of suggestions."
+            }
+        )
+        prompt = fstr(self.prior_template, template_entries)
+        return prompt
+
+    def process_prior(self, results):
+        """Process the results of the prior prompt."""
+        if isinstance(results, str):
+            prior_answer = results
+            usage = None
+        else:
+            prior_answer = results["answer"]
+            usage = results["usage"]
+
+        action_lists = {}
+        for line in prior_answer.split("{")[-1].split("\n"):
+            if ":" in line:
+                action, possible_actions = line.split(":")
+                action_list = list(
+                    {
+                        s.strip()
+                        for s in possible_actions.strip()
+                        .strip("[")
+                        .strip("]")
+                        .split(",")
+                    }
+                )  # Use a set for unique elements only
+                action_lists["action"] = action_list
+        if "priors" not in self.info:
+            self.info["priors"] = [
+                {
+                    "prompt": self.priors_prompt,
+                    "answer": self.prior_answer,
+                    "usage": usage,
+                    "parsed_actions": action_lists,
+                }
+            ]
+        else:
+            self.info["priors"] += [
+                {
+                    "prompt": self.priors_prompt,
+                    "answer": self.prior_answer,
+                    "usage": usage,
+                    "parsed_actions": action_lists,
+                }
+            ]
+        return action_lists
 
     def query_adsorption_energy_list(
         self,
@@ -572,6 +714,22 @@ def generate_adsorption_energy_list_prompt(
     return prompt
 
 
+def convert_to_string(obj: object, indent=1):
+    """Convert the given dictionary to a string for prompts."""
+    if isinstance(obj, dict):
+        new_dict = obj.copy()
+        for k, v in obj.items():
+            new_dict[k] = convert_to_string(v, indent=indent + 1)
+        return json.dumps(new_dict, indent=indent)
+    elif isinstance(obj, list):
+        new_list = obj.copy()
+        for i, v in enumerate(new_list):
+            new_list[i] = convert_to_string(v, indent=indent + 1)
+        return json.dumps(new_dict, indent=indent)
+    else:
+        return str(v)
+
+
 if __name__ == "__main__":
     import pickle
     import sys
@@ -703,6 +861,3 @@ Please note that the final_answer list includes chemically accurate descriptions
         print(llm_function(state))
 
         print(("*" * 15 + "\n") * 4)
-
-        with open("data/example_trajectory.pkl", "wb") as f:
-            pickle.dump(states, f)

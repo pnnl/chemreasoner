@@ -18,7 +18,6 @@ from evaluation.visualize import (  # noqa: E402
     remove_colons,
     nx_plot,
 )  # noqa: E402
-from llm.query import parse_answer, QueryState  # noqa: E402
 
 
 def clean_attr_data(attribute_data):
@@ -210,7 +209,6 @@ def graph_get_trace(graph: nx.Graph):
     print(list(sp))
     if len(list(sp)) > 0:
         for node in list(sp)[0]:
-
             prompt = create_prompt_from_node_data(graph.nodes()[node])
 
             answer = graph.nodes()[node]["answer"]
@@ -333,7 +331,6 @@ if __name__ == "__main__":
                         graph = search_tree_to_nx(tree_data)
 
                     if len(graph.nodes) > 1:
-
                         usage_statistics.append(
                             {
                                 "filename": str(p),
@@ -349,7 +346,6 @@ if __name__ == "__main__":
                         )
                         for n, data in graph.nodes(data=True):
                             if "simulation-reward" in data["info"].keys():
-
                                 usage_statistics[-1]["llm_count"] += data["num_queries"]
                                 usage_statistics[-1]["llm_time"] += data["query_time"]
                                 usage_statistics[-1]["llm_avg"] = (
