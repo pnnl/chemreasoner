@@ -208,7 +208,7 @@ class StructureReward(BaseReward):
                     elif placement_type == "heuristic":
                         for ads_sym in ads_list:
                             ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
-                            slab_ats.center(vacuum=13.0, axis=2)
+                            # slab_ats.center(vacuum=13.0, axis=2)
 
                             name = f"{slab_name}_{ads_sym}"
                             adslab_ats += self.sample_adslabs_heuristic(slab_ats, ads_ats, name)
