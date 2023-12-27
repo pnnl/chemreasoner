@@ -28,11 +28,27 @@ action_name_keys = {
 example_output = """
 Therefore, the suggested actions to narrow down the search and accomplish the $root_prompt are:
 {
-   "catalyst_types": ["bimetallic catalysts", "transition metal catalysts"],
+   "catalyst_type": ["bimetallic catalysts", "transition metal catalysts"],
    "inclusion_criteria": ["high selectivity", "high producability],
    "exclusion_criteria": ["poor stability", ""],
-   "relationships": ["complementary to"]
+   "relationship_to_candidate_list": ["complementary to"]
 }
+"""
+
+
+priors_template = """$search_state = {current_state}
+
+$action_space = {action_space}
+
+$root_question = {root_prompt}
+
+{current_prompt_answer}
+Consider the {current_conditions}. Your task is to suggest possible actions that could achieve the intent of the $root_prompt. 
+
+Your answers should use the following guidelines:
+{guidelines}
+
+{final_task}
 """
 
 
@@ -52,7 +68,8 @@ class CoherentPolicy(BasePolicy):
     def strings_to_actions(action_lists: dict[str, str]) -> list[callable]:
         """Turn the strings returned by the language model into actions."""
         actions = []
-        for k, v in action_lists:
+        print(action_lists)
+        for k, v in action_lists.items():
             actions += [action_name_keys[k](a) for a in v]
         return actions
 
@@ -70,8 +87,7 @@ class CoherentPolicy(BasePolicy):
                 try:
                     prompts.append(s.priors_prompt)
                     prompts_idx.append(i)
-                except Exception as err:
-                    raise err
+                except Exception:
                     logging.warning("Cannot generate prompt for state.")
             llm_answers = self.llm_function(prompts)
 
@@ -92,7 +108,8 @@ class CoherentPolicy(BasePolicy):
                         actions += [None] * length_difference
 
                     action_priors.append((actions, priors))
-                except Exception:
+                except Exception as err:
+                    raise err
                     logging.warning(
                         "Could not parse the actions for the given state. Trying again."
                     )
@@ -108,5 +125,14 @@ if __name__ == "__main__":
 
     with open("data/example_trajectory.pkl", "rb") as f:
         states = pickle.load(f)
+    for i, s in enumerate(states):
+        if i == 0:
+            root_prompt = s.generation_prompt
+        s.info.pop("priors")
+        dict_data = vars(s)
+        dict_data.update(
+            {"priors_template": priors_template, "root_prompt": root_prompt}
+        )
+
     print(states)
     print(p.get_actions(states))

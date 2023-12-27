@@ -69,14 +69,14 @@ class ReasonerState:
         if info is not None:
             self.info = info
         else:
-            self.info = {"generation": {}, "priors": {}}
+            self.info = {}
         self.reward = reward
         self.debug = debug
 
         if root_prompt is None:
             self.root_prompt = self.generation_prompt
         else:
-            self.roo_prompt = root_prompt
+            self.root_prompt = root_prompt
 
     @classmethod
     @staticmethod
@@ -350,8 +350,8 @@ class ReasonerState:
             )
         current_state = {
             "catalyst_type": self.catalyst_label,
-            "inclusion_criteria": self.include_properties,
-            "exclusion_criteria": self.exclude_properties,
+            "inclusion_criteria": self.include_list,
+            "exclusion_criteria": self.exclude_list,
             "relationship_to_candidate_list": self.relation_to_candidate_list,
         }
         actions_keys = list(current_state.keys())
@@ -362,14 +362,14 @@ class ReasonerState:
             "change the relationship to the candidate list",
         ]
         template_entries = {
-            "current_state": current_state,
-            "action_keys": actions_keys,
-            "action_space": actions_descriptions,
+            "current_state": convert_to_string(current_state),
+            "actions_keys": convert_to_string(actions_keys, indent=0),
+            "action_space": convert_to_string(actions_descriptions),
         }
         template_entries.update({"root_prompt": self.root_prompt})
         guidelines = [
             "Your catalyst type may be a category similar to, different from, or be a "
-            f"subclass of {self.catalyst_labels}",
+            f"subclass of {self.catalyst_label}",
             "Your new category, inclusion criteria, exclusion criteria, and "
             "relationship should not contradict those in the current $search_state.",
         ]
@@ -378,14 +378,14 @@ class ReasonerState:
                 f"$current_prompt = {self.generation_prompt}"
                 "\n\n$current_answer = {self.answer}"
             )
-            current_conditioning = (
+            current_conditions = (
                 "$search_state, $root_prompt, $current_question and $current_answer"
             )
             template_entries.update(
                 {
                     "root_prompt": self.root_prompt,
                     "current_prompt_answer": current_p_a_condition,
-                    "current_conditioning": current_conditioning,
+                    "current_conditions": current_conditions,
                 }
             )
             guidelines.append(
@@ -393,12 +393,12 @@ class ReasonerState:
                 "and explanations in $current_answer"
             )
         else:
-            current_conditioning = "$search_state and $root_prompt"
+            current_conditions = "$search_state and $root_prompt"
             template_entries.update(
                 {
                     "root_prompt": self.root_prompt,
                     "current_prompt_answer": "",
-                    "current_conditioning": current_conditioning,
+                    "current_conditions": current_conditions,
                 }
             )
         guidelines += [
@@ -420,7 +420,7 @@ class ReasonerState:
                 "to lists of suggestions."
             }
         )
-        prompt = fstr(self.prior_template, template_entries)
+        prompt = fstr(self.priors_template, template_entries)
         return prompt
 
     def process_prior(self, results):
@@ -445,24 +445,24 @@ class ReasonerState:
                         .split(",")
                     }
                 )  # Use a set for unique elements only
-                action_lists["action"] = action_list
+                action_lists[action.strip().strip('"')] = action_list
         if "priors" not in self.info:
             self.info["priors"] = [
                 {
                     "prompt": self.priors_prompt,
-                    "answer": self.prior_answer,
+                    "answer": prior_answer,
                     "usage": usage,
                     "parsed_actions": action_lists,
-                }
+                },
             ]
         else:
             self.info["priors"] += [
                 {
                     "prompt": self.priors_prompt,
-                    "answer": self.prior_answer,
+                    "answer": prior_answer,
                     "usage": usage,
                     "parsed_actions": action_lists,
-                }
+                },
             ]
         return action_lists
 
@@ -692,7 +692,7 @@ def parse_answer(answer: str, num_expected=None):
 
 def fstr(fstring_text, vals):
     """Evaluate the provided fstring_text."""
-    ret_val = eval(f'f"{fstring_text}"', vals)
+    ret_val = eval(f"""f'''{fstring_text}'''""", vals)
     return ret_val
 
 
@@ -725,9 +725,9 @@ def convert_to_string(obj: object, indent=1):
         new_list = obj.copy()
         for i, v in enumerate(new_list):
             new_list[i] = convert_to_string(v, indent=indent + 1)
-        return json.dumps(new_dict, indent=indent)
+        return json.dumps(new_list, indent=indent)
     else:
-        return str(v)
+        return str(obj)
 
 
 if __name__ == "__main__":
