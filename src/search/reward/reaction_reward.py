@@ -2,9 +2,7 @@
 import logging
 import sys
 import uuid
-
 from pathlib import Path
-
 import numpy as np
 
 from ase import Atoms
@@ -22,7 +20,7 @@ from search.reward.base_reward import BaseReward  # noqa: E402
 logging.getLogger().setLevel(logging.INFO)
 
 
-class StructureReward(BaseReward):
+class PathReward(BaseReward):
     """Calculate the reward for answers based on adsorption simulations."""
 
     def __init__(
@@ -44,119 +42,19 @@ class StructureReward(BaseReward):
         self.num_slab_samples = num_slab_samples
         self.num_adslab_samples = num_adslab_samples
 
-    def run_generation_prompts(
-        self, slab_syms: list[list[str]], states: list[ReasonerState]
-    ):
-        """Run the generation prompts for the given states where the reward is None."""
-        prompts = []
-        system_prompts = []
-        for i, s in enumerate(states):
-            if slab_syms[i] is None:
-                prompts.append(s.generation_prompt)
-                system_prompts.append(s.generation_system_prompt)
-
-        generation_results = self.llm_function(prompts, system_prompts)
-        loop_counter = 0
-        for i, s in enumerate(states):
-            if slab_syms[i] is None:
-                s.process_generation(generation_results[loop_counter])
-
-                loop_counter += 1
-
-    def run_slab_sym_prompts(
-        self, slab_syms: list[list[str]], states: list[ReasonerState]
-    ):
-        """Run the generation prompts for the given states where the reward is None.
-
-        Updates the given "slab_syms" list in-place.
-        """
-        prompts = []
-        system_prompts = []
-        prompts_idx = []
-        for i, s in enumerate(states):
-            if slab_syms[i] is None:
-                try:
-                    prompts.append(s.catalyst_symbols_prompt)
-                    system_prompts.append(None)
-                    prompts_idx.append(i)
-                except Exception as err:
-                    logging.warning(
-                        f"Failed to generate prompts with error: {str(err)}. "
-                        "Skipping this prompt."
-                    )
-                    if len(prompts) > len(system_prompts):
-                        prompts.pop()
-
-        answers = self.llm_function(
-            prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
-        )
-
-        for i, p in enumerate(prompts):
-            state_idx = prompts_idx[i]
-            s = states[state_idx]
-            try:
-                slab_syms[state_idx] = s.process_catalyst_symbols(answers[i])
-
-            except Exception as err:
-                logging.warning(f"Failed to parse answer with error: {str(err)}.")
 
     def __call__(
         self,
-        states: list[ReasonerState],
-        num_attempts: int = 3,
-        primary_reward: bool = True,
+        paths
     ):
         """Return the calculated adsorption energy from the predicted catalysts."""
-        rewards = []
-        slab_syms = [None] * len(states)
-        attempts = 0
-        while any([r is None for r in rewards]) and attempts < self.max_attempts:
-            if primary_reward:
-                self.run_generation_prompts(slab_syms, states)
 
-            self.run_slab_sym_prompts(slab_syms, states)
+        _, min_act_energy, min_act_energy_path = self.get_reward_for_paths(paths)
 
-            attempts += 1
+        print("minimum activation energy aproximation: ", min_act_energy)
+        print("minimum activation energy reaction pathway: ", min_act_energy_path)
 
-        for i, s in enumerate(states):
-            ads_list = s.ads_symbols
-            candidates_list = s.candidates
-            if slab_syms[i] is None:
-                logging.warning(
-                    f"Unable to parse the answer:\n\n {s.answer}."
-                    "\n\nInto catalyst symbols. "
-                    "Returning the penalty value for that answer."
-                )
-                rewards[i] = self.penalty_value
-            else:
-                (
-                    adslabs_and_energies,
-                    gnn_calls,
-                    gnn_time,
-                    name_candidate_mapping,
-                ) = self.create_structures_and_calculate(
-                    slab_syms, ads_list, candidates_list
-                )
-
-                final_reward = self.parse_adsorption_energies(
-                    adslabs_and_energies,
-                    name_candidate_mapping,
-                    candidates_list,
-                    s.ads_preferences,
-                )
-
-                rewards.append(final_reward)
-
-                s.info["simulation-reward"].update(
-                    {
-                        "slab_syms": slab_syms,
-                        "value": final_reward,
-                        "gnn_calls": gnn_calls,
-                        "gnn_time": gnn_time,
-                    }
-                )
-
-        return rewards
+        return min_act_energy_path
 
     def create_structures_and_calculate(
         self,
@@ -179,6 +77,7 @@ class StructureReward(BaseReward):
                 slab_name = self.reduce_candidate_symbols(slab_sym)
                 slab_ats = self.adsorption_calculator.get_slab(slab_name)
                 if slab_ats is None:
+                    print('slab is not present. creating new one.')
                     try:
                         slab_samples = [
                             ase_interface.symbols_list_to_bulk(slab_sym)
@@ -195,7 +94,8 @@ class StructureReward(BaseReward):
                             slab_samples, slab_name
                         )
                 if slab_ats is not None:
-                    if placement_type is None:
+                    print('salb is present')
+                    if placement_type == None:
                         for ads_sym in ads_list:
                             ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
                             name = f"{slab_name}_{ads_sym}"
@@ -211,9 +111,7 @@ class StructureReward(BaseReward):
                             # slab_ats.center(vacuum=13.0, axis=2)
 
                             name = f"{slab_name}_{ads_sym}"
-                            adslab_ats += self.sample_adslabs_heuristic(
-                                slab_ats, ads_ats, name
-                            )
+                            adslab_ats += self.sample_adslabs_heuristic(slab_ats, ads_ats, name)
 
                             if candidates_list is not None:
                                 name_candidate_mapping[name] = candidates_list[i]
@@ -322,6 +220,67 @@ class StructureReward(BaseReward):
 
         return results
 
+    def get_reward_for_path(self, path: list):
+    
+        adsE=[]
+        # reward_values = defaultdict()
+        for j, step in enumerate(path):
+            adsorbent, adsorbate, name = step    
+            # print('step: ', j)
+    
+            # use the same adsorbent
+            # create the adsorbent here or if the slab is
+            # saved, read it.
+            res = sr.create_structures_and_calculate(
+                    [ adsorbent ],
+                    [ adsorbate ],
+                    [ name ],
+                    placement_type="heuristic"
+                )
+    
+            for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
+                    break_trajectory(p)
+            
+            adslabs_and_energies = res[0] # id, slab_name, ads_energy, valid
+            # name_candidate_mapping = res[3]
+            # adslabs_and_energies
+    
+            # only selecting the valid structures
+            adslabs_and_energies = [i for i in adslabs_and_energies if i[3]==1]
+            
+            # get the energies of each adsorbed structures
+            energies = [i[2] for i in adslabs_and_energies]
+    
+            # get the minimum energy structure
+            lowest_E_str = adslabs_and_energies[np.argmin(energies)]
+        
+            # print("low E ", lowest_E_str)
+            adsE.append(lowest_E_str)
+        
+        E = [i[2] for i in adsE]
+        print('energy difference between steps: ', np.diff(E) )
+        max_E_diff = max(np.diff(E)) # an approximation for activation energy
+    
+        return max_E_diff
+        # return max_E_diff, E
+
+    def get_reward_for_paths(self, paths):
+        rewards=[]
+        # ads_energies=[]
+        for path in paths:
+            reward = self.get_reward_for_path(path)
+            # reward, E = self.get_reward_for_path(path)
+            # ads_energies.append(E)
+            rewards.append(reward)
+    
+    
+        min_act_energy_path_id = np.argmin(rewards)
+        min_act_energy = rewards[min_act_energy_path_id]
+        min_act_energy_path = paths[min_act_energy_path_id]
+    
+        return min_act_energy_path_id, min_act_energy, min_act_energy_path
+        # return ads_energies, min_act_energy, min_act_energy_path
+
     def unpack_batch_results(self, batch_results, fname_batch):
         """Unpack a collection of batch results."""
         results = []
@@ -360,9 +319,7 @@ class StructureReward(BaseReward):
         adslabs = []
         # for i in range(self.num_adslab_samples):
         # print(slab.info)
-        adslab = ase_interface.generate_bulk_ads_pairs_heuristic(
-            slab, ads, num_sites=self.num_adslab_samples
-        )
+        adslab = ase_interface.generate_bulk_ads_pairs_heuristic(slab, ads, num_sites=self.num_adslab_samples)
         adslabs = [(i, name, adslab[i]) for i in range(len(adslab))]
 
         return adslabs
@@ -413,72 +370,64 @@ class StructureReward(BaseReward):
         return formula
 
 
-class _TestState:
-    def __init__(self, test_candidates, test_ads_symbols, test_ads_preferences):
-        """Create test query state for testing the reward function."""
-        self.candidates = test_candidates
-        self.ads_symbols = test_ads_symbols
-        self.ads_preferences = test_ads_preferences
+# class _TestState:
+#     def __init__(self, test_candidates, test_ads_symbols, test_ads_preferences):
+#         """Create test query state for testing the reward function."""
+#         self.candidates = test_candidates
+#         self.ads_symbols = test_ads_symbols
+#         self.ads_preferences = test_ads_preferences
+    
+
 
 
 if __name__ == "__main__":
-    # traj_dir = "random"
-    traj_dir = "heuristic"
+    traj_dir = "hreact"
 
-    if "random" in traj_dir:
-        # heights = np.arange(0.1, 3.0, 0.25)
-        heights = [3.25]
-        for height in heights:
-            sr = StructureReward(
-                **{
-                    "llm_function": None,
-                    "model": "gemnet",
-                    "traj_dir": Path("data", "output", f"{traj_dir}"),
-                    "device": "cpu",
-                    "ads_tag": 2,
-                    "num_adslab_samples": 1,
-                }
-            )
-
-            # print(
-            #     sr.create_structures_and_calculate(
-            #         [["Cu"], ["Pt"], ["Zr"]],
-            #         ["CO", "phenol", "anisole"],
-            #         ["Cu", "Pt", "Zr"],
-            #         adsorbate_height=height
-            #     )
-            # )
-
-            print(
-                sr.create_structures_and_calculate(
-                    [["Cu"]], ["CO"], ["Cu"], adsorbate_height=height
-                )
-            )
-
-            for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
-                break_trajectory(p)
-
-    elif "heuristic" in traj_dir:
-        print("using heuristic methods")
-        sr = StructureReward(
+    sr = PathReward(
             **{
                 "llm_function": None,
                 "model": "gemnet",
                 "traj_dir": Path("data", "output", f"{traj_dir}"),
                 "device": "cpu",
                 "ads_tag": 2,
-                "num_adslab_samples": 1,
+                "num_adslab_samples": 2
             }
         )
 
-        print(
-            sr.create_structures_and_calculate(
-                [["Cu"]], ["phenol"], ["Cu"], placement_type="heuristic"
-            )
-        )
+    path1 = [ [["Cu"], "CO2", "Cu"], 
+                [["Cu"], "HCOOH", "Cu"], 
+                    [["Cu"], "CH2O", "Cu"], 
+                        [["Cu"], "CH3O", "Cu"], 
+                            [["Cu"], "CH3OH", "Cu"], 
+        ]
 
-        for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
-            break_trajectory(p)
+    path2 = [ [["Cu"], "CO2", "Cu"], 
+                [["Cu"], "CO", "Cu"], 
+                    [["Cu"], "CHOH", "Cu"], 
+                            [["Cu"], "CH3OH", "Cu"], 
+        ]
+
+    path3 = [ [["Cu"], "CO2", "Cu"], 
+                [["Cu"], "CHO2", "Cu"], 
+                    [["Cu"], "CH3OH", "Cu"], 
+                        [["Cu"], "CH2O", "Cu"], 
+                            [["Cu"], "CH3OH", "Cu"], 
+        ]
+
+    path4 = [ [["Cu"], "CO2", "Cu"], 
+                [["Cu"], "COOH", "Cu"], 
+                    [["Cu"], "CH2O", "Cu"], 
+                        [["Cu"], "CH3OH", "Cu"]
+        ]
+
+    path5 = [ [["Cu"], "CO2", "Cu"], 
+                [["Cu"], "CHO", "Cu"], 
+                        [["Cu"], "CH3OH", "Cu"]
+        ] 
 
 
-# model weights have to placed in data/model_weights
+
+    path_id, actE, path = sr.get_reward_for_paths([path1, path2, path4, path5])
+
+    print("minimum act. energy: ", actE)
+    print("minimum act. energy path : ", path)
