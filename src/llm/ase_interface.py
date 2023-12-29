@@ -9,7 +9,7 @@ from ase import Atoms
 from ase.io import write
 import ase.build as build
 from ase.data import reference_states, atomic_numbers
-
+import ocdata
 import numpy as np
 from ocdata.core import Adsorbate, AdsorbateSlabConfig, Bulk, Slab
 
@@ -151,9 +151,15 @@ def generate_bulk_ads_pairs_heuristic(
 ) -> Union[Atoms, list[Atoms]]:
     
     bulk = Bulk(bulk_atoms=bulk)
+    # bulk = Bulk(bulk_atoms=slab_ats)
+    slabs = Slab(bulk=bulk, slab_atoms=bulk.atoms)
     # specific_millers might have to be changed based on the type of the crystal (cubic, etc)
-    slabs = Slab.from_bulk_get_specific_millers(bulk = bulk, specific_millers=(0,0,1))
-    slabs = [s for s in slabs if s.shift==0.0] # selecting the slabs with shift=0
+    # slabs = Slab.from_bulk_get_specific_millers(bulk = bulk, specific_millers=(0,0,1))
+    if isinstance(slabs, list):
+        slabs = [s for s in slabs if s.shift==0.0] # selecting the slabs with shift=0
+    elif isinstance(slabs, ocdata.core.slab.Slab):
+        print("slab type is ocdata.core.slab.Slab")
+        slabs = [slabs]
 
     
     binding_molecules = ads.info.get("binding_sites", np.array([0]))
@@ -165,7 +171,10 @@ def generate_bulk_ads_pairs_heuristic(
 
     if num_sites < len(heuristic_adslabs):
         adslabs = [heuristic_adslabs[i] for i in range(num_sites)]
-
+    
+    elif num_sites == len(heuristic_adslabs):
+        adslabs = heuristic_adslabs
+        
     elif num_sites > len(heuristic_adslabs):
         num_random_slabs = (num_sites - len(heuristic_adslabs))//len(slabs)
 
