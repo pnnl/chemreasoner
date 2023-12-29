@@ -195,7 +195,7 @@ class StructureReward(BaseReward):
                             slab_samples, slab_name
                         )
                 if slab_ats is not None:
-                    if placement_type == None:
+                    if placement_type is None:
                         for ads_sym in ads_list:
                             ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
                             name = f"{slab_name}_{ads_sym}"
@@ -211,7 +211,9 @@ class StructureReward(BaseReward):
                             # slab_ats.center(vacuum=13.0, axis=2)
 
                             name = f"{slab_name}_{ads_sym}"
-                            adslab_ats += self.sample_adslabs_heuristic(slab_ats, ads_ats, name)
+                            adslab_ats += self.sample_adslabs_heuristic(
+                                slab_ats, ads_ats, name
+                            )
 
                             if candidates_list is not None:
                                 name_candidate_mapping[name] = candidates_list[i]
@@ -358,7 +360,9 @@ class StructureReward(BaseReward):
         adslabs = []
         # for i in range(self.num_adslab_samples):
         # print(slab.info)
-        adslab = ase_interface.generate_bulk_ads_pairs_heuristic(slab, ads, num_sites=self.num_adslab_samples)
+        adslab = ase_interface.generate_bulk_ads_pairs_heuristic(
+            slab, ads, num_sites=self.num_adslab_samples
+        )
         adslabs = [(i, name, adslab[i]) for i in range(len(adslab))]
 
         return adslabs
@@ -418,13 +422,10 @@ class _TestState:
 
 
 if __name__ == "__main__":
-    
-
     # traj_dir = "random"
     traj_dir = "heuristic"
 
     if "random" in traj_dir:
-
         # heights = np.arange(0.1, 3.0, 0.25)
         heights = [3.25]
         for height in heights:
@@ -439,7 +440,6 @@ if __name__ == "__main__":
                 }
             )
 
-
             # print(
             #     sr.create_structures_and_calculate(
             #         [["Cu"], ["Pt"], ["Zr"]],
@@ -449,46 +449,36 @@ if __name__ == "__main__":
             #     )
             # )
 
-
             print(
                 sr.create_structures_and_calculate(
-                    [["Cu"]],
-                    ["CO"],
-                    ["Cu"],
-                    adsorbate_height=height
+                    [["Cu"]], ["CO"], ["Cu"], adsorbate_height=height
                 )
             )
-            
 
             for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
                 break_trajectory(p)
 
-
     elif "heuristic" in traj_dir:
         print("using heuristic methods")
         sr = StructureReward(
-                **{
-                    "llm_function": None,
-                    "model": "gemnet",
-                    "traj_dir": Path("data", "output", f"{traj_dir}"),
-                    "device": "cpu",
-                    "ads_tag": 2,
-                    "num_adslab_samples": 1
-                }
-            )
-        
+            **{
+                "llm_function": None,
+                "model": "gemnet",
+                "traj_dir": Path("data", "output", f"{traj_dir}"),
+                "device": "cpu",
+                "ads_tag": 2,
+                "num_adslab_samples": 1,
+            }
+        )
+
         print(
-                sr.create_structures_and_calculate(
-                    [["Cu"]],
-                    ["phenol"],
-                    ["Cu"],
-                    placement_type="heuristic"
-                )
+            sr.create_structures_and_calculate(
+                [["Cu"]], ["phenol"], ["Cu"], placement_type="heuristic"
             )
-            
+        )
 
         for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
-                break_trajectory(p)
+            break_trajectory(p)
 
 
 # model weights have to placed in data/model_weights
