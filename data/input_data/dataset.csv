@@ -85,35 +85,35 @@ OpenCatalyst,Generate a list of top-5{ catalysts} for the adsorption of CO*COH.
 OpenCatalyst,Generate a list of top-5{ catalysts} for the adsorption of *OCHO.
 OpenCatalyst,Generate a list of top-5{ catalysts} for the adsorption of *COOH.
 OpenCatalyst,Generate a list of top-5{ catalysts} for the adsorption of *OOH.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind anisole in hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind methyl in hydrogenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind phenolate in hydrogenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in hydrogenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 catalysts can bind anisole in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 catalysts can bind methyl in the hydrogenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 catalysts can bind phenolate in the hydrogenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrogenation reaction with Low Cost.
 RWGS,Generate a list of top-5{ catalysts} that exhibit higher adsorption energy for both CO2 and H2 for the production of CO (the reactants of the RWGS reaction).
 RWGS,Generate a list of top-5{ catalysts} that exhibit weak adsorption energy for CO (the product of the RWGS reaction).
 RWGS,Generate a list of top-5{ catalysts} that exhibit high activity for the RWGS reaction.
