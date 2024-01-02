@@ -10,3 +10,4 @@
 *.pt
 data/output_data/
 ext/*/*.yml
+*.env
