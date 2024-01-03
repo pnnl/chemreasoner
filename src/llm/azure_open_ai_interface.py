@@ -27,7 +27,9 @@ async def parallel_azure_openai_chat_completion(
     if system_prompt is not None:
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
-    return await client.chat.completions.create(messages=messages, **kwargs)
+    return await client.chat.completions.create(
+        messages=messages, model=model, **kwargs
+    )
 
 
 async def azure_openai_chat_async_evaluation(
@@ -80,3 +82,7 @@ def run_openai_prompts(
             for a in answer_objects
         ]
         return [{"answers": a, "usages": u} for a, u in zip(answer_strings, usages)]
+
+
+if __name__ == "__main__":
+    run_openai_prompts(["test prompt", "test 2"], ["sys1", "sys2"])
