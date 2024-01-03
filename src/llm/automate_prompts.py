@@ -4,8 +4,6 @@ import sys
 import pandas as pd
 
 sys.path.append("src")
-from llm import query  # noqa: E402
-from search.policy.reasoner_policy import ReasonerPolicy  # noqa: E402
 from search.state.reasoner_state import ReasonerState  # noqa: E402
 
 
@@ -20,7 +18,7 @@ def find_all(string, sub):
         start += len(sub)  # use start += 1 to find overlapping matches
 
 
-def get_initial_state_oc(
+def get_initial_state_open_catalyst(
     question,
     prediction_model,
     reward_model,
@@ -56,7 +54,7 @@ def get_initial_state_oc(
     return starting_state
 
 
-def get_initial_state_biofuels(
+def get_initial_state_bio_fuels(
     question: str,
     prediction_model,
     reward_model,
@@ -151,7 +149,7 @@ def get_initial_state_rwgs(
     ads_symbols = []
     ads_preference = []
     for possible_ads in ["CO", "CO2", "H2"]:
-        if possible_ads in question.replace("RWGS reaction"):
+        if possible_ads in question.replace("RWGS reaction", ""):
             ads_symbols.append(possible_ads)
             preference = -1 if possible_ads == "CO" else 1
             ads_preference.append(preference)
@@ -229,7 +227,7 @@ def get_initial_state_ethanol(
     ads_symbols = []
     ads_preference = []
     for possible_ads in ["ethanol", "CO2", "H2"]:
-        if possible_ads in question.replace("CO2 to ethanol conversion reaction"):
+        if possible_ads in question.replace("CO2 to ethanol conversion reaction", ""):
             ads_symbols.append(possible_ads)
             preference = -1 if possible_ads == "CO" else 1
             ads_preference.append(preference)
@@ -252,7 +250,7 @@ def get_initial_state_ethanol(
     return qs
 
 
-def get_initial_state_rwgs(
+def get_initial_state_methanol(
     question: str,
     prediction_model,
     reward_model,
@@ -307,7 +305,7 @@ def get_initial_state_rwgs(
     ads_symbols = []
     ads_preference = []
     for possible_ads in ["methanol", "CO2", "H2"]:
-        if possible_ads in question.replace("CO2 to methanol reaction"):
+        if possible_ads in question.replace("CO2 to methanol reaction", ""):
             ads_symbols.append(possible_ads)
             preference = -1 if possible_ads == "CO" else 1
             ads_preference.append(preference)
