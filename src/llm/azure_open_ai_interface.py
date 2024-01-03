@@ -44,7 +44,7 @@ async def azure_openai_chat_async_evaluation(
     return answers
 
 
-def run_openai_prompts(
+def run_azure_openai_prompts(
     prompts: list[str],
     system_prompts: list[Union[str, None]] = None,
     model="gpt-3.5-turbo",
