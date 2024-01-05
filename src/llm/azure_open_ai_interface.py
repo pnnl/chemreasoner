@@ -85,4 +85,4 @@ def run_azure_openai_prompts(
 
 
 if __name__ == "__main__":
-    run_openai_prompts(["test prompt", "test 2"], ["sys1", "sys2"])
+    run_azure_openai_prompts(["test prompt", "test 2"], ["sys1", "sys2"])
