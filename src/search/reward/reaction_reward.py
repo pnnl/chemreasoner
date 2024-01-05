@@ -16,6 +16,7 @@ from search.state.reasoner_state import ReasonerState  # noqa: E402
 from evaluation.break_traj_files import break_trajectory  # noqa: E402
 from nnp import oc  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
+import pickle
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -468,3 +469,20 @@ if __name__ == "__main__":
     print("minimum act. energy: ", min_act_energy)
     print("minimum act. energy path : ", min_act_energy_path)
     print("minimum act. energy path info : ", lowestE_str_info)
+
+    output = {
+    
+    "trag_dir": traj_dir,
+    "min_act_energy_path_id": min_act_energy_path_id,
+    "relaxed_energies": relax_energies,
+    "minimum_act_energy": min_act_energy,
+    "minimum_act_energy_path": min_act_energy_path,
+    "minimum_act_energy_path_info_": lowestE_str_info
+    }
+
+    out_path = Path("data", "output", f"{traj_dir}", "paths_results.pkl")
+
+    with open(out_path, 'wb') as f:
+        pickle.dump(output, f)
+
+
