@@ -57,7 +57,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         device="cpu",
         ads_tag=0,
         fmax=0.005,
-        steps=150,
+        # steps=150,
+        steps=4,
         adsorbed_structure_checker=None,
     ):
         """Create object from model class (gemnet or equiformer).
@@ -224,7 +225,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def batched_adsorption_calculation(
         self,
-        atoms: list[Atoms],
+        atoms: list[Atoms], # a list of structures
         atoms_names,
         device=None,
         **bfgs_kwargs,
@@ -312,6 +313,139 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             )
 
         return adslab_e
+
+
+
+    def batched_adsorption_and_energy_calculation(
+        self,
+        atoms: list[Atoms], # a list of structures
+        atoms_names,
+        device=None,
+        **bfgs_kwargs,
+    ):
+        """Calculate adsorption energies from relaxed atomic positions."""
+        adslabs = atoms
+        atoms = self.copy_atoms_list(atoms)
+        # Set up calculation for oc
+        bulk_atoms = []
+        ads_e = []
+        for ats in atoms:
+            bulk_ats = Atoms()
+            e_ref = 0
+            for i, t in enumerate(ats.get_tags()):
+                if t == self.ads_tag:  # part of the adsorbate
+                    e_ref += self.ads_references[ats.get_atomic_numbers()[i]]
+                else:  # part of the bulk
+                    bulk_ats.append(ats[i])
+            ads_e.append(e_ref)
+            bulk_atoms.append(bulk_ats.copy())
+        # convert to torch geometric batch
+        batch = Batch.from_data_list(self.ats_to_graphs.convert_all(bulk_atoms))
+        # device='cpu'
+        batch = batch.to(device if device is not None else self.device)
+
+        calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
+        # reset the tags, they got lost in conversion to Torch
+        slabs = batch_to_atoms(calculated_batch)
+        # collect the reference and adslab energies
+        adslab_e = np.array([ats.get_potential_energy() for ats in adslabs])
+        slab_ref = np.array([s.get_potential_energy() for s in slabs])
+        ads_ref = np.array(ads_e)
+        # calculate adsorption energy!
+
+
+        # if adslab_e is the adsorption energy, 
+        # we have to find the relaxed energy of the adsorbate-adsorbent system,
+        # because that's what's used in the activation energy calculation.
+
+        # (1)
+        # according to https://github.com/Open-Catalyst-Project/ocp/blob/main/tutorials/OCP_Tutorial.ipynb,
+        # relaxed_energy = adslab_e
+        # then adsorption energy is,
+        # adsE = relaxed_energy - (slab_ref + ads_ref)
+
+        # (2)
+        # else if adslab_e is adsorption energy, we have to get relaxed_energy as,
+        relaxed_energy = adslab_e + slab_ref + ads_ref
+        print('energies--------')
+        print(adslab_e, slab_ref,  ads_ref)
+        # adslab_e = relaxed_energy - (slab_ref + ads_ref)
+        # relaxed_energy = -10 # choose either (1) or (2)
+
+        # adsorption_energy = adslab_e - slab_ref - ads_ref
+
+
+        json_fnames = [
+            (self.traj_dir / at_name).parent / "adsorption.json"
+            for at_name in atoms_names
+        ]
+        json_ids = [
+            (self.traj_dir / at_name).stem.split("-")[0] for at_name in atoms_names
+        ]
+
+        # save the results into files to avoid recalculations
+        for i, json_fname in enumerate(json_fnames):
+            validity = self.adsorbed_structure_checker(adslabs[i])
+            self.write_json(
+                json_fname,
+                {
+                    json_ids[i]: {
+                        "adsorption_energy": adslab_e[i],
+                        "adslab_energy": adslab_e[i],
+                        "ads_reference_energy": ads_ref[i],
+                        "slab_reference_energy": slab_ref[i],
+                        "validity": validity,
+                    }
+                },
+            )
+        # print(adslab_e, relaxed_energy)
+        # res = np.column_stack([adslab_e,relaxed_energy, slab_ref, ads_ref])
+        res = np.column_stack([adslab_e, ads_ref])
+        return res
+        # return adslab_e
+        
+
+
+
+    # gihan
+    def batched_energy_calculation(
+        self,
+        atoms: list[Atoms], # a list of structures
+        atoms_names,
+        device=None,
+        **bfgs_kwargs,
+    ):
+        """Calculate adsorption energies from relaxed atomic positions."""
+        adslabs = atoms
+        adslab_e = np.array([ats.get_potential_energy() for ats in adslabs])
+
+
+        json_fnames = [
+            (self.traj_dir / at_name).parent / "adsorption.json"
+            for at_name in atoms_names
+        ]
+        json_ids = [
+            (self.traj_dir / at_name).stem.split("-")[0] for at_name in atoms_names
+        ]
+
+        # save the results into files to avoid recalculations
+        for i, json_fname in enumerate(json_fnames):
+            validity = self.adsorbed_structure_checker(adslabs[i])
+            self.write_json(
+                json_fname,
+                {
+                    json_ids[i]: {
+                        "relaxed_energy": adslab_e[i],
+                        # "adslab_energy": adslab_e[i],
+                        # "ads_reference_energy": ads_ref[i],
+                        # "slab_reference_energy": slab_ref[i],
+                        "validity": validity,
+                    }
+                },
+            )
+
+        return adslab_e
+    
 
     def _batched_static_eval(self, batch):
         """Run static energy/force calculation on batch."""
@@ -438,6 +572,29 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 return None
         else:
             return None
+
+    def get_prediction2(self, adslab_name, idx) -> Optional[float]:
+        # gets both adsorption energy and the adsorbate reference energy
+        """Get the adsorption energy from adslab_name for given idx.
+
+        If the calculation has not been done, returns None."""
+        if self.adsorption_path(adslab_name).exists():
+            with open(
+                self.adsorption_path(adslab_name),
+                "r",
+            ) as f:
+                data = json.load(f)
+            if idx in data.keys() and "adsorption_energy" in data[idx].keys():
+                ads_energy = data[idx]["adsorption_energy"]
+                adsorbate_ref_energy = data[idx]["ads_reference_energy"]
+                # return ads_energy
+                return (ads_energy, adsorbate_ref_energy)
+            else:
+                return None
+        else:
+            return None
+
+    
 
     def get_validity(self, adslab_name, idx) -> Optional[float]:
         """Get the adsorption energy from adslab_name for given idx.

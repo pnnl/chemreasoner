@@ -197,7 +197,8 @@ class PathReward(BaseReward):
                 name = str(fname.parent)
 
                 # Get pre calculated values if they exists. Otherwise, create batch
-                ads_calc = self.adsorption_calculator.get_prediction(name, idx)
+                # ads_calc = self.adsorption_calculator.get_prediction(name, idx)
+                ads_calc = self.adsorption_calculator.get_prediction2(name, idx)
                 if ads_calc is not None:
                     valid = self.adsorption_calculator.get_validity(name, idx)
                     results.append((idx, name, ads_calc, valid))
@@ -226,7 +227,7 @@ class PathReward(BaseReward):
         # reward_values = defaultdict()
         for j, step in enumerate(path):
             adsorbent, adsorbate, name = step    
-            # print('step: ', j)
+            print('step: ', j)
     
             # use the same adsorbent
             # create the adsorbent here or if the slab is
@@ -242,44 +243,59 @@ class PathReward(BaseReward):
                     break_trajectory(p)
             
             adslabs_and_energies = res[0] # id, slab_name, ads_energy, valid
-            # name_candidate_mapping = res[3]
+            name_candidate_mapping = res[3]
             # adslabs_and_energies
     
             # only selecting the valid structures
             adslabs_and_energies = [i for i in adslabs_and_energies if i[3]==1]
             
             # get the energies of each adsorbed structures
-            energies = [i[2] for i in adslabs_and_energies]
+            # energies = [i[2] for i in adslabs_and_energies] # before
+            energies = [i[2][0] for i in adslabs_and_energies] # getting adsorption energies
     
             # get the minimum energy structure
             lowest_E_str = adslabs_and_energies[np.argmin(energies)]
         
-            # print("low E ", lowest_E_str)
+            print("low E ", lowest_E_str)
             adsE.append(lowest_E_str)
         
-        E = [i[2] for i in adsE]
-        print('energy difference between steps: ', np.diff(E) )
-        max_E_diff = max(np.diff(E)) # an approximation for activation energy
+        # E = [i[2] for i in adsE] # before
+        E_adsorbate_ref = np.array([i[2][1] for i in adsE]) # adsorbate reference energies
+        E_adsorption = np.array([i[2][0] for i in adsE]) # Adsorption energies
+        E_relax_composite = E_adsorption + E_adsorbate_ref # Relaxed energy" of the adsorbent+adsorbate composite
+        
+        # E = [i[2][1] for i in adsE] # new, using the relaxed energies to find the activation energy
+        lowestE_ids = [i[0] for i in adsE] # return this. is there a better way to get this? #TODO
+        lowestE_names = [i[1] for i in adsE] # return this.
+        
+        # print('energy difference between steps: ', np.diff(E) )
+        print('energy difference between steps: ', np.diff(E_relax_composite) )
+        # max_E_diff = max(np.diff(E)) # an approximation for activation energy # before
+        max_E_diff = max(np.diff(E_relax_composite)) # an approximation for activation energy # new
     
-        return max_E_diff
-        # return max_E_diff, E
+        return max_E_diff, E_relax_composite, lowestE_ids, lowestE_names
 
     def get_reward_for_paths(self, paths):
-        rewards=[]
-        # ads_energies=[]
+        rewards = []
+        relax_energies = []
+        lowestE_str = []
         for path in paths:
-            reward = self.get_reward_for_path(path)
-            # reward, E = self.get_reward_for_path(path)
-            # ads_energies.append(E)
-            rewards.append(reward)
+            # have to get path name
+            reward, E, lowestE_ids, lowestE_names = self.get_reward_for_path(path)
+            # min_act_energy_path_id, relax_energies, min_act_energy, min_act_energy_path, lowestE_str[min_act_energy_path_id]
+            relax_energies.append(E) # relaxed energies of all the steps.
+            rewards.append(reward) # activation energy
+            lowestE_str.append((lowestE_ids, lowestE_names))
     
     
         min_act_energy_path_id = np.argmin(rewards)
         min_act_energy = rewards[min_act_energy_path_id]
         min_act_energy_path = paths[min_act_energy_path_id]
-    
-        return min_act_energy_path_id, min_act_energy, min_act_energy_path
-        # return ads_energies, min_act_energy, min_act_energy_path
+
+        # returning ads_energies for each step, in case they are
+        # needed for visualization purposes
+        return min_act_energy_path_id, relax_energies, min_act_energy, min_act_energy_path, lowestE_str[min_act_energy_path_id]
+
 
     def unpack_batch_results(self, batch_results, fname_batch):
         """Unpack a collection of batch results."""
@@ -291,13 +307,16 @@ class PathReward(BaseReward):
             results.append((idx, name, res, valid))
         return results
 
+    # use this to get both adsorption energy and the adsorbate reference energy
     def calculate_batch(self, adslab_batch, fname_batch):
         """Calculate adsorption energies for a batch of atoms objects."""
         batch_relaxed = self.adsorption_calculator.batched_relax_atoms(
             atoms=adslab_batch, atoms_names=fname_batch
         )
         batch_adsorption_energies = (
-            self.adsorption_calculator.batched_adsorption_calculation(
+            # returns both adsorption energy and the relaxed_energy of the
+            # adsorbate+adsorbent system
+            self.adsorption_calculator.batched_adsorption_and_energy_calculation(
                 atoms=batch_relaxed, atoms_names=fname_batch
             )
         )
@@ -381,7 +400,7 @@ class PathReward(BaseReward):
 
 
 if __name__ == "__main__":
-    traj_dir = "hreact"
+    traj_dir = "hreact2"
 
     sr = PathReward(
             **{
@@ -390,22 +409,36 @@ if __name__ == "__main__":
                 "traj_dir": Path("data", "output", f"{traj_dir}"),
                 "device": "cpu",
                 "ads_tag": 2,
-                "num_adslab_samples": 2
+                "num_adslab_samples": 16
             }
         )
 
-    path1 = [ [["Cu"], "CO2", "Cu"], 
+
+    path1 = [ [["Cu","Pt"], "CO2", "CuPt"], 
+                [["Cu","Pt"], "HCOOH", "CuPt"], 
+                    [["Cu","Pt"], "CH2O", "CuPt"], 
+                        [["Cu","Pt"], "CH3O", "CuPt"], 
+                            [["Cu","Pt"], "CH3OH", "CuPt"], 
+        ]
+    
+    path10 = [ [["Cu"], "CO2", "Cu"], 
                 [["Cu"], "HCOOH", "Cu"], 
                     [["Cu"], "CH2O", "Cu"], 
                         [["Cu"], "CH3O", "Cu"], 
                             [["Cu"], "CH3OH", "Cu"], 
         ]
-
+    
     path2 = [ [["Cu"], "CO2", "Cu"], 
                 [["Cu"], "CO", "Cu"], 
                     [["Cu"], "CHOH", "Cu"], 
                             [["Cu"], "CH3OH", "Cu"], 
         ]
+    # path22 = [ [["Cu"], "CO2", "Cu"], 
+    #             [["Cu"], "CO", "Cu"], 
+    #                 [["Cu"], "CHOH", "Cu"], 
+    #                         [["Cu"], "CH3OH", "Cu"], 
+
+    #     ]
 
     path3 = [ [["Cu"], "CO2", "Cu"], 
                 [["Cu"], "CHO2", "Cu"], 
@@ -427,7 +460,11 @@ if __name__ == "__main__":
 
 
 
-    path_id, actE, path = sr.get_reward_for_paths([path1, path2, path4, path5])
+    min_act_energy_path_id, relax_energies, min_act_energy, min_act_energy_path, lowestE_str_info = sr.get_reward_for_paths([path10, path1])
+    # path_id, actE, path = sr.get_reward_for_paths([path5])
 
-    print("minimum act. energy: ", actE)
-    print("minimum act. energy path : ", path)
+    print("min_act_energy_path_id: ", min_act_energy_path_id)
+    print('relaxed energies: ', relax_energies)
+    print("minimum act. energy: ", min_act_energy)
+    print("minimum act. energy path : ", min_act_energy_path)
+    print("minimum act. energy path info : ", lowestE_str_info)
