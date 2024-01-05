@@ -130,7 +130,7 @@ for i in range(5):
     print(("-" * 30 + "\n") * 2)
     action_priors = policy.get_actions([s])
     actions, priors = action_priors[0]
-    possible_idx = priors[np.argwhere(priors != 0)[:, 0]]
+    possible_idx = np.argwhere(priors != 0)[:, 0]
     action_idx = possible_idx[np.random.randint(len(possible_idx))]
     action = actions[action_idx]
 
