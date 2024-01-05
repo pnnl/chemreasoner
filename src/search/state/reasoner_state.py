@@ -34,7 +34,7 @@ class ReasonerState:
         catalyst_label: str = "catalysts",
         num_answers: int = 3,
         prev_candidate_list: list[str] = [],
-        relation_to_candidate_list: str = None,
+        relation_to_candidate_list: str = "similar to",
         include_list: list[str] = [],
         exclude_list: list[str] = [],
         answer: str = None,

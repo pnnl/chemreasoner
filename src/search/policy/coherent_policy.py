@@ -8,13 +8,33 @@ import numpy as np
 
 sys.path.append("src")
 from search.policy.reasoner_policy import (  # noqa:402
-    CatalystLabelChanger,
     IncludePropertyAdder,
     ExcludePropertyAdder,
     RelationToCandidateListChanger,
 )
 from search.policy.policy_base import BasePolicy  # noqa:402
 from search.state.reasoner_state import ReasonerState  # noqa:402
+
+
+class CatalystLabelChanger:
+    """Class to change catalyst label of a state."""
+
+    def __init__(self, catalyst_label_type):
+        """Save the property name."""
+        self.catalyst_label_type = catalyst_label_type
+
+        self._message = f"Predict {catalyst_label_type}."
+
+    def __call__(self, state, trial=False):
+        """Add propery to the state."""
+        new_state = state.return_next()
+        new_state.catalyst_label = self.catalyst_label_type
+        return new_state
+
+    def message(self, state):
+        """Return the message for this action. State does nothing."""
+        return self._message
+
 
 logging.getLogger().setLevel(logging.INFO)
 
