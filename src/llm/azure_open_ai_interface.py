@@ -82,7 +82,7 @@ def run_azure_openai_prompts(
             }
             for a in answer_objects
         ]
-        return [{"answers": a, "usages": u} for a, u in zip(answer_strings, usages)]
+        return [{"answer": a, "usage": u} for a, u in zip(answer_strings, usages)]
 
 
 if __name__ == "__main__":
