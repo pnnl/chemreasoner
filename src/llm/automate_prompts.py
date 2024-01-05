@@ -93,7 +93,7 @@ def get_initial_state_bio_fuels(
     adsorbate = question.split("bind ")[1].split(" in")[0]
     reaction_name = question.split("in ")[1].split(" reaction")[0]
     property_name = question.split("with ")[1].split(".")[0].lower()
-    template = get_template(question)
+    template = get_template(question, chain_of_thought=True)
 
     qs = ReasonerState(
         template=template,
@@ -126,7 +126,7 @@ def get_initial_state_rwgs(
 
     else:
         include_list = []
-    template = get_template(question)
+    template = get_template(question, chain_of_thought=True)
 
     ads_symbols = []
     ads_preference = []
@@ -173,7 +173,7 @@ def get_initial_state_methanol(
 
     else:
         include_list = []
-    template = get_template(question)
+    template = get_template(question, chain_of_thought=True)
 
     ads_symbols = []
     ads_preference = []
@@ -220,11 +220,11 @@ def get_initial_state_ethanol(
 
     else:
         include_list = []
-    template = get_template(question)
+    template = get_template(question, chain_of_thought=True)
 
     ads_symbols = []
     ads_preference = []
-    for possible_ads in ["methanol", "CO2", "H2"]:
+    for possible_ads in ["ethanol", "CO2", "H2"]:
         if possible_ads in question.replace("CO2 to ethanol conversion reaction", ""):
             ads_symbols.append(molecule_conversions[possible_ads])
             preference = -1 if possible_ads == "ethanol" else 1
