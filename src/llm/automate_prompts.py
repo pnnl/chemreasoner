@@ -26,7 +26,7 @@ def get_initial_state_open_catalyst(
     chain_of_thought=True,
 ):
     """Get initial state for LLM query from adsorbate string."""
-    template = question.replace("{ catalysts}", "{catalyst_label}")
+    template = question.replace("{catalysts}", "{catalyst_label}")
     if chain_of_thought:
         template += (
             "{include_statement} {exclude_statement}"
@@ -65,19 +65,18 @@ def get_initial_state_bio_fuels(
     adsorbate = question.split("bind ")[1].split(" in")[0]
     reaction_name = question.split("in ")[1].split(" reaction")[0]
     property_name = question.split("with ")[1].split(".")[0].lower()
+    template = question.replace("{catalysts}", "{catalyst_label}")
     if chain_of_thought:
-        template = (
-            question
-            + "{include_statement}{exclude_statement}"
+        template += (
+            +"{include_statement}{exclude_statement}"
             + "Provide scientific explanations for each of the catalysts. "
             + "Finally, return a python list named final_answer which contains the top-5 catalysts. "
             "{candidate_list_statement}"
             r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
         )
     else:
-        template = (
-            question
-            + "{include_statement}{exclude_statement}"
+        template += (
+            +"{include_statement}{exclude_statement}"
             + "Return a python list named final_answer which contains the top-5 catalysts. "
             "{candidate_list_statement}"
         )
@@ -103,35 +102,19 @@ def get_initial_state_rwgs(
 ):
     """Parse the rwgs reaction questions."""
     catalyst_type, cheap_statement = parse_parameters_from_question(question)
-    if catalyst_type is not None:
-        if catalyst_type != "catalysts":
-            catalyst_label_types = [catalyst_type[1:-1]]
-        else:
-            if simulation_reward:
-                catalyst_label_types = [
-                    "",
-                    "monometallic ",
-                    "bimetallic ",
-                    "trimetallic ",
-                ]
-            else:
-                catalyst_label_types = None
-        question = question.replace(catalyst_type, "{catalyst_label}")  # Remove {}
-    else:
-        catalyst_label_types = None
+    question = question.replace(catalyst_type, "{catalyst_label}")
 
     if cheap_statement is not None:
         if "cheap" in cheap_statement:
             include_list = ["low cost"]
         else:
             raise ValueError(f"Unkown value {cheap_statement}")
-        question = question.replace(cheap_statement, "")
+
     else:
         include_list = []
-
+    template = question.replace(cheap_statement, "")
     if chain_of_thought:
-        template = (
-            f"{question} "
+        template += (
             "{include_statement}{exclude_statement}"
             "Provide scientific explanations for each of the catalysts. "
             "Finally, return a python list named final_answer which contains the top-5 catalysts. "
@@ -139,8 +122,7 @@ def get_initial_state_rwgs(
             r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
         )
     else:
-        template = (
-            f"{question} "
+        template += (
             "{include_statement}{exclude_statement}"
             "Feturn a python list named final_answer which contains the top-5 catalysts. "
             "{candidate_list_statement}"
