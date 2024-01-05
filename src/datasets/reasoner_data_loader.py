@@ -19,44 +19,43 @@ from llm.automate_prompts import (  # noqa:E402
 def get_state(dataset, prompt, chain_of_thought=True):
     """Get the ReasonerState, Policy, reward_function for the given index."""
 
-    match dataset:
-        case "OpenCatalyst":
-            return get_initial_state_open_catalyst(
-                prompt,
-                prediction_model=None,
-                reward_model=None,
-                chain_of_thought=chain_of_thought,
-            )
-        case "BioFuels":
-            return get_initial_state_bio_fuels(
-                prompt,
-                prediction_model=None,
-                reward_model=None,
-                chain_of_thought=chain_of_thought,
-            )
-        case "RWGS":
-            return get_initial_state_rwgs(
-                prompt,
-                prediction_model=None,
-                reward_model=None,
-                chain_of_thought=chain_of_thought,
-            )
-        case "CO2ToEthanol":
-            return get_initial_state_ethanol(
-                prompt,
-                prediction_model=None,
-                reward_model=None,
-                chain_of_thought=chain_of_thought,
-            )
-        case "CO2ToMethanol":
-            return get_initial_state_methanol(
-                prompt,
-                prediction_model=None,
-                reward_model=None,
-                chain_of_thought=chain_of_thought,
-            )
-        case _:
-            raise ValueError(f"Unknown dataset {dataset}.")
+    if dataset == "OpenCatalyst":
+        return get_initial_state_open_catalyst(
+            prompt,
+            prediction_model=None,
+            reward_model=None,
+            chain_of_thought=chain_of_thought,
+        )
+    elif dataset == "BioFuels":
+        return get_initial_state_bio_fuels(
+            prompt,
+            prediction_model=None,
+            reward_model=None,
+            chain_of_thought=chain_of_thought,
+        )
+    elif dataset == "RWGS":
+        return get_initial_state_rwgs(
+            prompt,
+            prediction_model=None,
+            reward_model=None,
+            chain_of_thought=chain_of_thought,
+        )
+    elif dataset == "CO2ToEthanol":
+        return get_initial_state_ethanol(
+            prompt,
+            prediction_model=None,
+            reward_model=None,
+            chain_of_thought=chain_of_thought,
+        )
+    elif dataset == "CO2ToMethanol":
+        return get_initial_state_methanol(
+            prompt,
+            prediction_model=None,
+            reward_model=None,
+            chain_of_thought=chain_of_thought,
+        )
+    else:
+        raise ValueError(f"Unknown dataset {dataset}.")
 
 
 if __name__ == "__main__":
