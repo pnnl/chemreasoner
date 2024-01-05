@@ -115,7 +115,7 @@ s.relation_to_candidate_list = (
 )
 policy = CoherentPolicy(llm_function=run_azure_openai_prompts)
 for i in range(5):
-    s = states[-1]
+    s = states[i]
     print(len(states))
     print(("*" * 30 + "\n") * 6)
     print(s.generation_system_prompt)
@@ -135,13 +135,14 @@ for i in range(5):
     action = actions[action_idx]
 
     states.append(action(s))
+states.pop()
 
 with open("ethanol_automatic_trace.pkl", "wb") as f:
     pickle.dump(states, f)
 
 
 with open("ethanol_automatic_trace.txt", "w") as f:
-    for s in states:
+    for i, s in enumerate(states):
         f.write(("*" * 30 + "\n") * 6)
         f.write(s.generation_system_prompt)
         f.write("\n" + ("-" * 30 + "\n") * 1)
