@@ -54,9 +54,9 @@ def run_azure_openai_prompts(
     """Run the given prompts with the openai interface."""
     client = init_azure_openai(model)
     # Apply defaults to kwargs
-    kwargs["temperature"] = kwargs.get("temperature", 0.6)
-    kwargs["top_p"] = kwargs.get("top_p", 0.3)
-    kwargs["max_tokens"] = kwargs.get("max_tokens", 1300)
+    kwargs["temperature"] = kwargs.get("temperature", 0.7)
+    kwargs["top_p"] = kwargs.get("top_p", 0.95)
+    kwargs["max_tokens"] = kwargs.get("max_tokens", 800)
 
     if system_prompts is None:
         system_prompts = [None] * len(prompts)
