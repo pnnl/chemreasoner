@@ -152,4 +152,4 @@ with open("ethanol_automatic_trace.txt", "w") as f:
 
         f.write(s.priors_prompt)
 
-        f.write(s.info["priors"[-1]["answer"]])
+        f.write(s.info["priors"][-1]["answer"])
