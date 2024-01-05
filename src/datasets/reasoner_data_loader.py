@@ -61,6 +61,7 @@ def get_state(dataset, prompt, chain_of_thought=True):
 if __name__ == "__main__":
     df = pd.read_csv("data/input_data/dataset.csv")
     new_data = {"dataset": [], "query": [], "cot": [], "no_cot": []}
+    print(len(df))
     for i, data in df.iterrows():
         cot_state = get_state(data["dataset"], data["query"], chain_of_thought=True)
         no_cot_state = get_state(data["dataset"], data["query"], chain_of_thought=False)
@@ -68,4 +69,4 @@ if __name__ == "__main__":
         new_data["query"].append(data["query"])
         new_data["cot"].append(cot_state.generation_prompt)
         new_data["no_cot"].append(no_cot_state.generation_prompt)
-    pd.DataFrame(new_data).to_csv("test_df.csv")
+    pd.DataFrame(new_data).to_csv("test_df.csv", index=False)

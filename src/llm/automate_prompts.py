@@ -10,6 +10,7 @@ molecule_conversions = {
     "CO2": "CO2",
     "CO": "*CO",
     "H2O": "*OH2",
+    "H2": "H2",
     "methanol": "*OHCH3",
     "ethanol": "*OHCH2CH3",
 }
