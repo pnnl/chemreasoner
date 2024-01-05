@@ -6,6 +6,14 @@ import pandas as pd
 sys.path.append("src")
 from search.state.reasoner_state import ReasonerState  # noqa: E402
 
+molecule_conversions = {
+    "CO2": "CO2",
+    "CO": "*CO",
+    "H2O": "*OH2",
+    "methanol": "*OHCH3",
+    "ethanol": "*OHCH2CH3",
+}
+
 
 def find_all(string, sub):
     """Find all instances of sub string in a string."""
@@ -154,7 +162,7 @@ def get_initial_state_rwgs(
     return qs
 
 
-def get_initial_state_ethanol(
+def get_initial_state_methanol(
     question: str,
     prediction_model,
     reward_model,
@@ -163,35 +171,19 @@ def get_initial_state_ethanol(
 ):
     """Parse the rwgs reaction questions."""
     catalyst_type, cheap_statement = parse_parameters_from_question(question)
-    if catalyst_type is not None:
-        if catalyst_type != "catalysts":
-            catalyst_label_types = [catalyst_type[1:-1]]
-        else:
-            if simulation_reward:
-                catalyst_label_types = [
-                    "",
-                    "monometallic ",
-                    "bimetallic ",
-                    "trimetallic ",
-                ]
-            else:
-                catalyst_label_types = None
-        question = question.replace(catalyst_type, "{catalyst_label}")  # Remove {}
-    else:
-        catalyst_label_types = None
+    question = question.replace(catalyst_type, "{catalyst_label}")
 
     if cheap_statement is not None:
         if "cheap" in cheap_statement:
             include_list = ["low cost"]
         else:
             raise ValueError(f"Unkown value {cheap_statement}")
-        question = question.replace(cheap_statement, "")
+
     else:
         include_list = []
-
+    template = question.replace(cheap_statement, "")
     if chain_of_thought:
-        template = (
-            f"{question} "
+        template += (
             "{include_statement}{exclude_statement}"
             "Provide scientific explanations for each of the catalysts. "
             "Finally, return a python list named final_answer which contains the top-5 catalysts. "
@@ -199,8 +191,7 @@ def get_initial_state_ethanol(
             r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
         )
     else:
-        template = (
-            f"{question} "
+        template += (
             "{include_statement}{exclude_statement}"
             "Feturn a python list named final_answer which contains the top-5 catalysts. "
             "{candidate_list_statement}"
@@ -208,10 +199,10 @@ def get_initial_state_ethanol(
 
     ads_symbols = []
     ads_preference = []
-    for possible_ads in ["ethanol", "CO2", "H2"]:
-        if possible_ads in question.replace("CO2 to ethanol conversion reaction", ""):
-            ads_symbols.append(possible_ads)
-            preference = -1 if possible_ads == "CO" else 1
+    for possible_ads in ["methanol", "CO2", "H2"]:
+        if possible_ads in question.replace("CO2 to methanol conversion reaction", ""):
+            ads_symbols.append(possible_ads if possible_ads != "methanol" else 1)
+            preference = -1 if possible_ads == "methanol" else 1
             ads_preference.append(preference)
 
     # If there are no adsorbates in the prompt...
