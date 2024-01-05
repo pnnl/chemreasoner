@@ -26,6 +26,26 @@ def find_all(string, sub):
         start += len(sub)  # use start += 1 to find overlapping matches
 
 
+def get_template(question, chain_of_thought):
+    """Get the template for the given quesiton."""
+    template = question
+    if chain_of_thought:
+        template += (
+            "{include_statement} {exclude_statement}"
+            "Provide scientific explanations for each of the catalysts. "
+            "Finally, return a python list named final_answer which contains the top-5 catalysts. "
+            "{candidate_list_statement}"
+            r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
+        )
+    else:
+        template += (
+            "{include_statement} {exclude_statement}"
+            "{candidate_list_statement}"
+            r"\n\nReturn a python list named final_answer which contains the top-5 catalysts."
+        )
+    return template
+
+
 def get_initial_state_open_catalyst(
     question,
     prediction_model,
@@ -73,21 +93,7 @@ def get_initial_state_bio_fuels(
     adsorbate = question.split("bind ")[1].split(" in")[0]
     reaction_name = question.split("in ")[1].split(" reaction")[0]
     property_name = question.split("with ")[1].split(".")[0].lower()
-    template = question.replace("{catalysts}", "{catalyst_label}")
-    if chain_of_thought:
-        template += (
-            +"{include_statement}{exclude_statement}"
-            + "Provide scientific explanations for each of the catalysts. "
-            + "Finally, return a python list named final_answer which contains the top-5 catalysts. "
-            "{candidate_list_statement}"
-            r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
-        )
-    else:
-        template += (
-            +"{include_statement}{exclude_statement}"
-            + "Return a python list named final_answer which contains the top-5 catalysts. "
-            "{candidate_list_statement}"
-        )
+    template = get_template(question)
 
     qs = ReasonerState(
         template=template,
@@ -120,27 +126,13 @@ def get_initial_state_rwgs(
 
     else:
         include_list = []
-    template = question.replace(cheap_statement, "")
-    if chain_of_thought:
-        template += (
-            "{include_statement}{exclude_statement}"
-            "Provide scientific explanations for each of the catalysts. "
-            "Finally, return a python list named final_answer which contains the top-5 catalysts. "
-            "{candidate_list_statement}"
-            r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
-        )
-    else:
-        template += (
-            "{include_statement}{exclude_statement}"
-            "Feturn a python list named final_answer which contains the top-5 catalysts. "
-            "{candidate_list_statement}"
-        )
+    template = get_template(question)
 
     ads_symbols = []
     ads_preference = []
     for possible_ads in ["CO", "CO2", "H2"]:
         if possible_ads in question.replace("RWGS reaction", ""):
-            ads_symbols.append(possible_ads)
+            ads_symbols.append(molecule_conversions[possible_ads])
             preference = -1 if possible_ads == "CO" else 1
             ads_preference.append(preference)
 
@@ -181,27 +173,13 @@ def get_initial_state_methanol(
 
     else:
         include_list = []
-    template = question.replace(cheap_statement, "")
-    if chain_of_thought:
-        template += (
-            "{include_statement}{exclude_statement}"
-            "Provide scientific explanations for each of the catalysts. "
-            "Finally, return a python list named final_answer which contains the top-5 catalysts. "
-            "{candidate_list_statement}"
-            r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
-        )
-    else:
-        template += (
-            "{include_statement}{exclude_statement}"
-            "Feturn a python list named final_answer which contains the top-5 catalysts. "
-            "{candidate_list_statement}"
-        )
+    template = get_template(question)
 
     ads_symbols = []
     ads_preference = []
     for possible_ads in ["methanol", "CO2", "H2"]:
         if possible_ads in question.replace("CO2 to methanol conversion reaction", ""):
-            ads_symbols.append(possible_ads if possible_ads != "methanol" else 1)
+            ads_symbols.append(molecule_conversions[possible_ads])
             preference = -1 if possible_ads == "methanol" else 1
             ads_preference.append(preference)
 
@@ -223,7 +201,7 @@ def get_initial_state_methanol(
     return qs
 
 
-def get_initial_state_methanol(
+def get_initial_state_ethanol(
     question: str,
     prediction_model,
     reward_model,
@@ -232,55 +210,24 @@ def get_initial_state_methanol(
 ):
     """Parse the rwgs reaction questions."""
     catalyst_type, cheap_statement = parse_parameters_from_question(question)
-    if catalyst_type is not None:
-        if catalyst_type != "catalysts":
-            catalyst_label_types = [catalyst_type[1:-1]]
-        else:
-            if simulation_reward:
-                catalyst_label_types = [
-                    "",
-                    "monometallic ",
-                    "bimetallic ",
-                    "trimetallic ",
-                ]
-            else:
-                catalyst_label_types = None
-        question = question.replace(catalyst_type, "{catalyst_label}")  # Remove {}
-    else:
-        catalyst_label_types = None
+    question = question.replace(catalyst_type, "{catalyst_label}")
 
     if cheap_statement is not None:
         if "cheap" in cheap_statement:
             include_list = ["low cost"]
         else:
             raise ValueError(f"Unkown value {cheap_statement}")
-        question = question.replace(cheap_statement, "")
+
     else:
         include_list = []
-
-    if chain_of_thought:
-        template = (
-            f"{question} "
-            "{include_statement}{exclude_statement}"
-            "Provide scientific explanations for each of the catalysts. "
-            "Finally, return a python list named final_answer which contains the top-5 catalysts. "
-            "{candidate_list_statement}"
-            r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
-        )
-    else:
-        template = (
-            f"{question} "
-            "{include_statement}{exclude_statement}"
-            "Feturn a python list named final_answer which contains the top-5 catalysts. "
-            "{candidate_list_statement}"
-        )
+    template = get_template(question)
 
     ads_symbols = []
     ads_preference = []
     for possible_ads in ["methanol", "CO2", "H2"]:
-        if possible_ads in question.replace("CO2 to methanol reaction", ""):
-            ads_symbols.append(possible_ads)
-            preference = -1 if possible_ads == "CO" else 1
+        if possible_ads in question.replace("CO2 to ethanol conversion reaction", ""):
+            ads_symbols.append(molecule_conversions[possible_ads])
+            preference = -1 if possible_ads == "ethanol" else 1
             ads_preference.append(preference)
 
     # If there are no adsorbates in the prompt...
