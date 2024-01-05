@@ -86,10 +86,12 @@ class CoherentPolicy(BasePolicy):
             for i, s in enumerate(states):
                 try:
                     prompts.append(s.priors_prompt)
+                    print(s.priors_prompt)
                     prompts_idx.append(i)
                 except Exception:
                     logging.warning("Cannot generate prompt for state.")
             llm_answers = self.llm_function(prompts)
+            print(llm_answers)
 
             for i, ans in enumerate(llm_answers):
                 try:
@@ -108,8 +110,7 @@ class CoherentPolicy(BasePolicy):
                         actions += [None] * length_difference
 
                     action_priors.append((actions, priors))
-                except Exception as err:
-                    raise err
+                except Exception:
                     logging.warning(
                         "Could not parse the actions for the given state. Trying again."
                     )
