@@ -136,28 +136,20 @@ for i in range(5):
 
     states.append(action(s))
 
+with open("ethanol_automatic_trace.pkl", "wb") as f:
+    pickle.dump(states, f)
+
 
 with open("ethanol_automatic_trace.txt", "w") as f:
     for s in states:
-        s.priors_template = priors_template
-        s.relation_to_candidate_list = (
-            s.relation_to_candidate_list
-            if s.relation_to_candidate_list is not None
-            else "similar to"
-        )
         f.write(("*" * 30 + "\n") * 6)
         f.write(s.generation_system_prompt)
         f.write("\n" + ("-" * 30 + "\n") * 1)
         f.write(s.generation_prompt)
         f.write("\n" + ("=" * 30 + "\n") * 4)
-        if s.answer is not None:
-            f.write(s.answer)
-        else:
-            s.process_generation(generation_answers[len(states) - 1])
+        f.write(s.answer)
         f.write(("-" * 30 + "\n") * 2)
 
         f.write(s.priors_prompt)
-        if "priors" in s.info.keys():
-            print(s.info["priors"][-1]["answer"])
-        else:
-            s.process_prior(priors_answers[len(states) - 1])
+
+        f.write(s.info["priors"[-1]["answer"]])
