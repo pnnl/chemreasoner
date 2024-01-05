@@ -208,7 +208,6 @@ class ReasonerState:
             "usage": usage,
         }
         print(self.candidates)
-        return True
 
     @property
     def adsorption_energy_prompts(self):
