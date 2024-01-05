@@ -94,6 +94,7 @@ class CoherentPolicy(BasePolicy):
             for i, ans in enumerate(llm_answers):
                 try:
                     s = states[prompts_idx[i]]
+                    print()
                     action_lists = s.process_prior(ans)
                     actions = self.strings_to_actions(action_lists)
 
@@ -106,8 +107,9 @@ class CoherentPolicy(BasePolicy):
                             [1 / len(actions)] * len(actions) + [0] * length_difference
                         )
                         actions += [None] * length_difference
+                        print(priors)
 
-                    action_priors.append((actions, priors))
+                    action_priors[prompts_idx[i]] = (actions, priors)
                 except Exception:
                     print(
                         "Could not parse the actions for the given state. Trying again."
