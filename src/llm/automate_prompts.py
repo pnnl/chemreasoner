@@ -15,6 +15,11 @@ molecule_conversions = {
     "ethanol": "*OHCH2CH3",
 }
 
+computational_pathways_methanol = [
+    ["CO2", "*OCHO", "*CHOH", "*OHCH3"],
+    ["CO2", "*CO", "*CHO", "*CH2*O", "*OHCH3"],
+]
+
 
 def find_all(string, sub):
     """Find all instances of sub string in a string."""
@@ -185,20 +190,33 @@ def get_initial_state_methanol(
             ads_preference.append(preference)
 
     # If there are no adsorbates in the prompt...
-    if len(ads_symbols) == 0:
+    if len(ads_symbols) != 0:
         # Do the reaction
-        ...
+        qs = ReasonerState(
+            template=template,
+            reward_template=None,
+            ads_symbols=ads_symbols,
+            ads_preferences=ads_preference,
+            include_list=include_list,
+            num_answers=3,
+            prediction_model=prediction_model,
+            reward_model=reward_model,
+        )
 
-    qs = ReasonerState(
-        template=template,
-        reward_template=None,
-        ads_symbols=ads_symbols,
-        ads_preferences=ads_preference,
-        include_list=include_list,
-        num_answers=3,
-        prediction_model=prediction_model,
-        reward_model=reward_model,
-    )
+    else:
+        ads_symbols = set(
+            [syms for syms_l in computational_pathways_methanol for syms in syms_l]
+        )
+        qs = ReasonerState(
+            template=template,
+            reward_template=None,
+            ads_symbols=ads_symbols,
+            pathways=computational_pathways_methanol,
+            include_list=include_list,
+            num_answers=3,
+            prediction_model=prediction_model,
+            reward_model=reward_model,
+        )
     return qs
 
 

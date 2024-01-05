@@ -30,6 +30,7 @@ class ReasonerState:
         reward_template: str,
         ads_symbols: list[str],
         ads_preferences: list[float] = None,
+        reaction_pathways: list[[list]] = None,
         priors_template: str = None,
         catalyst_label: str = "catalysts",
         num_answers: int = 3,
@@ -51,10 +52,8 @@ class ReasonerState:
         self.template = template
         self.reward_template = reward_template
         self.ads_symbols = ads_symbols.copy()
-        if ads_preferences is None:
-            self.ads_preferences = [1] * len(self.ads_symbols)
-        else:
-            self.ads_preferences = ads_preferences.copy()
+        self.ads_preferences = ads_preferences.copy()
+        self.reaction_pathways = deepcopy(reaction_pathways)
         self.priors_template = priors_template
         self.catalyst_label = catalyst_label
         self.num_answers = num_answers
@@ -80,13 +79,15 @@ class ReasonerState:
 
     @classmethod
     @staticmethod
-    def from_dict(data: dict):  # TODO: Add defaults
+    def from_dict(incoming_data: dict):  # TODO: Add defaults
         """Create a query state from dictionary."""
+        data = deepcopy(incoming_data)
         return ReasonerState(
             template=data.get("template"),
             reward_template=data.get("reward_template"),
             ads_symbols=data.get("ads_symbols").copy(),
             ads_preferences=data.get("ads_preferences", None),
+            reaction_pathways=data.get("reaction_pathways", None),
             priors_template=data.get("priors_template", None),
             catalyst_label=data.get("catalyst_label"),
             prev_candidate_list=data.get("prev_candidate_list", []).copy(),
@@ -110,6 +111,7 @@ class ReasonerState:
             reward_template=self.reward_template,
             ads_symbols=self.ads_symbols.copy(),
             ads_preferences=self.ads_preferences.copy(),
+            reaction_pathways=deepcopy(self.reaction_pathways),
             priors_template=self.priors_template,
             catalyst_label=self.catalyst_label,
             prev_candidate_list=self.prev_candidate_list.copy(),
@@ -133,6 +135,7 @@ class ReasonerState:
             reward_template=self.reward_template,
             ads_symbols=self.ads_symbols.copy(),
             ads_preferences=self.ads_preferences.copy(),
+            reaction_pathways=deepcopy(self.reaction_pathways),
             priors_template=self.priors_template,
             catalyst_label=self.catalyst_label,
             prev_candidate_list=self.candidates,
