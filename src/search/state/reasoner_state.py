@@ -170,7 +170,7 @@ class ReasonerState:
             "and adsorbate(s). Make specific recommendations for catalysts, including "
             "their chemical composition. Make sure to follow the formatting "
             "instructions. Do not provide disclaimers or notes about your knowledge of "
-            "catalysis."
+            "catalysis. Your answers should not include ionic compounds."
         )
 
     @property
@@ -376,7 +376,7 @@ class ReasonerState:
         if self.generation_prompt != self.root_prompt:
             current_p_a_condition = (
                 f"$current_prompt = {self.generation_prompt}"
-                "\n\n$current_answer = {self.answer}"
+                f"\n\n$current_answer = {self.answer}"
             )
             current_conditions = (
                 "$search_state, $root_prompt, $current_question and $current_answer"

@@ -126,7 +126,7 @@ RWGS,Generate a list of top-5{ bimetallic catalysts} that exhibit high activity 
 RWGS,Generate a list of top-5{ bimetallic catalysts - combination of noble metal and base metal} that exhibit high activity for the RWGS reaction.
 CO2ToEthanol,Generate a list of top-5{ catalysts} that exhibit higher adsorption energy for both CO2 and H2 for the production of ethanol (the reactants of the CO2 to ethanol conversion reaction).
 CO2ToEthanol,Generate a list of top-5{ catalysts} that exhibit weak adsorption energy for ethanol (the product of the CO2 to ethanol conversion reaction).
-CO2ToEthanol,Generate a list of top-5{ catalysts} that exhibit high activity for the ethanol conversion reaction.
+CO2ToEthanol,Generate a list of top-5{ catalysts} that exhibit high activity for the CO2 to ethanol conversion reaction.
 CO2ToEthanol,Generate a list of top-5{ catalysts} that[ are cheap and] demonstrate higher adsorption energy for both CO2 and H2 (the reactants of the CO2 to ethanol conversion reaction).
 CO2ToEthanol,Generate a list of top-5{ catalysts} that[ are cheap and] exhibit weak adsorption energy for ethanol (of the CO2 to ethanol conversion reaction).
 CO2ToEthanol,Generate a list of top-5{ catalysts} that[ are cheap and] exhibit high activity for the CO2 to ethanol conversion reaction.
@@ -136,7 +136,7 @@ CO2ToEthanol,Generate a list of top-5{ bimetallic catalysts} that exhibit high a
 CO2ToEthanol,Generate a list of top-5{ bimetallic catalysts - combination of noble metal and base metal} that exhibit high activity for the CO2 to ethanol conversion reaction.
 CO2ToMethanol,Generate a list of top-5{ catalysts} that exhibit higher adsorption energy for both CO2 and H2 for the production of methanol (the reactants of the CO2 to methanol conversion reaction).
 CO2ToMethanol,Generate a list of top-5{ catalysts} that exhibit weak adsorption energy for methanol (the product of the CO2 to methanol conversion reaction).
-CO2ToMethanol,Generate a list of top-5{ catalysts} that exhibit high activity for the methanol conversion reaction.
+CO2ToMethanol,Generate a list of top-5{ catalysts} that exhibit high activity for the CO2 to methanol conversion reaction.
 CO2ToMethanol,Generate a list of top-5{ catalysts} that[ are cheap and] demonstrate higher adsorption energy for both CO2 and H2 (the reactants of the CO2 to Methanol conversion reaction).
 CO2ToMethanol,Generate a list of top-5{ catalysts} that[ are cheap and] exhibit weak adsorption energy for methanol (of the CO2 to methanol conversion reaction).
 CO2ToMethanol,Generate a list of top-5{ catalysts} that[ are cheap and] exhibit high activity for the CO2 to methanol conversion reaction.

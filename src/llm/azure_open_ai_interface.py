@@ -20,7 +20,7 @@ def init_azure_openai(model):
 
 
 async def parallel_azure_openai_chat_completion(
-    client, prompt, system_prompt=None, model="gpt-3.5-turbo", **kwargs
+    client, prompt, system_prompt=None, model="gpt-4", **kwargs
 ):
     """Run chat completion calls on openai, in parallel."""
     messages = []
@@ -33,7 +33,7 @@ async def parallel_azure_openai_chat_completion(
 
 
 async def azure_openai_chat_async_evaluation(
-    client, prompts, system_prompts, model="gpt-3.5-turbo", **kwargs
+    client, prompts, system_prompts, model="gpt-4", **kwargs
 ):
     completions = [
         parallel_azure_openai_chat_completion(client, p, s, **kwargs)
@@ -47,7 +47,7 @@ async def azure_openai_chat_async_evaluation(
 def run_azure_openai_prompts(
     prompts: list[str],
     system_prompts: list[Union[str, None]] = None,
-    model="gpt-3.5-turbo",
+    model="gpt-4",
     **kwargs
 ):
     """Run the given prompts with the openai interface."""
