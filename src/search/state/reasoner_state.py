@@ -438,11 +438,12 @@ class ReasonerState:
                 action, possible_actions = line.split(":")
                 action_list = list(
                     {
-                        s.strip()
+                        s.strip().strip("'").strip('"')
                         for s in possible_actions.strip()
                         .strip("[")
                         .strip("]")
                         .split(",")
+                        if s.strip().strip("'").strip('"') != ""
                     }
                 )  # Use a set for unique elements only
                 action_lists[action.strip().strip('"')] = action_list
