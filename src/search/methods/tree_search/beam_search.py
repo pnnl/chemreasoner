@@ -39,8 +39,7 @@ class BeamSearchTree:
         new_nodes = []
         parent_idx = []
         for i, node in enumerate(nodes):
-            actions, priors = actions_priors[i]
-            these_priors = priors[i]
+            actions, these_priors = actions_priors[i]
             shuffle_idx = list(range(len(these_priors)))
             shuffle(shuffle_idx)
             these_priors = [these_priors[i] for i in shuffle_idx]
