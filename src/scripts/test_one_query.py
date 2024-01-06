@@ -9,8 +9,7 @@ import pandas as pd
 sys.path.append("src")
 from datasets import reasoner_data_loader  # noqa:E402
 from search.policy import coherent_policy, reasoner_policy  # noqa:E402
-
-# from search.reward import simulation_reward, reaction_reward, llm_reward  # noqa:E402
+from search.reward import simulation_reward, reaction_reward, llm_reward  # noqa:E402
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa:E402
 from llm.azure_open_ai_interface import run_azure_openai_prompts  # noqa:E402
 
