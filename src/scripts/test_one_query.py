@@ -13,7 +13,7 @@ from search.reward import simulation_reward, reaction_reward, llm_reward  # noqa
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa:E402
 from llm.azure_open_ai_interface import run_azure_openai_prompts  # noqa:E402
 
-df = pd.DataFrame("data/input_data/dataset.csv")
+df = pd.read_csv("data/input_data/dataset.csv")
 
 first_row = df[0]
 starting_state = reasoner_data_loader(first_row["dataset"], df["query"])
