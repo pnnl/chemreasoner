@@ -1,4 +1,5 @@
 """Search tree implemenation."""
+import logging
 from pathlib import Path
 import pickle
 import time
@@ -10,6 +11,8 @@ from typing import TypeVar
 import numpy as np
 
 SearchTree = TypeVar("SearchTree")
+
+logging.getLogger().setLevel(logging.INFO)
 
 
 class BeamSearchTree:
@@ -63,8 +66,15 @@ class BeamSearchTree:
 
         # expand final layer of nodes
         successor_nodes, parent_idx = self.expand_node(self.nodes[-1])
-        # calculate their rewards
-        successor_rewards = self.reward_fn(successor_nodes)
+        try:
+            # calculate their rewards
+            successor_rewards = self.reward_fn(successor_nodes)
+        except Exception:
+            logging.warning(
+                "ERROR:Reward function call failed. Returning a penalty value."
+            )
+            print("ERROR:Reward function call failed. Returning a penalty value.")
+            successor_rewards = [-10] * len(successor_nodes)
 
         # selected node index
         selected_node_idx = np.argsort(successor_rewards)[

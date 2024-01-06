@@ -15,6 +15,7 @@ from llm.azure_open_ai_interface import run_azure_openai_prompts  # noqa:E402
 
 df = pd.read_csv("data/input_data/dataset.csv", index_col=False)
 first_row = df.iloc[0]
+#TODO: Check if output file exists and is nonzero
 starting_state = reasoner_data_loader.get_state(
     first_row["dataset"], first_row["query"]
 )
@@ -43,5 +44,12 @@ reward_fn = simulation_reward.StructureReward(
 search = BeamSearchTree(starting_state, policy, reward_fn, 4, 3)
 
 for i in range(5):
-    data = search.step_return()
+    try:
+        data = search.step_return()
+    except Exception:
+        # TODO: dump the data and be able to load from where it left
+
     print("=" * 20 + str(i) + "=" * 20)
+
+#TODO: Save final data in a json tree in separate file from other queries. One file per query
+#test_Xquery_y.json

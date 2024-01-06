@@ -21,6 +21,8 @@ from search.reward.base_reward import BaseReward  # noqa: E402
 
 logging.getLogger().setLevel(logging.INFO)
 
+print("finished imports")
+
 
 class StructureReward(BaseReward):
     """Calculate the reward for answers based on adsorption simulations."""
@@ -174,49 +176,62 @@ class StructureReward(BaseReward):
             {}
         )  # dictionary to get from database names to candidates
         for i, slab_sym in enumerate(slab_syms):
-            if slab_sym is not None:
-                valid_slab_sym = True
-                slab_name = self.reduce_candidate_symbols(slab_sym)
-                slab_ats = self.adsorption_calculator.get_slab(slab_name)
-                if slab_ats is None:
-                    try:
-                        slab_samples = [
-                            ase_interface.symbols_list_to_bulk(slab_sym)
-                            for _ in range(self.num_slab_samples)
-                        ]
-                        print(slab_samples)
-                    except ase_interface.StructureGenerationError as err:
-                        print(err)
-                        slab_syms[i] = None
-                        valid_slab_sym = False
+            try:
+                if slab_sym is not None:
+                    valid_slab_sym = True
+                    slab_name = self.reduce_candidate_symbols(slab_sym)
+                    slab_ats = self.adsorption_calculator.get_slab(slab_name)
+                    if slab_ats is None:
+                        try:
+                            slab_samples = [
+                                ase_interface.symbols_list_to_bulk(slab_sym)
+                                for _ in range(self.num_slab_samples)
+                            ]
+                            print(slab_samples)
+                        except ase_interface.StructureGenerationError as err:
+                            print(err)
+                            slab_syms[i] = None
+                            valid_slab_sym = False
 
-                    if valid_slab_sym:
-                        slab_ats = self.adsorption_calculator.choose_slab(
-                            slab_samples, slab_name
-                        )
-                if slab_ats is not None:
-                    if placement_type is None:
-                        for ads_sym in ads_list:
-                            ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
-                            name = f"{slab_name}_{ads_sym}"
-                            adslab_ats += self.sample_adslabs(
-                                slab_ats, ads_ats, name, adsorbate_height
+                        if valid_slab_sym:
+                            slab_ats = self.adsorption_calculator.choose_slab(
+                                slab_samples, slab_name
                             )
-                            if candidates_list is not None:
-                                name_candidate_mapping[name] = candidates_list[i]
+                    if slab_ats is not None:
+                        if placement_type is None:
+                            for ads_sym in ads_list:
+                                ads_ats = ase_interface.ads_symbols_to_structure(
+                                    ads_sym
+                                )
+                                name = f"{slab_name}_{ads_sym}"
+                                adslab_ats += self.sample_adslabs(
+                                    slab_ats, ads_ats, name, adsorbate_height
+                                )
+                                if candidates_list is not None:
+                                    name_candidate_mapping[name] = candidates_list[i]
 
-                    elif placement_type == "heuristic":
-                        for ads_sym in ads_list:
-                            ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
-                            # slab_ats.center(vacuum=13.0, axis=2)
+                        elif placement_type == "heuristic":
+                            for ads_sym in ads_list:
+                                ads_ats = ase_interface.ads_symbols_to_structure(
+                                    ads_sym
+                                )
+                                # slab_ats.center(vacuum=13.0, axis=2)
 
-                            name = f"{slab_name}_{ads_sym}"
-                            adslab_ats += self.sample_adslabs_heuristic(
-                                slab_ats, ads_ats, name
-                            )
+                                name = f"{slab_name}_{ads_sym}"
+                                adslab_ats += self.sample_adslabs_heuristic(
+                                    slab_ats, ads_ats, name
+                                )
 
-                            if candidates_list is not None:
-                                name_candidate_mapping[name] = candidates_list[i]
+                                if candidates_list is not None:
+                                    name_candidate_mapping[name] = candidates_list[i]
+            except Exception:
+                logging.warning(
+                    f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to a different catalyst."
+                )
+                print(
+                    "ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to a different catalyst."
+                )
+                pass
 
         adslabs_and_energies = self.create_batches_and_calculate(adslab_ats)
 
@@ -425,60 +440,29 @@ if __name__ == "__main__":
     # traj_dir = "random"
     traj_dir = "heuristic"
 
-    if "random" in traj_dir:
-        # heights = np.arange(0.1, 3.0, 0.25)
-        heights = [3.25]
-        for height in heights:
-            sr = StructureReward(
-                **{
-                    "llm_function": None,
-                    "model": "gemnet",
-                    "traj_dir": Path("data", "output", f"{traj_dir}"),
-                    "device": "cpu",
-                    "ads_tag": 2,
-                    "num_adslab_samples": 1,
-                }
-            )
+    print("using heuristic methods")
+    sr = StructureReward(
+        **{
+            "llm_function": None,
+            "model": "gemnet",
+            "traj_dir": Path("data", "output", f"{traj_dir}"),
+            "device": "cpu",
+            "ads_tag": 2,
+            "num_adslab_samples": 1,
+        }
+    )
 
-            # print(
-            #     sr.create_structures_and_calculate(
-            #         [["Cu"], ["Pt"], ["Zr"]],
-            #         ["CO", "phenol", "anisole"],
-            #         ["Cu", "Pt", "Zr"],
-            #         adsorbate_height=height
-            #     )
-            # )
-
-            print(
-                sr.create_structures_and_calculate(
-                    [["Cu"]], ["CO"], ["Cu"], adsorbate_height=height
-                )
-            )
-
-            for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
-                break_trajectory(p)
-
-    elif "heuristic" in traj_dir:
-        print("using heuristic methods")
-        sr = StructureReward(
-            **{
-                "llm_function": None,
-                "model": "gemnet",
-                "traj_dir": Path("data", "output", f"{traj_dir}"),
-                "device": "cpu",
-                "ads_tag": 2,
-                "num_adslab_samples": 1,
-            }
+    print(
+        sr.create_structures_and_calculate(
+            [["O"], ["fdsfds"], [], [None], ["Zeolite"], ["Z", "O"], ["Cu"]],
+            ["CO"],
+            ["O", "fdsfds", "", None, "Zeolite", "ZO", "Cu"],
+            placement_type="heuristic",
         )
+    )
 
-        print(
-            sr.create_structures_and_calculate(
-                [["Cu"]], ["phenol"], ["Cu"], placement_type="heuristic"
-            )
-        )
-
-        for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
-            break_trajectory(p)
+    for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
+        break_trajectory(p)
 
 
 # model weights have to placed in data/model_weights
