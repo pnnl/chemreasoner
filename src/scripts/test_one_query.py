@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 sys.path.append("src")
-from dataset import reasoner_data_loader  # noqa:E402
+from datasets import reasoner_data_loader  # noqa:E402
 from search.policy import coherent_policy, reasoner_policy  # noqa:E402
 from search.reward import simulation_reward, reaction_reward, llm_reward  # noqa:E402
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa:E402
