@@ -40,7 +40,7 @@ reward_fn = simulation_reward.StructureReward(
         "steps": 2,
     },
 )
-search = (starting_state, policy, reward_fn, 4, 3)
+search = BeamSearchTree(starting_state, policy, reward_fn, 4, 3)
 
 for i in range(5):
     data = search.step_return()
