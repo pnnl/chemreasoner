@@ -127,7 +127,7 @@ class StructureReward(BaseReward):
                     "\n\nInto catalyst symbols. "
                     "Returning the penalty value for that answer."
                 )
-                rewards[i] = self.penalty_value
+                rewards.append(self.penalty_value)
             else:
                 (
                     adslabs_and_energies,
