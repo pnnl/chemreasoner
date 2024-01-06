@@ -32,7 +32,7 @@ reward_fn = simulation_reward.StructureReward(
         "llm_function": run_azure_openai_prompts,
         "model": "gemnet",
         "traj_dir": Path("/qfs/projects/aqe_tec4/catalysis/henry_debug_1/5/24"),
-        "device": "cpu",
+        "device": "cuda",
         "ads_tag": 2,
         "num_adslab_samples": 1,
         "num_slab_samples": 2,
