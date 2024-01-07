@@ -34,6 +34,7 @@ class StructureReward(BaseReward):
         nnp_class="oc",
         num_slab_samples=16,
         num_adslab_samples=16,
+        max_attempts: int = 3,
         **nnp_kwargs,
     ):
         """Select the class of nnp for the reward function."""
@@ -45,6 +46,7 @@ class StructureReward(BaseReward):
             raise NotImplementedError(f"No such nnp class {nnp_class}.")
         self.num_slab_samples = num_slab_samples
         self.num_adslab_samples = num_adslab_samples
+        self.max_attempts = max_attempts
 
     def run_generation_prompts(
         self, slab_syms: list[list[str]], states: list[ReasonerState]
@@ -57,7 +59,9 @@ class StructureReward(BaseReward):
                 prompts.append(s.generation_prompt)
                 system_prompts.append(s.generation_system_prompt)
 
-        generation_results = self.llm_function(prompts, system_prompts)
+        generation_results = self.llm_function(
+            prompts, system_prompts, **{"temperature": 0.7, "top_p": 0.95}
+        )
         loop_counter = 0
         for i, s in enumerate(states):
             if slab_syms[i] is None:
@@ -88,7 +92,7 @@ class StructureReward(BaseReward):
                     )
                     if len(prompts) > len(system_prompts):
                         prompts.pop()
-
+        print("here")
         answers = self.llm_function(
             prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
         )
@@ -109,10 +113,10 @@ class StructureReward(BaseReward):
         primary_reward: bool = True,
     ):
         """Return the calculated adsorption energy from the predicted catalysts."""
-        rewards = []
+        rewards = [None]
         slab_syms = [None] * len(states)
         attempts = 0
-        while any([r is None for r in rewards]) and attempts < self.max_attempts:
+        while any([s is None for s in slab_syms]) and attempts < self.max_attempts:
             if primary_reward:
                 self.run_generation_prompts(slab_syms, states)
 
@@ -148,15 +152,24 @@ class StructureReward(BaseReward):
                 )
 
                 rewards.append(final_reward)
-
-                s.info["simulation-reward"].update(
-                    {
-                        "slab_syms": slab_syms,
-                        "value": final_reward,
-                        "gnn_calls": gnn_calls,
-                        "gnn_time": gnn_time,
-                    }
-                )
+                if "simulation-reward" in s.info.keys():
+                    s.info["simulation-reward"].update(
+                        {
+                            "slab_syms": slab_syms,
+                            "value": final_reward,
+                            "gnn_calls": gnn_calls,
+                            "gnn_time": gnn_time,
+                        }
+                    )
+                else:
+                    s.info["simulation-reward"].update(
+                        {
+                            "slab_syms": slab_syms,
+                            "value": final_reward,
+                            "gnn_calls": gnn_calls,
+                            "gnn_time": gnn_time,
+                        }
+                    )
 
         return rewards
 
@@ -189,9 +202,10 @@ class StructureReward(BaseReward):
                             ]
                             print(slab_samples)
                         except ase_interface.StructureGenerationError as err:
-                            print(err)
-                            slab_syms[i] = None
-                            valid_slab_sym = False
+                            pass
+                            # print(err)
+                            # slab_syms[i] = None
+                            # valid_slab_sym = False
 
                         if valid_slab_sym:
                             slab_ats = self.adsorption_calculator.choose_slab(
@@ -226,10 +240,10 @@ class StructureReward(BaseReward):
                                     name_candidate_mapping[name] = candidates_list[i]
             except Exception:
                 logging.warning(
-                    f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to a different catalyst."
+                    f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
                 )
                 print(
-                    "ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to a different catalyst."
+                    f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
                 )
                 pass
 
@@ -447,6 +461,7 @@ if __name__ == "__main__":
             "model": "gemnet",
             "traj_dir": Path("data", "output", f"{traj_dir}"),
             "device": "cpu",
+            "steps": 2,
             "ads_tag": 2,
             "num_adslab_samples": 1,
         }

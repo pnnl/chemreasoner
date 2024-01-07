@@ -204,13 +204,26 @@ class ReasonerState:
             self.answer = results["answer"]
             usage = results["usage"]
 
-        self.info["generation"] = {
-            "prompt": self.generation_prompt,
-            "system_prompt": self.generation_system_prompt,
-            "answer": self.answer,
-            "candidates_list": self.candidates,
-            "usage": usage,
-        }
+        if "generation" not in self.info.keys():
+            self.info["generation"] = [
+                {
+                    "prompt": self.generation_prompt,
+                    "system_prompt": self.generation_system_prompt,
+                    "answer": self.answer,
+                    "candidates_list": self.candidates,
+                    "usage": usage,
+                }
+            ]
+        else:
+            self.info["generation"] += [
+                {
+                    "prompt": self.generation_prompt,
+                    "system_prompt": self.generation_system_prompt,
+                    "answer": self.answer,
+                    "candidates_list": self.candidates,
+                    "usage": usage,
+                }
+            ]
         print(self.candidates)
 
     @property
@@ -328,20 +341,38 @@ class ReasonerState:
         else:
             answer = result["answer"]
             usage = result["usage"]
-        self.info["symbols"] = {"answer": answer, "usage": usage}
+
         answer_list_parsed = [None] * len(answer)
         for line in answer.split("\n"):
             if ":" in line:
                 cat, syms = line.split(":")
                 idx = self.candidates.index(cat)  # ensure ording is preserved
                 syms_list = list(
-                    {s.strip() for s in syms.strip().strip("[").strip("]").split(",")}
+                    {
+                        s.replace("'", "").replace('"', "").strip()
+                        for s in syms.strip().strip("[").strip("]").split(",")
+                    }
                 )  # Use a set for unique elements only
                 if syms_list == ["None"]:
                     syms_list = None
                 answer_list_parsed[idx] = syms_list
 
-        self.info["symbols"]["symbols"] = answer_list_parsed
+        if "symbols" not in self.info.keys():
+            self.info["symbols"] = [
+                {
+                    "answer": answer,
+                    "usage": usage,
+                    "symbols": answer_list_parsed,
+                }
+            ]
+        else:
+            self.info["symbols"] += [
+                {
+                    "answer": answer,
+                    "usage": usage,
+                    "symbols": answer_list_parsed,
+                }
+            ]
         return answer_list_parsed
 
     @property

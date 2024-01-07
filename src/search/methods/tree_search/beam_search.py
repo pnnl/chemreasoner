@@ -69,7 +69,8 @@ class BeamSearchTree:
         try:
             # calculate their rewards
             successor_rewards = self.reward_fn(successor_nodes)
-        except Exception:
+        except Exception as err:
+            raise err
             logging.warning(
                 "ERROR:Reward function call failed. Returning a penalty value."
             )
