@@ -52,8 +52,10 @@ class ReasonerState:
         self.template = template
         self.reward_template = reward_template
         self.ads_symbols = ads_symbols.copy()
-        self.ads_preferences = ads_preferences.copy()
+        self.ads_preferences = deepcopy(ads_preferences)
+
         self.reaction_pathways = deepcopy(reaction_pathways)
+
         self.priors_template = priors_template
         self.catalyst_label = catalyst_label
         self.num_answers = num_answers
@@ -86,8 +88,8 @@ class ReasonerState:
             template=data.get("template"),
             reward_template=data.get("reward_template"),
             ads_symbols=data.get("ads_symbols").copy(),
-            ads_preferences=data.get("ads_preferences", None),
-            reaction_pathways=data.get("reaction_pathways", None),
+            ads_preferences=deepcopy(data.get("ads_preferences", None)),
+            reaction_pathways=deepcopy(data.get("reaction_pathways", None)),
             priors_template=data.get("priors_template", None),
             catalyst_label=data.get("catalyst_label"),
             prev_candidate_list=data.get("prev_candidate_list", []).copy(),
@@ -110,7 +112,7 @@ class ReasonerState:
             template=self.template,
             reward_template=self.reward_template,
             ads_symbols=self.ads_symbols.copy(),
-            ads_preferences=self.ads_preferences.copy(),
+            ads_preferences=deepcopy(self.ads_preferences),
             reaction_pathways=deepcopy(self.reaction_pathways),
             priors_template=self.priors_template,
             catalyst_label=self.catalyst_label,
@@ -134,7 +136,7 @@ class ReasonerState:
             template=self.template,
             reward_template=self.reward_template,
             ads_symbols=self.ads_symbols.copy(),
-            ads_preferences=self.ads_preferences.copy(),
+            ads_preferences=deepcopy(self.ads_preferences),
             reaction_pathways=deepcopy(self.reaction_pathways),
             priors_template=self.priors_template,
             catalyst_label=self.catalyst_label,
