@@ -42,6 +42,65 @@ class PathReward(BaseReward):
         self.num_slab_samples = num_slab_samples
         self.num_adslab_samples = num_adslab_samples
 
+    def run_generation_prompts(
+        self, slab_syms: list[list[str]], states: list[ReasonerState]
+    ):
+        """Run the generation prompts for the given states where the reward is None."""
+        prompts = []
+        system_prompts = []
+        for i, s in enumerate(states):
+            if slab_syms[i] is None:
+                prompts.append(s.generation_prompt)
+                system_prompts.append(s.generation_system_prompt)
+
+        generation_results = self.llm_function(
+            prompts, system_prompts, **{"temperature": 0.7, "top_p": 0.95}
+        )
+        loop_counter = 0
+        for i, s in enumerate(states):
+            if slab_syms[i] is None:
+                s.process_generation(generation_results[loop_counter])
+
+                loop_counter += 1
+
+    def run_slab_sym_prompts(
+        self, slab_syms: list[list[str]], states: list[ReasonerState]
+    ):
+        """Run the generation prompts for the given states where the reward is None.
+
+        Updates the given "slab_syms" list in-place.
+        """
+        prompts = []
+        system_prompts = []
+        prompts_idx = []
+        for i, s in enumerate(states):
+            if slab_syms[i] is None:
+                try:
+                    prompts.append(s.catalyst_symbols_prompt)
+                    system_prompts.append(None)
+                    prompts_idx.append(i)
+                except Exception as err:
+                    logging.warning(
+                        f"Failed to generate prompts with error: {str(err)}. "
+                        "Skipping this prompt."
+                    )
+                    if len(prompts) > len(system_prompts):
+                        prompts.pop()
+        answers = self.llm_function(
+            prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
+        )
+        print(answers)
+
+        for i, p in enumerate(prompts):
+            state_idx = prompts_idx[i]
+            s = states[state_idx]
+            try:
+                print(s.process_catalyst_symbols(answers[i]))
+                slab_syms[state_idx] = s.process_catalyst_symbols(answers[i])
+
+            except Exception as err:
+                logging.warning(f"Failed to parse answer with error: {str(err)}.")
+
     def __call__(self, paths):
         """Return the calculated adsorption energy from the predicted catalysts."""
 

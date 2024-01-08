@@ -679,8 +679,8 @@ def generate_expert_prompt(
             )
             + "]. "
         )
-        candidate_list_statement += "The list that you return should probably not have the same catalysts as this list! "
-        candidate_list_statement += f"Your list of {catalyst_label} may {relation_to_candidate_list} those in the list. "
+        candidate_list_statement += "The list that you return should probably should not have the same catalysts as this list! "
+        candidate_list_statement += f"Your list of {catalyst_label} may be {relation_to_candidate_list} those in the list. "
         candidate_list_statement += (
             "Please compare your list to some of the candidates in this list."
         )
