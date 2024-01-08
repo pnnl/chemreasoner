@@ -1,6 +1,7 @@
 """Test a single query."""
 import argparse
 import json
+import os
 import sys
 
 from pathlib import Path
@@ -12,6 +13,7 @@ sys.path.append("src")
 from datasets import reasoner_data_loader  # noqa:E402
 from search.policy import coherent_policy, reasoner_policy  # noqa:E402
 from search.reward import simulation_reward, reaction_reward, llm_reward  # noqa:E402
+from search.state.reasoner_state import ReasonerState  # noqa:E402
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa:E402
 from llm.azure_open_ai_interface import run_azure_openai_prompts  # noqa:E402
 
@@ -29,20 +31,12 @@ class NpEncoder(json.JSONEncoder):
 
 df = pd.read_csv("data/input_data/dataset.csv", index_col=False)
 first_row = df.iloc[0]
-# TODO: Check if output file exists and is nonzero
+
 starting_state = reasoner_data_loader.get_state(
     first_row["dataset"], first_row["query"]
 )
 
 policy = coherent_policy.CoherentPolicy(run_azure_openai_prompts)
-
-starting_state.catalyst_label = " metallic catalysts"
-starting_state.priors_template = coherent_policy.priors_template
-starting_state.relation_to_candidate_list = (
-    starting_state.relation_to_candidate_list
-    if starting_state.relation_to_candidate_list is not None
-    else "similar to"
-)
 reward_fn = simulation_reward.StructureReward(
     **{
         "llm_function": run_azure_openai_prompts,
@@ -55,7 +49,24 @@ reward_fn = simulation_reward.StructureReward(
         "steps": 2,
     },
 )
-search = BeamSearchTree(starting_state, policy, reward_fn, 4, 3)
+
+if Path("test_tree.json").exists() and os.stat("test_tree.json").st_size != 0:
+    # TODO: Check if output file exists and is nonzero
+    with open("test_tree.json", "r") as f:
+        tree_data = json.load(f)
+        search = BeamSearchTree.from_data(
+            tree_data, policy, reward_fn, node_constructor=ReasonerState.from_dict
+        )
+else:
+    starting_state.catalyst_label = " metallic catalysts"
+    starting_state.priors_template = coherent_policy.priors_template
+    starting_state.relation_to_candidate_list = (
+        starting_state.relation_to_candidate_list
+        if starting_state.relation_to_candidate_list is not None
+        else "similar to"
+    )
+
+    search = BeamSearchTree(starting_state, policy, reward_fn, 4, 3)
 
 for i in range(5):
     try:

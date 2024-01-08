@@ -293,7 +293,7 @@ class StructureReward(BaseReward):
                 rewards.append(
                     [
                         -((min(reward_values[cand][ads])) ** ads_preferences[i])
-                        if min(reward_values[cand][ads]) < 0
+                        if len(reward_values[cand][ads]) > 0
                         else self.penalty_value
                         for i, ads in enumerate(reward_values[cand].keys())
                     ]

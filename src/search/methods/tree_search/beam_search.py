@@ -147,6 +147,7 @@ class BeamSearchTree:
         return beam_search_data
 
     @classmethod
+    @staticmethod
     def from_data(beam_search_data: dict, policy, reward_fn, node_constructor=None):
         """Create a beam search object from stored data."""
         new_tree = BeamSearchTree(
@@ -159,7 +160,6 @@ class BeamSearchTree:
                 new_tree.nodes[i] = new_nodes
             else:
                 new_tree.nodes.append(new_nodes)
-            beam_search_data["nodes"].append([vars(n) for n in list_nodes])
 
         new_tree.node_rewards = beam_search_data["node_rewards"]
         new_tree.parent_idx = beam_search_data["parent_idx"]
