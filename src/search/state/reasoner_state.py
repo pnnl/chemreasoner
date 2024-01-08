@@ -8,7 +8,7 @@ from copy import deepcopy
 from typing import Union
 
 import numpy as np
-
+from typing import List
 logging.getLogger().setLevel(logging.INFO)
 
 
@@ -27,14 +27,14 @@ class ReasonerState:
         self,
         template: str,
         reward_template: str,
-        ads_symbols: list[str],
-        ads_preferences: list[float] = None,
+        ads_symbols: List[str],
+        ads_preferences: List[float] = None,
         catalyst_label: str = "catalysts",
         num_answers: int = 3,
-        prev_candidate_list: list[str] = [],
+        prev_candidate_list: List[str] = [],
         relation_to_candidate_list: str = None,
-        include_list: list[str] = [],
-        exclude_list: list[str] = [],
+        include_list: List[str] = [],
+        exclude_list: List[str] = [],
         answer: str = None,
         embeddings: dict = {},
         num_queries: int = 0,
@@ -555,7 +555,7 @@ def fstr(fstring_text, vals):
 
 
 def generate_adsorption_energy_list_prompt(
-    adsorbate: str, candidate_list: list[str], reward_template: str = None
+    adsorbate: str, candidate_list: List[str], reward_template: str = None
 ):
     """Make a query to get a list of adsorption energies."""
     if reward_template is None:

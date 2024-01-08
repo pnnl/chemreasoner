@@ -16,7 +16,11 @@ from search.state.reasoner_state import ReasonerState  # noqa: E402
 from evaluation.break_traj_files import break_trajectory  # noqa: E402
 from nnp import oc  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
+import pandas as pd
 import pickle
+from typing import List
+import argparse
+from omegaconf import OmegaConf
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -274,20 +278,22 @@ class PathReward(BaseReward):
         # max_E_diff = max(np.diff(E)) # an approximation for activation energy # before
         max_E_diff = max(np.diff(E_relax_composite)) # an approximation for activation energy # new
     
-        return max_E_diff, E_relax_composite, lowestE_ids, lowestE_names
+        return max_E_diff, E_relax_composite, lowestE_ids, lowestE_names, E_adsorption, E_adsorbate_ref
 
     def get_reward_for_paths(self, paths):
         rewards = []
-        relax_energies = []
+        relax_energies, adsorption_energies, adsorbate_energies = [], [], []
         lowestE_str = []
         for path in paths:
             # have to get path name
-            reward, E, lowestE_ids, lowestE_names = self.get_reward_for_path(path)
+            reward, E, lowestE_ids, lowestE_names, E_adsorption, E_adsorbate_ref = self.get_reward_for_path(path)
             # min_act_energy_path_id, relax_energies, min_act_energy, min_act_energy_path, lowestE_str[min_act_energy_path_id]
             relax_energies.append(E) # relaxed energies of all the steps.
             rewards.append(reward) # activation energy
             lowestE_str.append((lowestE_ids, lowestE_names))
-    
+
+            adsorption_energies.append(E_adsorption)
+            adsorbate_energies.append(E_adsorbate_ref)
     
         min_act_energy_path_id = np.argmin(rewards)
         min_act_energy = rewards[min_act_energy_path_id]
@@ -295,7 +301,7 @@ class PathReward(BaseReward):
 
         # returning ads_energies for each step, in case they are
         # needed for visualization purposes
-        return min_act_energy_path_id, relax_energies, min_act_energy, min_act_energy_path, lowestE_str[min_act_energy_path_id]
+        return min_act_energy_path_id, relax_energies, min_act_energy, min_act_energy_path, lowestE_str[min_act_energy_path_id], rewards, adsorption_energies, adsorbate_energies
 
 
     def unpack_batch_results(self, batch_results, fname_batch):
@@ -373,7 +379,7 @@ class PathReward(BaseReward):
         return formula
 
     @staticmethod
-    def reduce_candidate_symbols(candidate_syms: list[str]):
+    def reduce_candidate_symbols(candidate_syms: List[str]):
         """Reduce the symbols of metal symbols to a basic form.
 
         If there are two metals, the more prominant metal is listed first. If there are
@@ -401,88 +407,92 @@ class PathReward(BaseReward):
 
 
 if __name__ == "__main__":
-    traj_dir = "hreact2"
+    # traj_dir = "hreact2"
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', help="configuration file *.yml", type=str, required=False, default='config.yaml')
+    args = parser.parse_args()
+
+    if args.config:  # args priority is higher than yaml
+        opt = OmegaConf.load(args.config)
+        OmegaConf.resolve(opt)
+
+        args=opt
+
+    traj_dir = args.traj_dir
+    path_file = args.path_file
 
     sr = PathReward(
             **{
                 "llm_function": None,
                 "model": "gemnet",
                 "traj_dir": Path("data", "output", f"{traj_dir}"),
-                "device": "cpu",
+                "device": "cuda",
                 "ads_tag": 2,
-                "num_adslab_samples": 16
+                # "num_adslab_samples": 16
+                "num_adslab_samples": 4
             }
         )
 
+    # with open(path_file, 'rb') as f:
+    #     pathways = pickle.load(f)
 
-    path1 = [ [["Cu","Pt"], "CO2", "CuPt"], 
-                [["Cu","Pt"], "HCOOH", "CuPt"], 
-                    [["Cu","Pt"], "CH2O", "CuPt"], 
-                        [["Cu","Pt"], "CH3O", "CuPt"], 
-                            [["Cu","Pt"], "CH3OH", "CuPt"], 
-        ]
+    pathways = pd.read_pickle(path_file)
+
+    # pathways ==>
+    # {'CuZn': {'CuZn_0': [[['Cu', 'Zn'], 'CO2', 'CuZn'],
+    #    [['Cu', 'Zn'], '*OCHO', 'CuZn'],
+    #    [['Cu', 'Zn'], '*CHOH', 'CuZn'],
+    #    [['Cu', 'Zn'], '*OHCH3', 'CuZn']],
+    #   'CuZn_1': [[['Cu', 'Zn'], 'CO2', 'CuZn'],
+    #    [['Cu', 'Zn'], '*CO', 'CuZn'],
+    #    [['Cu', 'Zn'], '*CHO', 'CuZn'],
+    #    [['Cu', 'Zn'], '*CH2*O', 'CuZn'],
+    #    [['Cu', 'Zn'], '*OHCH3', 'CuZn']]},
+    #  'CuAu': {'CuAu_0': [[['Cu', 'Au'], 'CO2', 'CuAu'],
+    #    [['Cu', 'Au'], '*OCHO', 'CuAu'],
+    #    [['Cu', 'Au'], '*CHOH', 'CuAu'],
+    #    [['Cu', 'Au'], '*OHCH3', 'CuAu']],
+    #   'CuAu_1': [[['Cu', 'Au'], 'CO2', 'CuAu'],
+    #    [['Cu', 'Au'], '*CO', 'CuAu'],
+    #    [['Cu', 'Au'], '*CHO', 'CuAu'],
+    #    [['Cu', 'Au'], '*CH2*O', 'CuAu'],
+    #    [['Cu', 'Au'], '*OHCH3', 'CuAu']]},
+
+    for slab_name, slab_pathways in pathways.items():
+        # slab_name ==> 'CuZn'
+
+     
+
+        path_list = list(slab_pathways.values())
+
+        min_act_energy_path_id, relax_energies, min_act_energy, min_act_energy_path, lowestE_str_info, rewards, adsorption_energies, adsorbate_energies = sr.get_reward_for_paths(path_list)
     
-    path10 = [ [["Cu"], "CO2", "Cu"], 
-                [["Cu"], "HCOOH", "Cu"], 
-                    [["Cu"], "CH2O", "Cu"], 
-                        [["Cu"], "CH3O", "Cu"], 
-                            [["Cu"], "CH3OH", "Cu"], 
-        ]
-    
-    path2 = [ [["Cu"], "CO2", "Cu"], 
-                [["Cu"], "CO", "Cu"], 
-                    [["Cu"], "CHOH", "Cu"], 
-                            [["Cu"], "CH3OH", "Cu"], 
-        ]
-    # path22 = [ [["Cu"], "CO2", "Cu"], 
-    #             [["Cu"], "CO", "Cu"], 
-    #                 [["Cu"], "CHOH", "Cu"], 
-    #                         [["Cu"], "CH3OH", "Cu"], 
 
-    #     ]
+        print("min_act_energy_path_id: ", min_act_energy_path_id)
+        print('relaxed energies: ', relax_energies)
+        print("minimum act. energy: ", min_act_energy)
+        print("minimum act. energy path : ", min_act_energy_path)
+        print("minimum act. energy path info : ", lowestE_str_info)
 
-    path3 = [ [["Cu"], "CO2", "Cu"], 
-                [["Cu"], "CHO2", "Cu"], 
-                    [["Cu"], "CH3OH", "Cu"], 
-                        [["Cu"], "CH2O", "Cu"], 
-                            [["Cu"], "CH3OH", "Cu"], 
-        ]
+        output = {
+        
+        "trag_dir": traj_dir,
+        "rewards": rewards,
+        "adsorption_energies": adsorption_energies,
+        "adsorbate_energies": adsorbate_energies,
+        "min_act_energy_path_id": min_act_energy_path_id,
+        "relaxed_energies": relax_energies,
+        "minimum_act_energy": min_act_energy,
+        "minimum_act_energy_path": min_act_energy_path,
+        "minimum_act_energy_path_info_": lowestE_str_info,
+        "slab_names": list(slab_pathways.keys())
+        }
 
-    path4 = [ [["Cu"], "CO2", "Cu"], 
-                [["Cu"], "COOH", "Cu"], 
-                    [["Cu"], "CH2O", "Cu"], 
-                        [["Cu"], "CH3OH", "Cu"]
-        ]
+        result_file_name = f"paths_results_{slab_name}.pkl"
+        out_path = Path("data", "output", f"{traj_dir}", result_file_name)
 
-    path5 = [ [["Cu"], "CO2", "Cu"], 
-                [["Cu"], "CHO", "Cu"], 
-                        [["Cu"], "CH3OH", "Cu"]
-        ] 
-
-
-
-    min_act_energy_path_id, relax_energies, min_act_energy, min_act_energy_path, lowestE_str_info = sr.get_reward_for_paths([path10, path1])
-    # path_id, actE, path = sr.get_reward_for_paths([path5])
-
-    print("min_act_energy_path_id: ", min_act_energy_path_id)
-    print('relaxed energies: ', relax_energies)
-    print("minimum act. energy: ", min_act_energy)
-    print("minimum act. energy path : ", min_act_energy_path)
-    print("minimum act. energy path info : ", lowestE_str_info)
-
-    output = {
-    
-    "trag_dir": traj_dir,
-    "min_act_energy_path_id": min_act_energy_path_id,
-    "relaxed_energies": relax_energies,
-    "minimum_act_energy": min_act_energy,
-    "minimum_act_energy_path": min_act_energy_path,
-    "minimum_act_energy_path_info_": lowestE_str_info
-    }
-
-    out_path = Path("data", "output", f"{traj_dir}", "paths_results.pkl")
-
-    with open(out_path, 'wb') as f:
-        pickle.dump(output, f)
+        with open(out_path, 'wb') as f:
+            pickle.dump(output, f)
 
 

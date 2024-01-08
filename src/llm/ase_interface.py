@@ -12,6 +12,7 @@ from ase.data import reference_states, atomic_numbers
 import ocdata
 import numpy as np
 from ocdata.core import Adsorbate, AdsorbateSlabConfig, Bulk, Slab
+from typing import List
 
 with open(Path("data", "input_data", "oc", "oc_20_adsorbates.pkl"), "rb") as f:
     oc_20_ads_structures = pickle.load(f)
@@ -82,12 +83,13 @@ def create_bulk(name):
 
 
 
+
 def generate_bulk_ads_pairs(
     bulk: Atoms,
     ads: str,
-    site: Union[str, list[str]] = None,
+    site: Union[str, List[str]] = None,
     height=3.0,
-) -> Union[Atoms, list[Atoms]]:
+) -> Union[Atoms, List[Atoms]]:
     """Add adsorbate to a bulk in the given locations."""
     num_tries = 0
 
@@ -148,7 +150,7 @@ def generate_bulk_ads_pairs_heuristic(
     ads: str,
     mode: str = "heuristic",
     num_sites: int = 100
-) -> Union[Atoms, list[Atoms]]:
+) -> Union[Atoms, List[Atoms]]:
     
     bulk = Bulk(bulk_atoms=bulk)
     # bulk = Bulk(bulk_atoms=slab_ats)
@@ -246,7 +248,7 @@ def get_top_atom_index(slab: Atoms, position) -> int:
     return min_idx
 
 
-def convert_alloy(bulk, other_symbols=Union[str, list[str]]):
+def convert_alloy(bulk, other_symbols=Union[str, List[str]]):
     """Convert an existing metal to a metal alloy."""
     if isinstance(other_symbols, str):
         other_symbols = [other_symbols]
@@ -287,11 +289,11 @@ typical_syms = {
 
 
 def llm_answer_to_symbols(
-    answer: list[str],
+    answer: List[str],
     model="gpt-3.5-turbo",
     debug=False,
     num_attempts=3,
-) -> list[Union[str, None]]:
+) -> List[Union[str, None]]:
     """Turn an llm answer into a list of atomic symbols or None if not possible."""
     from llm.query import run_query  # noqa: E402
 
@@ -320,7 +322,7 @@ def llm_answer_to_symbols(
     return answer_list_parsed
 
 
-def llm_answer_to_symbols_prompt(answer: list[str]):
+def llm_answer_to_symbols_prompt(answer: List[str]):
     """Turn an llm_answer into a prompt for symbols_parsing."""
 
     example_format = ""

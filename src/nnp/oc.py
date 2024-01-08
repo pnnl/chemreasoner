@@ -26,7 +26,7 @@ from ocpmodels.common.typing import assert_is_instance
 from ocpmodels.datasets.lmdb_dataset import data_list_collater
 from ocpmodels.preprocessing.atoms_to_graphs import AtomsToGraphs
 
-
+from typing import List
 import torch
 from torch_geometric.data import Batch
 
@@ -57,8 +57,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         device="cpu",
         ads_tag=0,
         fmax=0.005,
-        # steps=150,
-        steps=4,
+        steps=150,
+        # steps=4,
         adsorbed_structure_checker=None,
     ):
         """Create object from model class (gemnet or equiformer).
@@ -179,7 +179,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def batched_relax_atoms(
         self,
-        atoms: list[Atoms],
+        atoms: List[Atoms],
         atoms_names,
         device=None,
         fmax=None,
@@ -225,7 +225,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def batched_adsorption_calculation(
         self,
-        atoms: list[Atoms], # a list of structures
+        atoms: List[Atoms], # a list of structures
         atoms_names,
         device=None,
         **bfgs_kwargs,
@@ -318,7 +318,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def batched_adsorption_and_energy_calculation(
         self,
-        atoms: list[Atoms], # a list of structures
+        atoms: List[Atoms], # a list of structures
         atoms_names,
         device=None,
         **bfgs_kwargs,
@@ -410,7 +410,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     # gihan
     def batched_energy_calculation(
         self,
-        atoms: list[Atoms], # a list of structures
+        atoms: List[Atoms], # a list of structures
         atoms_names,
         device=None,
         **bfgs_kwargs,
@@ -517,7 +517,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             OCAdsorptionCalculator.prepare_atoms(ats, constraints=constraints)
 
     @staticmethod
-    def copy_atoms_list(atoms_list: list[Atoms]) -> list[Atoms]:
+    def copy_atoms_list(atoms_list: List[Atoms]) -> List[Atoms]:
         """Copy the atoms in a list and return the copy."""
         return [ats.copy() for ats in atoms_list]
 
@@ -636,7 +636,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         else:
             return None
 
-    def choose_slab(self, slab_samples: list[Atoms], slab_name=None) -> Atoms:
+    def choose_slab(self, slab_samples: List[Atoms], slab_name=None) -> Atoms:
         """Choose the minimum slab from a given set of slabs."""
         atoms = self.copy_atoms_list(slab_samples)
         self.prepare_atoms_list(atoms)
