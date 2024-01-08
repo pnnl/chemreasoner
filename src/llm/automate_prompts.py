@@ -105,6 +105,7 @@ def get_initial_state_bio_fuels(
         template=template,
         reward_template=None,
         ads_symbols=[adsorbate],
+        ads_preferences=[1],
         num_answers=3,
         include_list=[property_name],
         prediction_model=prediction_model,
