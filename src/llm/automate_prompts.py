@@ -148,6 +148,7 @@ def get_initial_state_rwgs(
         reward_template=None,
         ads_symbols=ads_symbols,
         ads_preferences=ads_preference,
+        catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
         include_list=include_list,
         num_answers=3,
         prediction_model=prediction_model,
@@ -170,6 +171,7 @@ def get_initial_state_methanol(
     if cheap_statement is not None:
         if "cheap" in cheap_statement:
             include_list = ["low cost"]
+            question = question.replace("[", "").replace("]", "")
         else:
             raise ValueError(f"Unkown value {cheap_statement}")
 
@@ -193,6 +195,7 @@ def get_initial_state_methanol(
             reward_template=None,
             ads_symbols=ads_symbols,
             ads_preferences=ads_preference,
+            catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
             include_list=include_list,
             num_answers=3,
             prediction_model=prediction_model,
@@ -208,6 +211,7 @@ def get_initial_state_methanol(
             reward_template=None,
             ads_symbols=ads_symbols,
             pathways=computational_pathways_methanol,
+            catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
             include_list=include_list,
             num_answers=3,
             prediction_model=prediction_model,
@@ -230,6 +234,7 @@ def get_initial_state_ethanol(
     if cheap_statement is not None:
         if "cheap" in cheap_statement:
             include_list = ["low cost"]
+            question = question.replace("[", "").replace("]", "")
         else:
             raise ValueError(f"Unkown value {cheap_statement}")
 
@@ -255,6 +260,7 @@ def get_initial_state_ethanol(
             reward_template=None,
             ads_symbols=ads_symbols,
             pathways=computational_pathways_methanol,
+            catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
             include_list=include_list,
             num_answers=3,
             prediction_model=prediction_model,
@@ -265,6 +271,7 @@ def get_initial_state_ethanol(
         template=template,
         reward_template=None,
         ads_symbols=ads_symbols,
+        catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
         ads_preferences=ads_preference,
         include_list=include_list,
         num_answers=3,
