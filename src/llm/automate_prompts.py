@@ -20,6 +20,11 @@ computational_pathways_methanol = [
     ["CO2", "*CO", "*CHO", "*CH2*O", "*OHCH3"],
 ]
 
+computational_pathways_ethanol = [
+    ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
+    ["CO2", "*CO", "*CH2*O", "*OCH2CH3"],
+]
+
 
 def find_all(string, sub):
     """Find all instances of sub string in a string."""
@@ -37,9 +42,9 @@ def get_template(question, chain_of_thought):
     template = question
     if chain_of_thought:
         template += (
-            "{include_statement} {exclude_statement}"
-            "Provide scientific explanations for each of the catalysts. "
-            "Finally, return a python list named final_answer which contains the top-5 catalysts. "
+            " {include_statement}{exclude_statement}"
+            "Provide scientific explanations for each of the {catalyst_label}. "
+            "Finally, return a python list named final_answer which contains the top-5 {catalyst_label}. "
             "{candidate_list_statement}"
             r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
         )
@@ -47,7 +52,7 @@ def get_template(question, chain_of_thought):
         template += (
             "{include_statement} {exclude_statement}"
             "{candidate_list_statement}"
-            r"\n\nReturn a python list named final_answer which contains the top-5 catalysts."
+            r"\n\nReturn a python list named final_answer which contains the top-5 {catalyst_label}."
         )
     return template
 
@@ -60,21 +65,8 @@ def get_initial_state_open_catalyst(
     chain_of_thought=True,
 ):
     """Get initial state for LLM query from adsorbate string."""
-    template = question.replace("{catalysts}", "{catalyst_label}")
-    if chain_of_thought:
-        template += (
-            "{include_statement} {exclude_statement}"
-            "Provide scientific explanations for each of the catalysts. "
-            "Finally, return a python list named final_answer which contains the top-5 catalysts. "
-            "{candidate_list_statement}"
-            r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
-        )
-    else:
-        template += (
-            "{include_statement} {exclude_statement}"
-            "{candidate_list_statement}"
-            r"\n\nReturn a python list named final_answer which contains the top-5 catalysts."
-        )
+    question = question.replace("{catalysts}", "{catalyst_label}")
+    template = get_template(question, chain_of_thought=chain_of_thought)
     adsorbate = question.split("adsorption of ")[-1].split(".")[0]
     starting_state = ReasonerState(
         template=template,
@@ -96,10 +88,12 @@ def get_initial_state_bio_fuels(
     chain_of_thought=True,
 ):
     """Generate initial query for non RWGS reaction prompt."""
+    question = question.replace("{catalysts}", "{catalyst_label}")
     adsorbate = question.split("bind ")[1].split(" in")[0]
     reaction_name = question.split("in ")[1].split(" reaction")[0]
     property_name = question.split("with ")[1].split(".")[0].lower()
-    template = get_template(question, chain_of_thought=True)
+
+    template = get_template(question, chain_of_thought=chain_of_thought)
 
     qs = ReasonerState(
         template=template,
@@ -128,12 +122,13 @@ def get_initial_state_rwgs(
     if cheap_statement is not None:
         if "cheap" in cheap_statement:
             include_list = ["low cost"]
+            question = question.replace("[", "").replace("]", "")
         else:
             raise ValueError(f"Unkown value {cheap_statement}")
 
     else:
         include_list = []
-    template = get_template(question, chain_of_thought=True)
+    template = get_template(question, chain_of_thought=chain_of_thought)
 
     ads_symbols = []
     ads_preference = []
@@ -180,7 +175,7 @@ def get_initial_state_methanol(
 
     else:
         include_list = []
-    template = get_template(question, chain_of_thought=True)
+    template = get_template(question, chain_of_thought=chain_of_thought)
 
     ads_symbols = []
     ads_preference = []
@@ -240,7 +235,7 @@ def get_initial_state_ethanol(
 
     else:
         include_list = []
-    template = get_template(question, chain_of_thought=True)
+    template = get_template(question, chain_of_thought=chain_of_thought)
 
     ads_symbols = []
     ads_preference = []
@@ -252,8 +247,19 @@ def get_initial_state_ethanol(
 
     # If there are no adsorbates in the prompt...
     if len(ads_symbols) == 0:
-        # Do the reaction
-        ...
+        ads_symbols = set(
+            [syms for syms_l in computational_pathways_ethanol for syms in syms_l]
+        )
+        qs = ReasonerState(
+            template=template,
+            reward_template=None,
+            ads_symbols=ads_symbols,
+            pathways=computational_pathways_methanol,
+            include_list=include_list,
+            num_answers=3,
+            prediction_model=prediction_model,
+            reward_model=reward_model,
+        )
 
     qs = ReasonerState(
         template=template,
