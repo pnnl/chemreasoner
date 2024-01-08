@@ -203,8 +203,9 @@ class StructureReward(BaseReward):
                             ]
                             print(slab_samples)
                         except ase_interface.StructureGenerationError as err:
-                            pass
-                            # print(err)
+                            logging.warning(err)
+                            print(err)
+                            raise err
                             # slab_syms[i] = None
                             # valid_slab_sym = False
 
