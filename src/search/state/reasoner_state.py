@@ -342,7 +342,7 @@ class ReasonerState:
             answer = result["answer"]
             usage = result["usage"]
 
-        answer_list_parsed = [None] * len(answer)
+        answer_list_parsed = [None] * len(self.candidates)
         for line in answer.split("\n"):
             if ":" in line:
                 cat, syms = line.split(":")

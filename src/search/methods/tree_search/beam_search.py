@@ -81,6 +81,7 @@ class BeamSearchTree:
         selected_node_idx = np.argsort(successor_rewards)[
             -self.num_keep :  # noqa: E203
         ]
+        print(successor_rewards)
         generated_idx = np.argsort(successor_rewards)[: -self.num_keep]  # noqa: E203
 
         # Separate out the top-k rewards

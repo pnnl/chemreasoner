@@ -96,11 +96,14 @@ class StructureReward(BaseReward):
         answers = self.llm_function(
             prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
         )
+        print(answers)
 
         for i, p in enumerate(prompts):
             state_idx = prompts_idx[i]
             s = states[state_idx]
             try:
+                print(s.process_catalyst_symbols(answers[i]))
+                print("*" * 400)
                 slab_syms[state_idx] = s.process_catalyst_symbols(answers[i])
 
             except Exception as err:
@@ -113,7 +116,7 @@ class StructureReward(BaseReward):
         primary_reward: bool = True,
     ):
         """Return the calculated adsorption energy from the predicted catalysts."""
-        rewards = [None]
+        rewards = []
         slab_syms = [None] * len(states)
         attempts = 0
         while any([s is None for s in slab_syms]) and attempts < self.max_attempts:
@@ -141,7 +144,7 @@ class StructureReward(BaseReward):
                     gnn_time,
                     name_candidate_mapping,
                 ) = self.create_structures_and_calculate(
-                    slab_syms, ads_list, candidates_list
+                    slab_syms[i], ads_list, candidates_list
                 )
 
                 final_reward = self.parse_adsorption_energies(
@@ -162,14 +165,12 @@ class StructureReward(BaseReward):
                         }
                     )
                 else:
-                    s.info["simulation-reward"].update(
-                        {
-                            "slab_syms": slab_syms,
-                            "value": final_reward,
-                            "gnn_calls": gnn_calls,
-                            "gnn_time": gnn_time,
-                        }
-                    )
+                    s.info["simulation-reward"] = {
+                        "slab_syms": slab_syms,
+                        "value": final_reward,
+                        "gnn_calls": gnn_calls,
+                        "gnn_time": gnn_time,
+                    }
 
         return rewards
 
@@ -288,7 +289,7 @@ class StructureReward(BaseReward):
                 rewards.append(
                     [
                         -((min(reward_values[cand][ads])) ** ads_preferences[i])
-                        if reward_values[cand][ads] > 0
+                        if min(reward_values[cand][ads]) < 0
                         else self.penalty_value
                         for i, ads in enumerate(reward_values[cand].keys())
                     ]
