@@ -19,7 +19,7 @@ for i, row in df.iterrows():
     print(s.generation_prompt)
 
     system_prompt = s.generation_system_prompt
-    prompt = s.generation_system_prompt
+    prompt = s.generation_prompt
 
     answer = run_azure_openai_prompts([prompt], [system_prompt])
     s.process_generation(answer[0])
