@@ -302,7 +302,7 @@ class StructureReward(BaseReward):
                 )
             else:  # Handle default here TODO: determine some logic/pentaly for this
                 print(cand)
-                return rewards.append(self.penalty_value)
+                rewards.append(self.penalty_value)
 
         final_reward = np.mean(rewards)
 

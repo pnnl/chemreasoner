@@ -29,7 +29,10 @@ class BeamSearchTree:
         self.nodes = []
         self.nodes.append([data])
         self.parent_idx = [[-1]]
-        self.node_rewards = [[0]]
+        if root_reward:
+            self.node_rewards = [reward_fn([data])]
+        else:
+            self.node_rewards = [[0]]
         self.generated_nodes = [[]]
         self.generated_node_rewards = [[]]
         self.generated_parent_idx = [[]]
