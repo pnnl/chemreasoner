@@ -136,7 +136,9 @@ class StructureReward(BaseReward):
                     "\n\nInto catalyst symbols. "
                     "Returning the penalty value for that answer."
                 )
-                rewards.append(self.penalty_value)
+                gnn_calls = 0
+                gnn_time = 0
+                final_reward = self.penalty_value
             else:
                 (
                     adslabs_and_energies,
@@ -154,23 +156,23 @@ class StructureReward(BaseReward):
                     s.ads_preferences,
                 )
 
-                rewards.append(final_reward)
-                if "simulation-reward" in s.info.keys():
-                    s.info["simulation-reward"].update(
-                        {
-                            "slab_syms": slab_syms,
-                            "value": final_reward,
-                            "gnn_calls": gnn_calls,
-                            "gnn_time": gnn_time,
-                        }
-                    )
-                else:
-                    s.info["simulation-reward"] = {
-                        "slab_syms": slab_syms,
+            rewards.append(final_reward)
+            if "simulation-reward" in s.info.keys():
+                s.info["simulation-reward"].update(
+                    {
+                        "slab_syms": slab_syms[i],
                         "value": final_reward,
                         "gnn_calls": gnn_calls,
                         "gnn_time": gnn_time,
                     }
+                )
+            else:
+                s.info["simulation-reward"] = {
+                    "slab_syms": slab_syms[i],
+                    "value": final_reward,
+                    "gnn_calls": gnn_calls,
+                    "gnn_time": gnn_time,
+                }
 
         return rewards
 
@@ -205,6 +207,7 @@ class StructureReward(BaseReward):
                         except ase_interface.StructureGenerationError as err:
                             logging.warning(err)
                             print(err)
+                            slab_syms[i] = None
                             raise err
                             # slab_syms[i] = None
                             # valid_slab_sym = False

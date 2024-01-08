@@ -205,23 +205,27 @@ class ReasonerState:
 
         if "generation" not in self.info.keys():
             self.info["generation"] = [
-                {
-                    "prompt": self.generation_prompt,
-                    "system_prompt": self.generation_system_prompt,
-                    "answer": self.answer,
-                    "candidates_list": self.candidates,
-                    "usage": usage,
-                }
+                deepcopy(
+                    {
+                        "prompt": self.generation_prompt,
+                        "system_prompt": self.generation_system_prompt,
+                        "answer": self.answer,
+                        "candidates_list": self.candidates,
+                        "usage": usage,
+                    }
+                )
             ]
         else:
             self.info["generation"] += [
-                {
-                    "prompt": self.generation_prompt,
-                    "system_prompt": self.generation_system_prompt,
-                    "answer": self.answer,
-                    "candidates_list": self.candidates,
-                    "usage": usage,
-                }
+                deepcopy(
+                    {
+                        "prompt": self.generation_prompt,
+                        "system_prompt": self.generation_system_prompt,
+                        "answer": self.answer,
+                        "candidates_list": self.candidates,
+                        "usage": usage,
+                    }
+                )
             ]
         print(self.candidates)
 
@@ -244,15 +248,17 @@ class ReasonerState:
             self.info["llm-reward"] = {"attempted_prompts": []}
 
         self.info["llm-reward"]["attempted_prompts"].append(
-            {
-                "prompt": self.adsorption_energy_prompts,
-                "system_prompt": self.reward_system_prompt,
-                "answer": [],
-                "key_answers": [],
-                "number_answers": [],
-                "successful": [],
-                "usage": [],
-            }
+            deepcopy(
+                {
+                    "prompt": self.adsorption_energy_prompts,
+                    "system_prompt": self.reward_system_prompt,
+                    "answer": [],
+                    "key_answers": [],
+                    "number_answers": [],
+                    "successful": [],
+                    "usage": [],
+                }
+            )
         )
         return_values = []
         for i, adsorption_energy_prompt in enumerate(self.adsorption_energy_prompts):
@@ -304,11 +310,11 @@ class ReasonerState:
             except Exception as err:
                 # Save and rerase error
                 self.info["llm-reward"]["attempted_prompts"][-1]["key_answers"].append(
-                    key_answers
+                    deepcopy(key_answers)
                 )
                 self.info["llm-reward"]["attempted_prompts"][-1][
                     "number_answers"
-                ].append(number_answers)
+                ].append(deepcopy(key_answers))
                 raise err
 
         return return_values
@@ -358,19 +364,23 @@ class ReasonerState:
 
         if "symbols" not in self.info.keys():
             self.info["symbols"] = [
-                {
-                    "answer": answer,
-                    "usage": usage,
-                    "symbols": answer_list_parsed,
-                }
+                deepcopy(
+                    {
+                        "answer": answer,
+                        "usage": usage,
+                        "symbols": answer_list_parsed,
+                    }
+                )
             ]
         else:
             self.info["symbols"] += [
-                {
-                    "answer": answer,
-                    "usage": usage,
-                    "symbols": answer_list_parsed,
-                }
+                deepcopy(
+                    {
+                        "answer": answer,
+                        "usage": usage,
+                        "symbols": answer_list_parsed,
+                    }
+                )
             ]
         return answer_list_parsed
 
@@ -482,21 +492,25 @@ class ReasonerState:
                 action_lists[action.strip().strip('"')] = action_list
         if "priors" not in self.info:
             self.info["priors"] = [
-                {
-                    "prompt": self.priors_prompt,
-                    "answer": prior_answer,
-                    "usage": usage,
-                    "parsed_actions": action_lists,
-                },
+                deepcopy(
+                    {
+                        "prompt": self.priors_prompt,
+                        "answer": prior_answer,
+                        "usage": usage,
+                        "parsed_actions": action_lists,
+                    }
+                )
             ]
         else:
             self.info["priors"] += [
-                {
-                    "prompt": self.priors_prompt,
-                    "answer": prior_answer,
-                    "usage": usage,
-                    "parsed_actions": action_lists,
-                },
+                deepcopy(
+                    {
+                        "prompt": self.priors_prompt,
+                        "answer": prior_answer,
+                        "usage": usage,
+                        "parsed_actions": action_lists,
+                    }
+                ),
             ]
         return action_lists
 
