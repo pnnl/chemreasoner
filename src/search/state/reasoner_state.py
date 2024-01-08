@@ -21,7 +21,6 @@ Finally, here is the Python list final_answer of the top-5 catalysts for the ads
 final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (Fe2O3)", "Zinc oxide (ZnO)"]"""
 
 
-# TODO; Exception handling for processing generation
 class ReasonerState:
     """A class for the search tree state."""
 
@@ -80,7 +79,7 @@ class ReasonerState:
 
     @classmethod
     @staticmethod
-    def from_dict(incoming_data: dict):  # TODO: Add defaults
+    def from_dict(incoming_data: dict):
         """Create a query state from dictionary."""
         data = deepcopy(incoming_data)
         return ReasonerState(
