@@ -80,8 +80,6 @@ def create_bulk(name):
     # return ats
 
 
-
-
 def generate_bulk_ads_pairs(
     bulk: Atoms,
     ads: str,
@@ -144,43 +142,43 @@ def generate_bulk_ads_pairs(
 
 
 def generate_bulk_ads_pairs_heuristic(
-    bulk: Atoms,
-    ads: str,
-    mode: str = "heuristic",
-    num_sites: int = 100
+    bulk: Atoms, ads: str, mode: str = "heuristic", num_sites: int = 100
 ) -> Union[Atoms, list[Atoms]]:
-    
     bulk = Bulk(bulk_atoms=bulk)
     # bulk = Bulk(bulk_atoms=slab_ats)
     slabs = Slab(bulk=bulk, slab_atoms=bulk.atoms)
     # specific_millers might have to be changed based on the type of the crystal (cubic, etc)
     # slabs = Slab.from_bulk_get_specific_millers(bulk = bulk, specific_millers=(0,0,1))
     if isinstance(slabs, list):
-        slabs = [s for s in slabs if s.shift==0.0] # selecting the slabs with shift=0
+        slabs = [s for s in slabs if s.shift == 0.0]  # selecting the slabs with shift=0
     elif isinstance(slabs, ocdata.core.slab.Slab):
         print("slab type is ocdata.core.slab.Slab")
         slabs = [slabs]
 
-    
     binding_molecules = ads.info.get("binding_sites", np.array([0]))
-    adsorbate = Adsorbate(ads, adsorbate_binding_indices = list(binding_molecules) )
+    adsorbate = Adsorbate(ads, adsorbate_binding_indices=list(binding_molecules))
     heuristic_adslabs = []
     for slab in slabs:
-         h_slabs = AdsorbateSlabConfig(slab, adsorbate, mode=mode, num_sites=num_sites)
-         heuristic_adslabs.extend(h_slabs.atoms_list)
+        h_slabs = AdsorbateSlabConfig(slab, adsorbate, mode=mode, num_sites=num_sites)
+        heuristic_adslabs.extend(h_slabs.atoms_list)
 
     if num_sites < len(heuristic_adslabs):
         adslabs = [heuristic_adslabs[i] for i in range(num_sites)]
-    
+
     elif num_sites == len(heuristic_adslabs):
         adslabs = heuristic_adslabs
-        
-    elif num_sites > len(heuristic_adslabs):
-        num_random_slabs = (num_sites - len(heuristic_adslabs))//len(slabs)
 
-        random_adslabs=[]
+    elif num_sites > len(heuristic_adslabs):
+        num_random_slabs = (num_sites - len(heuristic_adslabs)) // len(slabs)
+
+        random_adslabs = []
         for slab in slabs:
-            r_slabs = AdsorbateSlabConfig(slab, adsorbate, mode="random_site_heuristic_placement", num_sites = num_random_slabs)
+            r_slabs = AdsorbateSlabConfig(
+                slab,
+                adsorbate,
+                mode="random_site_heuristic_placement",
+                num_sites=num_random_slabs,
+            )
             random_adslabs.extend(r_slabs.atoms_list)
 
         adslabs = heuristic_adslabs + random_adslabs
@@ -191,11 +189,7 @@ def generate_bulk_ads_pairs_heuristic(
     # adslabs = [*heuristic_adslabs.atoms_list, *random_adslabs.atoms_list]
     # adslabs = heuristic_adslabs.atoms_list
 
-    
-
     return adslabs
-
-
 
 
 def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, position=None) -> Atoms:

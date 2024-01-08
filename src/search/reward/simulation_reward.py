@@ -3,6 +3,7 @@ import logging
 import sys
 import uuid
 
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -21,6 +22,8 @@ from search.reward.base_reward import BaseReward  # noqa: E402
 
 logging.getLogger().setLevel(logging.INFO)
 
+print("finished imports")
+
 
 class StructureReward(BaseReward):
     """Calculate the reward for answers based on adsorption simulations."""
@@ -32,6 +35,7 @@ class StructureReward(BaseReward):
         nnp_class="oc",
         num_slab_samples=16,
         num_adslab_samples=16,
+        max_attempts: int = 3,
         **nnp_kwargs,
     ):
         """Select the class of nnp for the reward function."""
@@ -43,6 +47,7 @@ class StructureReward(BaseReward):
             raise NotImplementedError(f"No such nnp class {nnp_class}.")
         self.num_slab_samples = num_slab_samples
         self.num_adslab_samples = num_adslab_samples
+        self.max_attempts = max_attempts
 
     def run_generation_prompts(
         self, slab_syms: list[list[str]], states: list[ReasonerState]
@@ -55,7 +60,9 @@ class StructureReward(BaseReward):
                 prompts.append(s.generation_prompt)
                 system_prompts.append(s.generation_system_prompt)
 
-        generation_results = self.llm_function(prompts, system_prompts)
+        generation_results = self.llm_function(
+            prompts, system_prompts, **{"temperature": 0.7, "top_p": 0.95}
+        )
         loop_counter = 0
         for i, s in enumerate(states):
             if slab_syms[i] is None:
@@ -86,15 +93,17 @@ class StructureReward(BaseReward):
                     )
                     if len(prompts) > len(system_prompts):
                         prompts.pop()
-
+        print("here")
         answers = self.llm_function(
             prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
         )
+        print(answers)
 
         for i, p in enumerate(prompts):
             state_idx = prompts_idx[i]
             s = states[state_idx]
             try:
+                print(s.process_catalyst_symbols(answers[i]))
                 slab_syms[state_idx] = s.process_catalyst_symbols(answers[i])
 
             except Exception as err:
@@ -110,7 +119,7 @@ class StructureReward(BaseReward):
         rewards = []
         slab_syms = [None] * len(states)
         attempts = 0
-        while any([r is None for r in rewards]) and attempts < self.max_attempts:
+        while any([s is None for s in slab_syms]) and attempts < self.max_attempts:
             if primary_reward:
                 self.run_generation_prompts(slab_syms, states)
 
@@ -127,7 +136,9 @@ class StructureReward(BaseReward):
                     "\n\nInto catalyst symbols. "
                     "Returning the penalty value for that answer."
                 )
-                rewards[i] = self.penalty_value
+                gnn_calls = 0
+                gnn_time = 0
+                final_reward = self.penalty_value
             else:
                 (
                     adslabs_and_energies,
@@ -135,26 +146,35 @@ class StructureReward(BaseReward):
                     gnn_time,
                     name_candidate_mapping,
                 ) = self.create_structures_and_calculate(
-                    slab_syms, ads_list, candidates_list
+                    slab_syms[i], ads_list, candidates_list
                 )
 
-                final_reward = self.parse_adsorption_energies(
+                final_reward, reward_values = self.parse_adsorption_energies(
                     adslabs_and_energies,
                     name_candidate_mapping,
                     candidates_list,
                     s.ads_preferences,
                 )
 
-                rewards.append(final_reward)
-
+            rewards.append(final_reward)
+            if "simulation-reward" in s.info.keys():
                 s.info["simulation-reward"].update(
                     {
-                        "slab_syms": slab_syms,
+                        "slab_syms": slab_syms[i],
                         "value": final_reward,
+                        "reward_values": deepcopy(reward_values),
                         "gnn_calls": gnn_calls,
                         "gnn_time": gnn_time,
                     }
                 )
+            else:
+                s.info["simulation-reward"] = {
+                    "slab_syms": slab_syms[i],
+                    "value": final_reward,
+                    "reward_values": deepcopy(reward_values),
+                    "gnn_calls": gnn_calls,
+                    "gnn_time": gnn_time,
+                }
 
         return rewards
 
@@ -174,49 +194,65 @@ class StructureReward(BaseReward):
             {}
         )  # dictionary to get from database names to candidates
         for i, slab_sym in enumerate(slab_syms):
-            if slab_sym is not None:
-                valid_slab_sym = True
-                slab_name = self.reduce_candidate_symbols(slab_sym)
-                slab_ats = self.adsorption_calculator.get_slab(slab_name)
-                if slab_ats is None:
-                    try:
-                        slab_samples = [
-                            ase_interface.symbols_list_to_bulk(slab_sym)
-                            for _ in range(self.num_slab_samples)
-                        ]
-                        print(slab_samples)
-                    except ase_interface.StructureGenerationError as err:
-                        print(err)
-                        slab_syms[i] = None
-                        valid_slab_sym = False
+            try:
+                if slab_sym is not None:
+                    valid_slab_sym = True
+                    slab_name = self.reduce_candidate_symbols(slab_sym)
+                    slab_ats = self.adsorption_calculator.get_slab(slab_name)
+                    if slab_ats is None:
+                        try:
+                            slab_samples = [
+                                ase_interface.symbols_list_to_bulk(slab_sym)
+                                for _ in range(self.num_slab_samples)
+                            ]
+                            print(slab_samples)
+                        except ase_interface.StructureGenerationError as err:
+                            logging.warning(err)
+                            print(err)
+                            slab_syms[i] = None
+                            raise err
+                            # slab_syms[i] = None
+                            # valid_slab_sym = False
 
-                    if valid_slab_sym:
-                        slab_ats = self.adsorption_calculator.choose_slab(
-                            slab_samples, slab_name
-                        )
-                if slab_ats is not None:
-                    if placement_type is None:
-                        for ads_sym in ads_list:
-                            ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
-                            name = f"{slab_name}_{ads_sym}"
-                            adslab_ats += self.sample_adslabs(
-                                slab_ats, ads_ats, name, adsorbate_height
+                        if valid_slab_sym:
+                            slab_ats = self.adsorption_calculator.choose_slab(
+                                slab_samples, slab_name
                             )
-                            if candidates_list is not None:
-                                name_candidate_mapping[name] = candidates_list[i]
+                    if slab_ats is not None:
+                        if placement_type is None:
+                            for ads_sym in ads_list:
+                                ads_ats = ase_interface.ads_symbols_to_structure(
+                                    ads_sym
+                                )
+                                name = f"{slab_name}_{ads_sym}"
+                                adslab_ats += self.sample_adslabs(
+                                    slab_ats, ads_ats, name, adsorbate_height
+                                )
+                                if candidates_list is not None:
+                                    name_candidate_mapping[name] = candidates_list[i]
 
-                    elif placement_type == "heuristic":
-                        for ads_sym in ads_list:
-                            ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
-                            # slab_ats.center(vacuum=13.0, axis=2)
+                        elif placement_type == "heuristic":
+                            for ads_sym in ads_list:
+                                ads_ats = ase_interface.ads_symbols_to_structure(
+                                    ads_sym
+                                )
+                                # slab_ats.center(vacuum=13.0, axis=2)
 
-                            name = f"{slab_name}_{ads_sym}"
-                            adslab_ats += self.sample_adslabs_heuristic(
-                                slab_ats, ads_ats, name
-                            )
+                                name = f"{slab_name}_{ads_sym}"
+                                adslab_ats += self.sample_adslabs_heuristic(
+                                    slab_ats, ads_ats, name
+                                )
 
-                            if candidates_list is not None:
-                                name_candidate_mapping[name] = candidates_list[i]
+                                if candidates_list is not None:
+                                    name_candidate_mapping[name] = candidates_list[i]
+            except Exception:
+                logging.warning(
+                    f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
+                )
+                print(
+                    f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
+                )
+                pass
 
         adslabs_and_energies = self.create_batches_and_calculate(adslab_ats)
 
@@ -257,20 +293,22 @@ class StructureReward(BaseReward):
         for cand in candidates_list:
             if cand in reward_values.keys():
                 rewards.append(
-                    [
-                        -((min(reward_values[cand][ads])) ** ads_preferences[i])
-                        if reward_values[cand][ads] > 0
-                        else self.penalty_value
-                        for i, ads in enumerate(reward_values[cand].keys())
-                    ]
+                    sum(
+                        [
+                            -((min(reward_values[cand][ads])) ** ads_preferences[i])
+                            if len(reward_values[cand][ads]) > 0
+                            else self.penalty_value
+                            for i, ads in enumerate(reward_values[cand].keys())
+                        ]
+                    )
                 )
             else:  # Handle default here TODO: determine some logic/pentaly for this
                 print(cand)
-                return rewards.append(self.penalty_value)
+                rewards.append(self.penalty_value)
 
         final_reward = np.mean(rewards)
 
-        return final_reward  # return mean over candidates
+        return final_reward, reward_values  # return mean over candidates
 
     def create_batches_and_calculate(self, adslabs):
         """Split adslabs into batches and run the simulations."""
@@ -425,60 +463,30 @@ if __name__ == "__main__":
     # traj_dir = "random"
     traj_dir = "heuristic"
 
-    if "random" in traj_dir:
-        # heights = np.arange(0.1, 3.0, 0.25)
-        heights = [3.25]
-        for height in heights:
-            sr = StructureReward(
-                **{
-                    "llm_function": None,
-                    "model": "gemnet",
-                    "traj_dir": Path("data", "output", f"{traj_dir}"),
-                    "device": "cpu",
-                    "ads_tag": 2,
-                    "num_adslab_samples": 1,
-                }
-            )
+    print("using heuristic methods")
+    sr = StructureReward(
+        **{
+            "llm_function": None,
+            "model": "gemnet",
+            "traj_dir": Path("data", "output", f"{traj_dir}"),
+            "device": "cpu",
+            "steps": 2,
+            "ads_tag": 2,
+            "num_adslab_samples": 1,
+        }
+    )
 
-            # print(
-            #     sr.create_structures_and_calculate(
-            #         [["Cu"], ["Pt"], ["Zr"]],
-            #         ["CO", "phenol", "anisole"],
-            #         ["Cu", "Pt", "Zr"],
-            #         adsorbate_height=height
-            #     )
-            # )
-
-            print(
-                sr.create_structures_and_calculate(
-                    [["Cu"]], ["CO"], ["Cu"], adsorbate_height=height
-                )
-            )
-
-            for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
-                break_trajectory(p)
-
-    elif "heuristic" in traj_dir:
-        print("using heuristic methods")
-        sr = StructureReward(
-            **{
-                "llm_function": None,
-                "model": "gemnet",
-                "traj_dir": Path("data", "output", f"{traj_dir}"),
-                "device": "cpu",
-                "ads_tag": 2,
-                "num_adslab_samples": 1,
-            }
+    print(
+        sr.create_structures_and_calculate(
+            [["O"], ["fdsfds"], [], [None], ["Zeolite"], ["Z", "O"], ["Cu"]],
+            ["CO"],
+            ["O", "fdsfds", "", None, "Zeolite", "ZO", "Cu"],
+            placement_type="heuristic",
         )
+    )
 
-        print(
-            sr.create_structures_and_calculate(
-                [["Cu"]], ["phenol"], ["Cu"], placement_type="heuristic"
-            )
-        )
-
-        for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
-            break_trajectory(p)
+    for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
+        break_trajectory(p)
 
 
 # model weights have to placed in data/model_weights

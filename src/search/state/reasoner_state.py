@@ -30,11 +30,12 @@ class ReasonerState:
         reward_template: str,
         ads_symbols: list[str],
         ads_preferences: list[float] = None,
+        reaction_pathways: list[[list]] = None,
         priors_template: str = None,
         catalyst_label: str = "catalysts",
         num_answers: int = 3,
         prev_candidate_list: list[str] = [],
-        relation_to_candidate_list: str = None,
+        relation_to_candidate_list: str = "similar to",
         include_list: list[str] = [],
         exclude_list: list[str] = [],
         answer: str = None,
@@ -51,10 +52,10 @@ class ReasonerState:
         self.template = template
         self.reward_template = reward_template
         self.ads_symbols = ads_symbols.copy()
-        if ads_preferences is None:
-            self.ads_preferences = [1] * len(self.ads_symbols)
-        else:
-            self.ads_preferences = ads_preferences.copy()
+        self.ads_preferences = deepcopy(ads_preferences)
+
+        self.reaction_pathways = deepcopy(reaction_pathways)
+
         self.priors_template = priors_template
         self.catalyst_label = catalyst_label
         self.num_answers = num_answers
@@ -80,13 +81,15 @@ class ReasonerState:
 
     @classmethod
     @staticmethod
-    def from_dict(data: dict):  # TODO: Add defaults
+    def from_dict(incoming_data: dict):
         """Create a query state from dictionary."""
+        data = deepcopy(incoming_data)
         return ReasonerState(
             template=data.get("template"),
             reward_template=data.get("reward_template"),
             ads_symbols=data.get("ads_symbols").copy(),
-            ads_preferences=data.get("ads_preferences", None),
+            ads_preferences=deepcopy(data.get("ads_preferences", None)),
+            reaction_pathways=deepcopy(data.get("reaction_pathways", None)),
             priors_template=data.get("priors_template", None),
             catalyst_label=data.get("catalyst_label"),
             prev_candidate_list=data.get("prev_candidate_list", []).copy(),
@@ -109,7 +112,8 @@ class ReasonerState:
             template=self.template,
             reward_template=self.reward_template,
             ads_symbols=self.ads_symbols.copy(),
-            ads_preferences=self.ads_preferences.copy(),
+            ads_preferences=deepcopy(self.ads_preferences),
+            reaction_pathways=deepcopy(self.reaction_pathways),
             priors_template=self.priors_template,
             catalyst_label=self.catalyst_label,
             prev_candidate_list=self.prev_candidate_list.copy(),
@@ -132,7 +136,8 @@ class ReasonerState:
             template=self.template,
             reward_template=self.reward_template,
             ads_symbols=self.ads_symbols.copy(),
-            ads_preferences=self.ads_preferences.copy(),
+            ads_preferences=deepcopy(self.ads_preferences),
+            reaction_pathways=deepcopy(self.reaction_pathways),
             priors_template=self.priors_template,
             catalyst_label=self.catalyst_label,
             prev_candidate_list=self.candidates,
@@ -170,7 +175,7 @@ class ReasonerState:
             "and adsorbate(s). Make specific recommendations for catalysts, including "
             "their chemical composition. Make sure to follow the formatting "
             "instructions. Do not provide disclaimers or notes about your knowledge of "
-            "catalysis."
+            "catalysis. Your answers should not include ionic compounds."
         )
 
     @property
@@ -200,15 +205,31 @@ class ReasonerState:
             self.answer = results["answer"]
             usage = results["usage"]
 
-        self.info["generation"] = {
-            "prompt": self.generation_prompt,
-            "system_prompt": self.generation_system_prompt,
-            "answer": self.answer,
-            "candidates_list": self.candidates,
-            "usage": usage,
-        }
+        if "generation" not in self.info.keys():
+            self.info["generation"] = [
+                deepcopy(
+                    {
+                        "prompt": self.generation_prompt,
+                        "system_prompt": self.generation_system_prompt,
+                        "answer": self.answer,
+                        "candidates_list": self.candidates,
+                        "usage": usage,
+                    }
+                )
+            ]
+        else:
+            self.info["generation"] += [
+                deepcopy(
+                    {
+                        "prompt": self.generation_prompt,
+                        "system_prompt": self.generation_system_prompt,
+                        "answer": self.answer,
+                        "candidates_list": self.candidates,
+                        "usage": usage,
+                    }
+                )
+            ]
         print(self.candidates)
-        return True
 
     @property
     def adsorption_energy_prompts(self):
@@ -229,15 +250,17 @@ class ReasonerState:
             self.info["llm-reward"] = {"attempted_prompts": []}
 
         self.info["llm-reward"]["attempted_prompts"].append(
-            {
-                "prompt": self.adsorption_energy_prompts,
-                "system_prompt": self.reward_system_prompt,
-                "answer": [],
-                "key_answers": [],
-                "number_answers": [],
-                "successful": [],
-                "usage": [],
-            }
+            deepcopy(
+                {
+                    "prompt": self.adsorption_energy_prompts,
+                    "system_prompt": self.reward_system_prompt,
+                    "answer": [],
+                    "key_answers": [],
+                    "number_answers": [],
+                    "successful": [],
+                    "usage": [],
+                }
+            )
         )
         return_values = []
         for i, adsorption_energy_prompt in enumerate(self.adsorption_energy_prompts):
@@ -289,11 +312,11 @@ class ReasonerState:
             except Exception as err:
                 # Save and rerase error
                 self.info["llm-reward"]["attempted_prompts"][-1]["key_answers"].append(
-                    key_answers
+                    deepcopy(key_answers)
                 )
                 self.info["llm-reward"]["attempted_prompts"][-1][
                     "number_answers"
-                ].append(number_answers)
+                ].append(deepcopy(key_answers))
                 raise err
 
         return return_values
@@ -325,20 +348,42 @@ class ReasonerState:
         else:
             answer = result["answer"]
             usage = result["usage"]
-        self.info["symbols"] = {"answer": answer, "usage": usage}
-        answer_list_parsed = [None] * len(answer)
+
+        answer_list_parsed = [None] * len(self.candidates)
         for line in answer.split("\n"):
             if ":" in line:
                 cat, syms = line.split(":")
                 idx = self.candidates.index(cat)  # ensure ording is preserved
                 syms_list = list(
-                    {s.strip() for s in syms.strip().strip("[").strip("]").split(",")}
+                    {
+                        s.replace("'", "").replace('"', "").strip()
+                        for s in syms.strip().strip("[").strip("]").split(",")
+                    }
                 )  # Use a set for unique elements only
                 if syms_list == ["None"]:
                     syms_list = None
                 answer_list_parsed[idx] = syms_list
 
-        self.info["symbols"]["symbols"] = answer_list_parsed
+        if "symbols" not in self.info.keys():
+            self.info["symbols"] = [
+                deepcopy(
+                    {
+                        "answer": answer,
+                        "usage": usage,
+                        "symbols": answer_list_parsed,
+                    }
+                )
+            ]
+        else:
+            self.info["symbols"] += [
+                deepcopy(
+                    {
+                        "answer": answer,
+                        "usage": usage,
+                        "symbols": answer_list_parsed,
+                    }
+                )
+            ]
         return answer_list_parsed
 
     @property
@@ -376,7 +421,7 @@ class ReasonerState:
         if self.generation_prompt != self.root_prompt:
             current_p_a_condition = (
                 f"$current_prompt = {self.generation_prompt}"
-                "\n\n$current_answer = {self.answer}"
+                f"\n\n$current_answer = {self.answer}"
             )
             current_conditions = (
                 "$search_state, $root_prompt, $current_question and $current_answer"
@@ -438,31 +483,36 @@ class ReasonerState:
                 action, possible_actions = line.split(":")
                 action_list = list(
                     {
-                        s.strip()
+                        s.strip().replace("'", "").replace('"', "").strip()
                         for s in possible_actions.strip()
-                        .strip("[")
-                        .strip("]")
+                        .replace("[", "")
+                        .replace("]", "")
                         .split(",")
+                        if s.strip().replace("'", "").replace('"', "").strip() != ""
                     }
                 )  # Use a set for unique elements only
                 action_lists[action.strip().strip('"')] = action_list
         if "priors" not in self.info:
             self.info["priors"] = [
-                {
-                    "prompt": self.priors_prompt,
-                    "answer": prior_answer,
-                    "usage": usage,
-                    "parsed_actions": action_lists,
-                },
+                deepcopy(
+                    {
+                        "prompt": self.priors_prompt,
+                        "answer": prior_answer,
+                        "usage": usage,
+                        "parsed_actions": action_lists,
+                    }
+                )
             ]
         else:
             self.info["priors"] += [
-                {
-                    "prompt": self.priors_prompt,
-                    "answer": prior_answer,
-                    "usage": usage,
-                    "parsed_actions": action_lists,
-                },
+                deepcopy(
+                    {
+                        "prompt": self.priors_prompt,
+                        "answer": prior_answer,
+                        "usage": usage,
+                        "parsed_actions": action_lists,
+                    }
+                ),
             ]
         return action_lists
 
@@ -631,8 +681,8 @@ def generate_expert_prompt(
             )
             + "]. "
         )
-        candidate_list_statement += "The list that you return should probably not have the same catalysts as this list! "
-        candidate_list_statement += f"Your list of {catalyst_label} may {relation_to_candidate_list} those in the list. "
+        candidate_list_statement += f"The list that you return should probably should not have the same {catalyst_label} as this list! "
+        candidate_list_statement += f"Your list of {catalyst_label} may be {relation_to_candidate_list} those in the list. "
         candidate_list_statement += (
             "Please compare your list to some of the candidates in this list."
         )

@@ -4,9 +4,26 @@ import sys
 import pandas as pd
 
 sys.path.append("src")
-from llm import query  # noqa: E402
-from search.policy.reasoner_policy import ReasonerPolicy  # noqa: E402
 from search.state.reasoner_state import ReasonerState  # noqa: E402
+
+molecule_conversions = {
+    "CO2": "CO2",
+    "CO": "*CO",
+    "H2O": "*OH2",
+    "H2": "H2",
+    "methanol": "*OHCH3",
+    "ethanol": "*OHCH2CH3",
+}
+
+computational_pathways_methanol = [
+    ["CO2", "*OCHO", "*CHOH", "*OHCH3"],
+    ["CO2", "*CO", "*CHO", "*CH2*O", "*OHCH3"],
+]
+
+computational_pathways_ethanol = [
+    ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
+    ["CO2", "*CO", "*CH2*O", "*OCH2CH3"],
+]
 
 
 def find_all(string, sub):
@@ -20,19 +37,37 @@ def find_all(string, sub):
         start += len(sub)  # use start += 1 to find overlapping matches
 
 
-def get_initial_state_oc(
-    adsorbate: str, prediction_model, reward_model, simulation_reward=False
+def get_template(question, chain_of_thought):
+    """Get the template for the given quesiton."""
+    template = question
+    if chain_of_thought:
+        template += (
+            " {include_statement}{exclude_statement}"
+            "Provide scientific explanations for each of the {catalyst_label}. "
+            "Finally, return a python list named final_answer which contains the top-5 {catalyst_label}. "
+            "{candidate_list_statement}"
+            r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
+        )
+    else:
+        template += (
+            "{include_statement} {exclude_statement}"
+            "{candidate_list_statement}"
+            r"\n\nReturn a python list named final_answer which contains the top-5 {catalyst_label}."
+        )
+    return template
+
+
+def get_initial_state_open_catalyst(
+    question,
+    prediction_model,
+    reward_model,
+    simulation_reward=False,
+    chain_of_thought=True,
 ):
     """Get initial state for LLM query from adsorbate string."""
-    template = (
-        "Generate a list of top-5 {catalyst_label} "
-        f"for the adsorption of {adsorbate}."
-        "{include_statement} {exclude_statement}"
-        "Provide scientific explanations for each of the catalysts. "
-        "Finally, return a python list named final_answer which contains the top-5 catalysts. "
-        "{candidate_list_statement}"
-        r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
-    )
+    question = question.replace("{catalysts}", "{catalyst_label}")
+    template = get_template(question, chain_of_thought=chain_of_thought)
+    adsorbate = question.split("adsorption of ")[-1].split(".")[0]
     starting_state = ReasonerState(
         template=template,
         reward_template=None,
@@ -42,132 +77,208 @@ def get_initial_state_oc(
         prediction_model=prediction_model,
         reward_model=reward_model,
     )
-    if simulation_reward:
-        policy = ReasonerPolicy(
-            catalyst_label_types=["", "monometallic ", "bimetallic ", "trimetallic "],
-            try_oxides=False,
-        )
-    else:
-        policy = ReasonerPolicy()
-    return starting_state, policy
+    return starting_state
 
 
-def non_rwgs_template_generator(
-    question: str, prediction_model, reward_model, simulation_reward=False
+def get_initial_state_bio_fuels(
+    question: str,
+    prediction_model,
+    reward_model,
+    simulation_reward=False,
+    chain_of_thought=True,
 ):
     """Generate initial query for non RWGS reaction prompt."""
+    question = question.replace("{catalysts}", "{catalyst_label}")
     adsorbate = question.split("bind ")[1].split(" in")[0]
     reaction_name = question.split("in ")[1].split(" reaction")[0]
     property_name = question.split("with ")[1].split(".")[0].lower()
 
-    template = (
-        "What are the top-3 {catalyst_label} that "
-        + "perform the "
-        + f"{reaction_name} reaction and demonstrate higher adsorption energy for "
-        + f"{adsorbate}?. "
-        + "{include_statement}{exclude_statement}"
-        + "Provide scientific explanations for each of the catalysts. "
-        + "Finally, return a python list named final_answer which contains the top-5 catalysts. "
-        "{candidate_list_statement}"
-        r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
-    )
+    template = get_template(question, chain_of_thought=chain_of_thought)
 
     qs = ReasonerState(
         template=template,
         reward_template=None,
         ads_symbols=[adsorbate],
+        ads_preferences=[1],
         num_answers=3,
         include_list=[property_name],
         prediction_model=prediction_model,
         reward_model=reward_model,
     )
-    if simulation_reward:
-        this_policy = ReasonerPolicy(
-            catalyst_label_types=["", "monometallic ", "bimetallic ", "trimetallic "],
-            try_oxides=False,
-        )
-    else:
-        this_policy = ReasonerPolicy()
-    return qs, this_policy
+    return qs
 
 
-def parse_rwgs_questions(
-    question: str, prediction_model, reward_model, simulation_reward=False
+def get_initial_state_rwgs(
+    question: str,
+    prediction_model,
+    reward_model,
+    simulation_reward=False,
+    chain_of_thought=True,
 ):
     """Parse the rwgs reaction questions."""
     catalyst_type, cheap_statement = parse_parameters_from_question(question)
-    if catalyst_type is not None:
-        if catalyst_type != "catalysts":
-            catalyst_label_types = [catalyst_type[1:-1]]
-        else:
-            if simulation_reward:
-                catalyst_label_types = [
-                    "",
-                    "monometallic ",
-                    "bimetallic ",
-                    "trimetallic ",
-                ]
-            else:
-                catalyst_label_types = None
-        question = question.replace(catalyst_type, "{catalyst_label}")  # Remove {}
-    else:
-        catalyst_label_types = None
+    question = question.replace(catalyst_type, "{catalyst_label}")
 
     if cheap_statement is not None:
         if "cheap" in cheap_statement:
             include_list = ["low cost"]
+            question = question.replace("[", "").replace("]", "")
         else:
             raise ValueError(f"Unkown value {cheap_statement}")
-        question = question.replace(cheap_statement, "")
+
     else:
         include_list = []
+    template = get_template(question, chain_of_thought=chain_of_thought)
 
     ads_symbols = []
     ads_preference = []
     for possible_ads in ["CO", "CO2", "H2"]:
-        if possible_ads in question:
-            if possible_ads == "CO":
-                all_co = list(find_all(question, "CO"))
-                all_co2 = list(find_all(question, "CO2"))
-                if all_co == all_co2:
-                    continue
-            ads_symbols.append(possible_ads)
+        if possible_ads in question.replace("RWGS reaction", ""):
+            ads_symbols.append(molecule_conversions[possible_ads])
             preference = -1 if possible_ads == "CO" else 1
             ads_preference.append(preference)
 
-    # If there's no adsorbates in the prompt...
+    # If there are no adsorbates in the prompt...
     if len(ads_symbols) == 0:
-        ads_symbols = ["CO", "CO2", "H2"]
-        ads_preference = [-1, 1, 1]
+        # Do the reaction
+        ...
 
-    question = question.replace("top", "top-3")
-    template = (
-        f"{question} "
-        "{include_statement}{exclude_statement}"
-        "Provide scientific explanations for each of the catalysts. "
-        "Finally, return a python list named final_answer which contains the top-3 catalysts. "
-        "{candidate_list_statement}"
-        r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
-    )
     qs = ReasonerState(
         template=template,
         reward_template=None,
         ads_symbols=ads_symbols,
+        ads_preferences=ads_preference,
+        catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
+        include_list=include_list,
+        num_answers=3,
+        prediction_model=prediction_model,
+        reward_model=reward_model,
+    )
+    return qs
+
+
+def get_initial_state_methanol(
+    question: str,
+    prediction_model,
+    reward_model,
+    simulation_reward=False,
+    chain_of_thought=True,
+):
+    """Parse the rwgs reaction questions."""
+    catalyst_type, cheap_statement = parse_parameters_from_question(question)
+    question = question.replace(catalyst_type, "{catalyst_label}")
+
+    if cheap_statement is not None:
+        if "cheap" in cheap_statement:
+            include_list = ["low cost"]
+            question = question.replace("[", "").replace("]", "")
+        else:
+            raise ValueError(f"Unkown value {cheap_statement}")
+
+    else:
+        include_list = []
+    template = get_template(question, chain_of_thought=chain_of_thought)
+
+    ads_symbols = []
+    ads_preference = []
+    for possible_ads in ["methanol", "CO2", "H2"]:
+        if possible_ads in question.replace("CO2 to methanol conversion reaction", ""):
+            ads_symbols.append(molecule_conversions[possible_ads])
+            preference = -1 if possible_ads == "methanol" else 1
+            ads_preference.append(preference)
+
+    # If there are no adsorbates in the prompt...
+    if len(ads_symbols) != 0:
+        # Do the reaction
+        qs = ReasonerState(
+            template=template,
+            reward_template=None,
+            ads_symbols=ads_symbols,
+            ads_preferences=ads_preference,
+            catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
+            include_list=include_list,
+            num_answers=3,
+            prediction_model=prediction_model,
+            reward_model=reward_model,
+        )
+
+    else:
+        ads_symbols = set(
+            [syms for syms_l in computational_pathways_methanol for syms in syms_l]
+        )
+        qs = ReasonerState(
+            template=template,
+            reward_template=None,
+            ads_symbols=ads_symbols,
+            pathways=computational_pathways_methanol,
+            catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
+            include_list=include_list,
+            num_answers=3,
+            prediction_model=prediction_model,
+            reward_model=reward_model,
+        )
+    return qs
+
+
+def get_initial_state_ethanol(
+    question: str,
+    prediction_model,
+    reward_model,
+    simulation_reward=False,
+    chain_of_thought=True,
+):
+    """Parse the rwgs reaction questions."""
+    catalyst_type, cheap_statement = parse_parameters_from_question(question)
+    question = question.replace(catalyst_type, "{catalyst_label}")
+
+    if cheap_statement is not None:
+        if "cheap" in cheap_statement:
+            include_list = ["low cost"]
+            question = question.replace("[", "").replace("]", "")
+        else:
+            raise ValueError(f"Unkown value {cheap_statement}")
+
+    else:
+        include_list = []
+    template = get_template(question, chain_of_thought=chain_of_thought)
+
+    ads_symbols = []
+    ads_preference = []
+    for possible_ads in ["ethanol", "CO2", "H2"]:
+        if possible_ads in question.replace("CO2 to ethanol conversion reaction", ""):
+            ads_symbols.append(molecule_conversions[possible_ads])
+            preference = -1 if possible_ads == "ethanol" else 1
+            ads_preference.append(preference)
+
+    # If there are no adsorbates in the prompt...
+    if len(ads_symbols) == 0:
+        ads_symbols = set(
+            [syms for syms_l in computational_pathways_ethanol for syms in syms_l]
+        )
+        qs = ReasonerState(
+            template=template,
+            reward_template=None,
+            ads_symbols=ads_symbols,
+            pathways=computational_pathways_methanol,
+            catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
+            include_list=include_list,
+            num_answers=3,
+            prediction_model=prediction_model,
+            reward_model=reward_model,
+        )
+
+    qs = ReasonerState(
+        template=template,
+        reward_template=None,
+        ads_symbols=ads_symbols,
+        catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
         ads_preferences=ads_preference,
         include_list=include_list,
         num_answers=3,
         prediction_model=prediction_model,
         reward_model=reward_model,
     )
-    if simulation_reward:
-        this_policy = ReasonerPolicy(
-            catalyst_label_types=catalyst_label_types, try_oxides=False
-        )
-    else:
-        this_policy = ReasonerPolicy(
-            catalyst_label_types=catalyst_label_types,
-        )
-    return qs, this_policy
+    return qs
 
 
 def parse_parameters_from_question(question: str):

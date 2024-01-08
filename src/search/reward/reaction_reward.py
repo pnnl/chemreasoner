@@ -42,11 +42,66 @@ class PathReward(BaseReward):
         self.num_slab_samples = num_slab_samples
         self.num_adslab_samples = num_adslab_samples
 
-
-    def __call__(
-        self,
-        paths
+    def run_generation_prompts(
+        self, slab_syms: list[list[str]], states: list[ReasonerState]
     ):
+        """Run the generation prompts for the given states where the reward is None."""
+        prompts = []
+        system_prompts = []
+        for i, s in enumerate(states):
+            if slab_syms[i] is None:
+                prompts.append(s.generation_prompt)
+                system_prompts.append(s.generation_system_prompt)
+
+        generation_results = self.llm_function(
+            prompts, system_prompts, **{"temperature": 0.7, "top_p": 0.95}
+        )
+        loop_counter = 0
+        for i, s in enumerate(states):
+            if slab_syms[i] is None:
+                s.process_generation(generation_results[loop_counter])
+
+                loop_counter += 1
+
+    def run_slab_sym_prompts(
+        self, slab_syms: list[list[str]], states: list[ReasonerState]
+    ):
+        """Run the generation prompts for the given states where the reward is None.
+
+        Updates the given "slab_syms" list in-place.
+        """
+        prompts = []
+        system_prompts = []
+        prompts_idx = []
+        for i, s in enumerate(states):
+            if slab_syms[i] is None:
+                try:
+                    prompts.append(s.catalyst_symbols_prompt)
+                    system_prompts.append(None)
+                    prompts_idx.append(i)
+                except Exception as err:
+                    logging.warning(
+                        f"Failed to generate prompts with error: {str(err)}. "
+                        "Skipping this prompt."
+                    )
+                    if len(prompts) > len(system_prompts):
+                        prompts.pop()
+        answers = self.llm_function(
+            prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
+        )
+        print(answers)
+
+        for i, p in enumerate(prompts):
+            state_idx = prompts_idx[i]
+            s = states[state_idx]
+            try:
+                print(s.process_catalyst_symbols(answers[i]))
+                slab_syms[state_idx] = s.process_catalyst_symbols(answers[i])
+
+            except Exception as err:
+                logging.warning(f"Failed to parse answer with error: {str(err)}.")
+
+    def __call__(self, paths):
         """Return the calculated adsorption energy from the predicted catalysts."""
 
         _, min_act_energy, min_act_energy_path = self.get_reward_for_paths(paths)
@@ -77,7 +132,7 @@ class PathReward(BaseReward):
                 slab_name = self.reduce_candidate_symbols(slab_sym)
                 slab_ats = self.adsorption_calculator.get_slab(slab_name)
                 if slab_ats is None:
-                    print('slab is not present. creating new one.')
+                    print("slab is not present. creating new one.")
                     try:
                         slab_samples = [
                             ase_interface.symbols_list_to_bulk(slab_sym)
@@ -94,7 +149,7 @@ class PathReward(BaseReward):
                             slab_samples, slab_name
                         )
                 if slab_ats is not None:
-                    print('salb is present')
+                    print("salb is present")
                     if placement_type == None:
                         for ads_sym in ads_list:
                             ads_ats = ase_interface.ads_symbols_to_structure(ads_sym)
@@ -111,7 +166,9 @@ class PathReward(BaseReward):
                             # slab_ats.center(vacuum=13.0, axis=2)
 
                             name = f"{slab_name}_{ads_sym}"
-                            adslab_ats += self.sample_adslabs_heuristic(slab_ats, ads_ats, name)
+                            adslab_ats += self.sample_adslabs_heuristic(
+                                slab_ats, ads_ats, name
+                            )
 
                             if candidates_list is not None:
                                 name_candidate_mapping[name] = candidates_list[i]
@@ -221,63 +278,58 @@ class PathReward(BaseReward):
         return results
 
     def get_reward_for_path(self, path: list):
-    
-        adsE=[]
+        adsE = []
         # reward_values = defaultdict()
         for j, step in enumerate(path):
-            adsorbent, adsorbate, name = step    
+            adsorbent, adsorbate, name = step
             # print('step: ', j)
-    
+
             # use the same adsorbent
             # create the adsorbent here or if the slab is
             # saved, read it.
             res = sr.create_structures_and_calculate(
-                    [ adsorbent ],
-                    [ adsorbate ],
-                    [ name ],
-                    placement_type="heuristic"
-                )
-    
+                [adsorbent], [adsorbate], [name], placement_type="heuristic"
+            )
+
             for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
-                    break_trajectory(p)
-            
-            adslabs_and_energies = res[0] # id, slab_name, ads_energy, valid
+                break_trajectory(p)
+
+            adslabs_and_energies = res[0]  # id, slab_name, ads_energy, valid
             # name_candidate_mapping = res[3]
             # adslabs_and_energies
-    
+
             # only selecting the valid structures
-            adslabs_and_energies = [i for i in adslabs_and_energies if i[3]==1]
-            
+            adslabs_and_energies = [i for i in adslabs_and_energies if i[3] == 1]
+
             # get the energies of each adsorbed structures
             energies = [i[2] for i in adslabs_and_energies]
-    
+
             # get the minimum energy structure
             lowest_E_str = adslabs_and_energies[np.argmin(energies)]
-        
+
             # print("low E ", lowest_E_str)
             adsE.append(lowest_E_str)
-        
+
         E = [i[2] for i in adsE]
-        print('energy difference between steps: ', np.diff(E) )
-        max_E_diff = max(np.diff(E)) # an approximation for activation energy
-    
+        print("energy difference between steps: ", np.diff(E))
+        max_E_diff = max(np.diff(E))  # an approximation for activation energy
+
         return max_E_diff
         # return max_E_diff, E
 
     def get_reward_for_paths(self, paths):
-        rewards=[]
+        rewards = []
         # ads_energies=[]
         for path in paths:
             reward = self.get_reward_for_path(path)
             # reward, E = self.get_reward_for_path(path)
             # ads_energies.append(E)
             rewards.append(reward)
-    
-    
+
         min_act_energy_path_id = np.argmin(rewards)
         min_act_energy = rewards[min_act_energy_path_id]
         min_act_energy_path = paths[min_act_energy_path_id]
-    
+
         return min_act_energy_path_id, min_act_energy, min_act_energy_path
         # return ads_energies, min_act_energy, min_act_energy_path
 
@@ -319,7 +371,9 @@ class PathReward(BaseReward):
         adslabs = []
         # for i in range(self.num_adslab_samples):
         # print(slab.info)
-        adslab = ase_interface.generate_bulk_ads_pairs_heuristic(slab, ads, num_sites=self.num_adslab_samples)
+        adslab = ase_interface.generate_bulk_ads_pairs_heuristic(
+            slab, ads, num_sites=self.num_adslab_samples
+        )
         adslabs = [(i, name, adslab[i]) for i in range(len(adslab))]
 
         return adslabs
@@ -376,56 +430,53 @@ class PathReward(BaseReward):
 #         self.candidates = test_candidates
 #         self.ads_symbols = test_ads_symbols
 #         self.ads_preferences = test_ads_preferences
-    
-
 
 
 if __name__ == "__main__":
     traj_dir = "hreact"
 
     sr = PathReward(
-            **{
-                "llm_function": None,
-                "model": "gemnet",
-                "traj_dir": Path("data", "output", f"{traj_dir}"),
-                "device": "cpu",
-                "ads_tag": 2,
-                "num_adslab_samples": 2
-            }
-        )
+        **{
+            "llm_function": None,
+            "model": "gemnet",
+            "traj_dir": Path("data", "output", f"{traj_dir}"),
+            "device": "cpu",
+            "ads_tag": 2,
+            "num_adslab_samples": 2,
+        }
+    )
 
-    path1 = [ [["Cu"], "CO2", "Cu"], 
-                [["Cu"], "HCOOH", "Cu"], 
-                    [["Cu"], "CH2O", "Cu"], 
-                        [["Cu"], "CH3O", "Cu"], 
-                            [["Cu"], "CH3OH", "Cu"], 
-        ]
+    path1 = [
+        [["Cu"], "CO2", "Cu"],
+        [["Cu"], "HCOOH", "Cu"],
+        [["Cu"], "CH2O", "Cu"],
+        [["Cu"], "CH3O", "Cu"],
+        [["Cu"], "CH3OH", "Cu"],
+    ]
 
-    path2 = [ [["Cu"], "CO2", "Cu"], 
-                [["Cu"], "CO", "Cu"], 
-                    [["Cu"], "CHOH", "Cu"], 
-                            [["Cu"], "CH3OH", "Cu"], 
-        ]
+    path2 = [
+        [["Cu"], "CO2", "Cu"],
+        [["Cu"], "CO", "Cu"],
+        [["Cu"], "CHOH", "Cu"],
+        [["Cu"], "CH3OH", "Cu"],
+    ]
 
-    path3 = [ [["Cu"], "CO2", "Cu"], 
-                [["Cu"], "CHO2", "Cu"], 
-                    [["Cu"], "CH3OH", "Cu"], 
-                        [["Cu"], "CH2O", "Cu"], 
-                            [["Cu"], "CH3OH", "Cu"], 
-        ]
+    path3 = [
+        [["Cu"], "CO2", "Cu"],
+        [["Cu"], "CHO2", "Cu"],
+        [["Cu"], "CH3OH", "Cu"],
+        [["Cu"], "CH2O", "Cu"],
+        [["Cu"], "CH3OH", "Cu"],
+    ]
 
-    path4 = [ [["Cu"], "CO2", "Cu"], 
-                [["Cu"], "COOH", "Cu"], 
-                    [["Cu"], "CH2O", "Cu"], 
-                        [["Cu"], "CH3OH", "Cu"]
-        ]
+    path4 = [
+        [["Cu"], "CO2", "Cu"],
+        [["Cu"], "COOH", "Cu"],
+        [["Cu"], "CH2O", "Cu"],
+        [["Cu"], "CH3OH", "Cu"],
+    ]
 
-    path5 = [ [["Cu"], "CO2", "Cu"], 
-                [["Cu"], "CHO", "Cu"], 
-                        [["Cu"], "CH3OH", "Cu"]
-        ] 
-
-
+    path5 = [[["Cu"], "CO2", "Cu"], [["Cu"], "CHO", "Cu"], [["Cu"], "CH3OH", "Cu"]]
 
     path_id, actE, path = sr.get_reward_for_paths([path1, path2, path4, path5])
 
