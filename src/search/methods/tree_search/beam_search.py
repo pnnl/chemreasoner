@@ -19,7 +19,7 @@ class BeamSearchTree:
     """A class for running monte carlo tree search."""
 
     def __init__(
-        self, data, policy, reward_fn, num_generate, num_keep, root_reward=False
+        self, data, policy, reward_fn, num_generate, num_keep, root_reward=True
     ):
         """Create a SearchTree from root node."""
         self.num_generate = num_generate
@@ -149,7 +149,9 @@ class BeamSearchTree:
     @classmethod
     def from_data(beam_search_data: dict, policy, reward_fn, node_constructor=None):
         """Create a beam search object from stored data."""
-        new_tree = BeamSearchTree(None, None, policy, reward_fn, root_reward=False)
+        new_tree = BeamSearchTree(
+            None, policy, reward_fn, None, None, root_reward=False
+        )
 
         for i, list_nodes in enumerate(beam_search_data["nodes"]):
             new_nodes = [node_constructor(n) for n in list_nodes]
