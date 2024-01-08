@@ -293,12 +293,14 @@ class StructureReward(BaseReward):
         for cand in candidates_list:
             if cand in reward_values.keys():
                 rewards.append(
-                    [
-                        -((min(reward_values[cand][ads])) ** ads_preferences[i])
-                        if len(reward_values[cand][ads]) > 0
-                        else self.penalty_value
-                        for i, ads in enumerate(reward_values[cand].keys())
-                    ]
+                    sum(
+                        [
+                            -((min(reward_values[cand][ads])) ** ads_preferences[i])
+                            if len(reward_values[cand][ads]) > 0
+                            else self.penalty_value
+                            for i, ads in enumerate(reward_values[cand].keys())
+                        ]
+                    )
                 )
             else:  # Handle default here TODO: determine some logic/pentaly for this
                 print(cand)
