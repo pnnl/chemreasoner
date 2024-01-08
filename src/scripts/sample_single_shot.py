@@ -23,7 +23,7 @@ for i, row in df.iterrows():
 
     answer = run_azure_openai_prompts([prompt], [system_prompt])
     s.process_generation(answer[0])
+    with open(f"single_shot_{str(i).zfill(3)}.json", "w") as f:
+        json.dump(vars(s), f)
     data.append(vars(s))
-
-with open("single_shot.json", "w") as f:
-    json.dump(data, f)
+print(data)
