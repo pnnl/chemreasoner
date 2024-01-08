@@ -18,7 +18,9 @@ logging.getLogger().setLevel(logging.INFO)
 class BeamSearchTree:
     """A class for running monte carlo tree search."""
 
-    def __init__(self, data, policy, reward_fn, num_generate, num_keep):
+    def __init__(
+        self, data, policy, reward_fn, num_generate, num_keep, root_reward=False
+    ):
         """Create a SearchTree from root node."""
         self.num_generate = num_generate
         self.num_keep = num_keep
@@ -143,6 +145,39 @@ class BeamSearchTree:
         beam_search_data["end_time"] = self.end_time
 
         return beam_search_data
+
+    @classmethod
+    def from_data(beam_search_data: dict, policy, reward_fn, node_constructor=None):
+        """Create a beam search object from stored data."""
+        new_tree = BeamSearchTree(None, None, policy, reward_fn, root_reward=False)
+
+        for i, list_nodes in enumerate(beam_search_data["nodes"]):
+            new_nodes = [node_constructor(n) for n in list_nodes]
+            if i < len(new_tree.generated_nodes):
+                new_tree.nodes[i] = new_nodes
+            else:
+                new_tree.nodes.append(new_nodes)
+            beam_search_data["nodes"].append([vars(n) for n in list_nodes])
+
+        new_tree.node_rewards = beam_search_data["node_rewards"]
+        new_tree.parent_idx = beam_search_data["parent_idx"]
+
+        for i, list_nodes in enumerate(beam_search_data["generated_nodes"]):
+            new_nodes = [node_constructor(n) for n in list_nodes]
+            if i < len(new_tree.generated_nodes):
+                new_tree.generated_nodes[i] = new_nodes
+            else:
+                new_tree.generated_nodes.append(new_nodes)
+
+        new_tree.generated_node_rewards = beam_search_data["generated_node_rewards"]
+        new_tree.generated_parent_idx = beam_search_data["generated_parent_idx"]
+
+        new_tree.num_generate = beam_search_data["num_generate"]
+        new_tree.num_keep = beam_search_data["num_keep"]
+
+        new_tree.start_time = beam_search_data["start_time"]
+        new_tree.end_time = beam_search_data["end_time"]
+        return new_tree
 
     def pickle(self, fname: Path):
         """Save beam search to pickle file."""
