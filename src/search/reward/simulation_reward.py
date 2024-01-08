@@ -3,6 +3,7 @@ import logging
 import sys
 import uuid
 
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -103,7 +104,6 @@ class StructureReward(BaseReward):
             s = states[state_idx]
             try:
                 print(s.process_catalyst_symbols(answers[i]))
-                print("*" * 400)
                 slab_syms[state_idx] = s.process_catalyst_symbols(answers[i])
 
             except Exception as err:
@@ -149,7 +149,7 @@ class StructureReward(BaseReward):
                     slab_syms[i], ads_list, candidates_list
                 )
 
-                final_reward = self.parse_adsorption_energies(
+                final_reward, reward_values = self.parse_adsorption_energies(
                     adslabs_and_energies,
                     name_candidate_mapping,
                     candidates_list,
@@ -162,6 +162,7 @@ class StructureReward(BaseReward):
                     {
                         "slab_syms": slab_syms[i],
                         "value": final_reward,
+                        "reward_values": deepcopy(reward_values),
                         "gnn_calls": gnn_calls,
                         "gnn_time": gnn_time,
                     }
@@ -170,6 +171,7 @@ class StructureReward(BaseReward):
                 s.info["simulation-reward"] = {
                     "slab_syms": slab_syms[i],
                     "value": final_reward,
+                    "reward_values": deepcopy(reward_values),
                     "gnn_calls": gnn_calls,
                     "gnn_time": gnn_time,
                 }
@@ -304,7 +306,7 @@ class StructureReward(BaseReward):
 
         final_reward = np.mean(rewards)
 
-        return final_reward  # return mean over candidates
+        return final_reward, reward_values  # return mean over candidates
 
     def create_batches_and_calculate(self, adslabs):
         """Split adslabs into batches and run the simulations."""
