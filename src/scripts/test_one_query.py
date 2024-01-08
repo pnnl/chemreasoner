@@ -51,7 +51,6 @@ reward_fn = simulation_reward.StructureReward(
 )
 
 if Path("test_tree.json").exists() and os.stat("test_tree.json").st_size != 0:
-    # TODO: Check if output file exists and is nonzero
     with open("test_tree.json", "r") as f:
         tree_data = json.load(f)
         search = BeamSearchTree.from_data(
@@ -74,11 +73,6 @@ for i in range(5):
         with open("test_tree.json", "w") as f:
             json.dump(data, f, cls=NpEncoder)
     except Exception as err:
-        # TODO: dump the data and be able to load from where it left off
-        ...
         raise err
 
     print("=" * 20 + " " + str(i) + " " + "=" * 20)
-
-# TODO: Save final data in a json tree in separate file from other queries. One file per query
-# test_Xquery_y.json
