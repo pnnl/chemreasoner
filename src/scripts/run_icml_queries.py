@@ -213,7 +213,7 @@ if __name__ == "__main__":
 
     llm_function = run_azure_openai_prompts
 
-    df = pd.DataFrame(Path("data", "input_data", "dataset.csv"))
+    df = pd.read_csv(Path("data", "input_data", "dataset.csv"))
     indeces = get_indeces(args)
 
     for i in indeces:
