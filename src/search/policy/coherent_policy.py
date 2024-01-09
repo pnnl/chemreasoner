@@ -79,10 +79,12 @@ class CoherentPolicy(BasePolicy):
         self,
         llm_function: callable = lambda list_x: [example_output] * len(list_x),
         max_num_actions: int = 10,
+        max_attempts: int = 3,
     ):
         """Create the underlying ReasonerPolicy."""
         self.max_num_actions = max_num_actions
         self.llm_function = llm_function
+        self.max_attempts = max_attempts
 
     @staticmethod
     def strings_to_actions(action_lists: dict[str, str]) -> list[callable]:
@@ -94,12 +96,13 @@ class CoherentPolicy(BasePolicy):
         return actions
 
     def get_actions(
-        self, states: list[ReasonerState], retries=3
+        self,
+        states: list[ReasonerState],
     ) -> tuple[list[Callable], np.array]:
         """Return the actions along with their priors."""
         attempts = 0
         action_priors = [None] * len(states)
-        while any([i is None for i in action_priors]) and attempts < retries:
+        while any([i is None for i in action_priors]) and attempts < self.max_attempts:
             attempts += 1
             prompts = []
             prompts_idx = []

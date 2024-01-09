@@ -201,3 +201,7 @@ class BeamSearchTree:
         self.simulation_policy()
         self.end_timer()
         self.pickle(fname)
+
+    def __len__(self):
+        """Return the depth of self."""
+        return len(self.nodes) - 1
