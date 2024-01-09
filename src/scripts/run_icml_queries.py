@@ -65,7 +65,7 @@ def get_reward_function(args, state, llm_function):
     ), "invalid parameter"
 
     if args.reward_function == "simulation-reward":
-        if state.pathways is None:
+        if state.reaction_pathways is None:
             assert (
                 isinstance(args.num_steps, int) and args.num_steps > 0
             ), "invalid parameter"
