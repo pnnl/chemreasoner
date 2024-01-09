@@ -82,7 +82,7 @@ for i in range(5):
         timing_data.append(end_time - timing_data[-1])
         with open("test_tree_timing.json", "w") as f:
             data.update(
-                {"total_time": sum(end_time - start_time), "step_times": timing_data}
+                {"total_time": end_time - start_time, "step_times": timing_data}
             )
             json.dump(data, f, cls=NpEncoder)
     except Exception as err:
