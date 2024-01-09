@@ -22,9 +22,9 @@ with open("gnn_timing_info_sample_size_1.txt", "w") as f:
     start = time.time()
     print(
         sr.create_structures_and_calculate(
-            [["Cu"], ["Pt"], ["PtZn"]],
-            ["*CO", "*O"],
-            ["Cu", "Pt", "PtZn"],
+            [["Cu"], ["Pt"], ["Ru"], ["Zn"], ["Zr"]],
+            ["*CO", "*O", "*OH2"],
+            ["Cu", "Pt", "Ru", "Zn", "Zr"],
             placement_type="heuristic",
         )
     )
