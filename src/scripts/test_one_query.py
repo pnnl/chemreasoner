@@ -3,6 +3,7 @@ import argparse
 import json
 import os
 import sys
+import time
 
 from pathlib import Path
 
@@ -50,7 +51,10 @@ reward_fn = simulation_reward.StructureReward(
     },
 )
 
-if Path("test_tree.json").exists() and os.stat("test_tree.json").st_size != 0:
+if (
+    Path("test_tree_timing.json").exists()
+    and os.stat("test_tree_timing.json").st_size != 0
+):
     with open("test_tree.json", "r") as f:
         tree_data = json.load(f)
         search = BeamSearchTree.from_data(
@@ -65,12 +69,21 @@ else:
         else "similar to"
     )
 
-    search = BeamSearchTree(starting_state, policy, reward_fn, 4, 3)
+    search = BeamSearchTree(
+        starting_state, policy, lambda list_x: [2] * len(list_x), 4, 3
+    )
 
+start_time = time.time()
+timing_data = [start_time]
 for i in range(5):
     try:
         data = search.step_return()
-        with open("test_tree.json", "w") as f:
+        end_time = time.end()
+        timing_data.append(end_time - timing_data[-1])
+        with open("test_tree_timing.json", "w") as f:
+            data.update(
+                {"total_time": sum(end_time - start_time), "step_times": timing_data}
+            )
             json.dump(data, f, cls=NpEncoder)
     except Exception as err:
         raise err
