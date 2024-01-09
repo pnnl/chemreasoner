@@ -7,12 +7,12 @@ from pathlib import Path
 sys.path.append("src")
 from search.reward.simulation_reward import StructureReward  # noqa:E402
 
-with open("gnn_timing_info_sample_size_1.txt", "w") as f:
+with open("gnn_timing_info_big_batch.txt", "w") as f:
     sr = StructureReward(
         **{
             "llm_function": None,
             "model": "gemnet",
-            "traj_dir": Path("data/output/cuda_test_sample_size_1"),
+            "traj_dir": Path("data/output/cuda_test_big_batch"),
             "device": "cuda",
             "steps": 150,
             "ads_tag": 2,
