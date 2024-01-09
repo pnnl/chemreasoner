@@ -117,7 +117,7 @@ def get_reward_function(args, state, llm_function):
                 nnp_class=args.nnp_class,
                 num_slab_samples=args.num_slab_samples,
                 adslab_samples=args.num_adslab_samples,
-                max_attempts=args.rewadr_max_attempts,
+                max_attempts=args.reward_max_attempts,
                 **nnp_kwargs,
             )
         else:
@@ -128,7 +128,7 @@ def get_reward_function(args, state, llm_function):
         return llm_reward.LLMRewardFunction(
             llm_function,
             reward_limit=args.reward_limit,
-            max_attempts=args.max_attempts,
+            max_attempts=args.reward_max_attempts,
             penalty_value=args.penalty_value,
         )
     else:
