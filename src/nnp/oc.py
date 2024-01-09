@@ -53,7 +53,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self,
         model: str,
         traj_dir: Path,
-        batch_size=1000,
+        batch_size=240,
         device="cpu",
         ads_tag=0,
         fmax=0.005,
