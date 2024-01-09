@@ -199,22 +199,15 @@ class ReasonerPolicy:
 
     def __init__(
         self,
-        include_property_types: list[str] = None,
-        exclude_property_types: list[str] = None,
-        relationship_to_candidate_list_types: list[str] = None,
-        catalyst_label_types: list[str] = None,
+        include_property_types: list[str] = _include_property_types,
+        exclude_property_types: list[str] = _exclude_property_types,
+        relationship_to_candidate_list_types: list[
+            str
+        ] = _relationship_to_candidate_list_types,
+        catalyst_label_types: list[str] = _catalyst_label_types,
         try_oxides: bool = True,
     ):
         """Initialize the state and action pairs."""
-        if include_property_types is None:
-            include_property_types = _include_property_types
-        if exclude_property_types is None:
-            exclude_property_types = _exclude_property_types
-        if relationship_to_candidate_list_types is None:
-            relationship_to_candidate_list_types = _relationship_to_candidate_list_types
-        if catalyst_label_types is None:
-            catalyst_label_types = _catalyst_label_types
-
         self.actions = []
         for prop in include_property_types:
             self.actions.append(IncludePropertyAdder(prop))
