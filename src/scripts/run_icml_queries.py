@@ -157,6 +157,7 @@ def get_state_from_idx(idx, df: pd.DataFrame):
 
 def get_indeces(args):
     """Get the state indeces provided in args."""
+    print(aargs.start_query)
     assert isinstance(args.start_query, int) and args.start_query > 0
     assert isinstance(args.end_query, int) and args.end_query > args.start_query
     return list(range(args.start_query, args.end_query))
@@ -166,8 +167,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--savedir", type=str, default=None)
-    parser.add_argument("--start-query", type=int, default=None)
-    parser.add_argument("--end-query", type=int, default=None)
+    parser.add_argument("--start-query", type=int)
+    parser.add_argument("--end-query", type=int)
     parser.add_argument("--depth", type=int, default=None)
 
     # Policy
