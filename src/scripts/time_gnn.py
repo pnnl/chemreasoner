@@ -13,7 +13,7 @@ with open("gnn_timing_info.txt", "w") as f:
             "llm_function": None,
             "model": "gemnet",
             "traj_dir": Path("data/output/cuda_test"),
-            "device": "cpu",
+            "device": "cuda",
             "steps": 150,
             "ads_tag": 2,
             "num_adslab_samples": 16,
@@ -52,5 +52,5 @@ with open("gnn_timing_info.txt", "w") as f:
         )
     )
     end = time.time()
-    print(f"cuda time:\t{end-start}")
-    f.write(f"cuda time:\t{end-start}")
+    print(f"cpu time:\t{end-start}")
+    f.write(f"cpu time:\t{end-start}")
