@@ -5,7 +5,7 @@ import time
 from pathlib import Path
 
 sys.path.append("src")
-from state.reward.simulation_reward import StructureReward  # noqa:E402
+from search.reward.simulation_reward import StructureReward  # noqa:E402
 
 with open("gnn_timing_info.txt", "w") as f:
     sr = StructureReward(
