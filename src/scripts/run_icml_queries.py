@@ -158,7 +158,7 @@ def get_state_from_idx(idx, df: pd.DataFrame):
 def get_indeces(args):
     """Get the state indeces provided in args."""
     print(args.start_query)
-    assert isinstance(args.start_query, int) and args.start_query > 0
+    assert isinstance(args.start_query, int) and args.start_query >= 0
     assert isinstance(args.end_query, int) and args.end_query > args.start_query
     return list(range(args.start_query, args.end_query))
 
