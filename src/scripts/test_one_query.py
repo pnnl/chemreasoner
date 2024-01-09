@@ -70,7 +70,7 @@ else:
     )
 
     search = BeamSearchTree(
-        starting_state, policy, lambda list_x: [2] * len(list_x), 4, 3
+        starting_state, policy, lambda list_x: [2] * len(list_x), 5, 5
     )
 
 start_time = time.time()
@@ -78,7 +78,7 @@ timing_data = [start_time]
 for i in range(5):
     try:
         data = search.step_return()
-        end_time = time.end()
+        end_time = time.time()
         timing_data.append(end_time - timing_data[-1])
         with open("test_tree_timing.json", "w") as f:
             data.update(
