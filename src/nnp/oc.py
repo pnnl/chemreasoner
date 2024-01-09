@@ -216,7 +216,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             device=trainer.device,
         )
         end = time.time()
-        self.gnn_calls += 100
+        self.gnn_calls += self.steps
         self.gnn_time += end - start
 
         final_atoms = batch_to_atoms(final_batch)
