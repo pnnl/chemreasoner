@@ -167,6 +167,7 @@ if __name__ == "__main__":
     parser.add_argument("--start-query", type=int)
     parser.add_argument("--end-query", type=int)
     parser.add_argument("--depth", type=int, default=None)
+    parser.add_argument("--opt-debug", type=bool, default=False)
 
     # Policy
     parser.add_argument("--policy", type=str, default=None)
