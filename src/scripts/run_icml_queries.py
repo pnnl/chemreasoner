@@ -107,7 +107,7 @@ def get_reward_function(args, state, llm_function):
                 "fmax": args.gnn_fmax,
                 "steps": args.gnn_steps,
             }
-            return simulation_reward.SimulationReward(
+            return simulation_reward.StructureReward(
                 llm_function=llm_function,
                 penalty_value=args.penalty_value,
                 nnp_class=args.nnp_class,
