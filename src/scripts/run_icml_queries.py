@@ -228,11 +228,13 @@ if __name__ == "__main__":
         logging.info(
             f"=============Processing query {i}/{len(indeces)}================"
         )
+        start = time.time()
         fname = save_dir / f"test_tree_{i}.json"
         starting_state = get_state_from_idx(i, df)
 
         policy = get_policy(args, llm_function)
         reward_fn = get_reward_function(args, starting_state, llm_function)
+
         if Path(fname).exists() and os.stat(fname).st_size != 0:
             print(f"Loading a tree from {fname}")
             logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
@@ -254,10 +256,14 @@ if __name__ == "__main__":
         else:
             search = get_search_method(args, starting_state, policy, reward_fn)
 
+        end = time.time()
+        logging.info(f"TIMING: Time to set up query: {end-start}")
+
         start_time = time.time()
         timing_data = [start_time]
         continue_searching = True
         while len(search) < args.depth and continue_searching:
+            start = time.time()
             try:
                 data = search.step_return()
                 end_time = time.time()
@@ -271,6 +277,8 @@ if __name__ == "__main__":
                 logging.warning(f"Could not complete search with error: {err}")
                 print(f"Could not complete search with error: {err}")
                 continue_searching = False
+            end = time.time()
+            logging.info(f"TIMING: One search iteration: {end-start}")
 
             print("=" * 20 + " " + str(i) + " " + "=" * 20)
             logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
