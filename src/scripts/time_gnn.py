@@ -19,18 +19,18 @@ with open("gnn_timing_info_big_batch.txt", "w") as f:
             "num_adslab_samples": 16,
         }
     )
-    start = time.time()
-    print(
-        sr.create_structures_and_calculate(
-            [["Cu"], ["Pt"], ["Ru"], ["Zn"], ["Zr"]],
-            ["*CO", "*O", "*OH2"],
-            ["Cu", "Pt", "Ru", "Zn", "Zr"],
-            placement_type="heuristic",
-        )
-    )
-    end = time.time()
-    print(f"cuda time:\t{end-start}")
-    f.write(f"cuda time:\t{end-start}")
+    # start = time.time()
+    # print(
+    #     sr.create_structures_and_calculate(
+    #         [["Cu"], ["Pt"], ["Ru"], ["Zn"], ["Zr"]],
+    #         ["*CO", "*O", "*OH2"],
+    #         ["Cu", "Pt", "Ru", "Zn", "Zr"],
+    #         placement_type="heuristic",
+    #     )
+    # )
+    # end = time.time()
+    # print(f"cuda time:\t{end-start}")
+    # f.write(f"cuda time:\t{end-start}")
     sr = StructureReward(
         **{
             "llm_function": None,
@@ -39,7 +39,7 @@ with open("gnn_timing_info_big_batch.txt", "w") as f:
             "device": "cpu",
             "steps": 150,
             "ads_tag": 2,
-            "num_adslab_samples": 1,
+            "num_adslab_samples": 16,
         }
     )
     start = time.time()
