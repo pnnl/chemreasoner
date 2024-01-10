@@ -220,7 +220,6 @@ class StructureReward(BaseReward):
                                 ase_interface.symbols_list_to_bulk(slab_sym)
                                 for _ in range(self.num_slab_samples)
                             ]
-                            print(slab_samples)
                         except ase_interface.StructureGenerationError as err:
                             logging.warning(err)
                             print(err)
@@ -398,8 +397,6 @@ class StructureReward(BaseReward):
                 )
                 == 0
             ):
-                print("****")
-                print(adslab)
                 adslab_batch.append(adslab)
                 fname_batch.append(str(fname) + f"-{uuid.uuid4()}")
             else:
@@ -456,7 +453,6 @@ class StructureReward(BaseReward):
         """Sample possible adsorbate+slab combinations."""
         adslabs = []
         for i in range(self.num_adslab_samples):
-            print(slab.info)
             adslab = ase_interface.generate_bulk_ads_pairs(
                 slab, ads, height=adsorbate_height
             )
@@ -510,7 +506,6 @@ class StructureReward(BaseReward):
         If there are two metals, the more prominant metal is listed first. If there are
         three, the metals are listed in alphabetical order.
         """
-        print(candidate_syms)
         if len(candidate_syms) == 1:
             formula = candidate_syms[0]
         if len(candidate_syms) == 2:
