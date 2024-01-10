@@ -37,7 +37,8 @@ with open("gnn_timing_info_big_batch.txt", "w") as f:
             print(f"cuda time:\t{end-start}")
             f.write(f"cuda time:\t{end-start}")
             found_batch_size = True
-        except Exception:
+        except Exception as err:
+            print(err)
             print(f"Batch size {batch_size} did not work.")
             batch_size -= 20
     # sr = StructureReward(
