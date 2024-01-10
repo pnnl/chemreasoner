@@ -219,10 +219,7 @@ if __name__ == "__main__":
 
         policy = get_policy(args, llm_function)
         reward_fn = get_reward_function(args, starting_state, llm_function)
-        if (
-            Path(f"test_tree_{i}.json").exists()
-            and os.stat("test_tree_timing.json").st_size != 0
-        ):
+        if Path(fname).exists() and os.stat(fname).st_size != 0:
             print(f"Loading a tree from {fname}")
             logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
             with open(fname, "r") as f:
