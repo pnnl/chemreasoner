@@ -190,9 +190,9 @@ if __name__ == "__main__":
     parser.add_argument("--gnn-traj-dir", type=str, default=None)
     parser.add_argument("--gnn-batch-size", type=int, default=None)
     parser.add_argument("--gnn-device", type=str, default=None)
-    parser.add_argument("--gnn-ads-tag", type=str, default=None)
+    parser.add_argument("--gnn-ads-tag", type=int, default=None)
     parser.add_argument("--gnn-fmax", type=float, default=None)
-    parser.add_argument("--gnn-steps", type=float, default=None)
+    parser.add_argument("--gnn-steps", type=int, default=None)
 
     parser.add_argument("--search-method", type=str, default=None)
     parser.add_argument("--num-keep", type=int, default=None)
