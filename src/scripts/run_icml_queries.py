@@ -112,11 +112,11 @@ def get_reward_function(args, state, llm_function):
                 "steps": args.gnn_steps,
             }
             return simulation_reward.SimulationReward(
-                num_steps=args.num_steps,
+                llm_function=llm_function,
                 penalty_value=args.penalty_value,
                 nnp_class=args.nnp_class,
                 num_slab_samples=args.num_slab_samples,
-                adslab_samples=args.num_adslab_samples,
+                num_adslab_samples=args.num_adslab_samples,
                 max_attempts=args.reward_max_attempts,
                 **nnp_kwargs,
             )
