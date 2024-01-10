@@ -87,7 +87,7 @@ def get_reward_function(args, state, llm_function):
                 isinstance(args.gnn_batch_size, int) and args.gnn_batch_size > 0
             ), "invalid parameter"
             assert isinstance(args.gnn_device, str) and (
-                args.device == "cpu" or args.gnn_device == "cuda"
+                args.gnn_device == "cpu" or args.gnn_device == "cuda"
             ), "invalid parameter"
             assert (
                 isinstance(args.gnn_ads_tag, str) and args.gnn_ads_tag == 2
