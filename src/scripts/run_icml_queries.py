@@ -90,13 +90,13 @@ def get_reward_function(args, state, llm_function):
                 args.gnn_device == "cpu" or args.gnn_device == "cuda"
             ), "invalid parameter"
             assert (
-                isinstance(args.gnn_ads_tag, str) and args.gnn_ads_tag == 2
+                isinstance(args.gnn_ads_tag, int) and args.gnn_ads_tag == 2
             ), "invalid parameter"
             assert (
                 isinstance(args.gnn_fmax, float) and args.gnn_fmax > 0
             ), "invalid parameter"
             assert (
-                isinstance(args.gnn_steps, float) and args.gnn_steps >= 0
+                isinstance(args.gnn_steps, int) and args.gnn_steps >= 0
             ), "invalid parameter"
             nnp_kwargs = {
                 "model": args.gnn_model,
