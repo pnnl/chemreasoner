@@ -10,7 +10,7 @@ from search.reward.simulation_reward import StructureReward  # noqa:E402
 with open("gnn_timing_info_big_batch.txt", "w") as f:
     found_batch_size = False
     batch_size = 240
-    while not found_batch_size:
+    while not found_batch_size and batch_size > 0:
         try:
             sr = StructureReward(
                 **{
