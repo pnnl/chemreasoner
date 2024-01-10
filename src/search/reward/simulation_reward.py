@@ -1,6 +1,7 @@
 """Module for reward funciton by calculation of adsorption energies in simulation."""
 import logging
 import sys
+import time
 import uuid
 
 from copy import deepcopy
@@ -53,6 +54,7 @@ class StructureReward(BaseReward):
         self, slab_syms: list[list[str]], states: list[ReasonerState]
     ):
         """Run the generation prompts for the given states where the reward is None."""
+        start = time.time()
         prompts = []
         system_prompts = []
         for i, s in enumerate(states):
@@ -69,6 +71,10 @@ class StructureReward(BaseReward):
                 s.process_generation(generation_results[loop_counter])
 
                 loop_counter += 1
+        end = time.time()
+        logging.info(
+            f"TIMING: Candidate generation finished in reward function {end-start}"
+        )
 
     def run_slab_sym_prompts(
         self, slab_syms: list[list[str]], states: list[ReasonerState]
@@ -77,6 +83,7 @@ class StructureReward(BaseReward):
 
         Updates the given "slab_syms" list in-place.
         """
+        start = time.time()
         prompts = []
         system_prompts = []
         prompts_idx = []
@@ -93,7 +100,6 @@ class StructureReward(BaseReward):
                     )
                     if len(prompts) > len(system_prompts):
                         prompts.pop()
-        print("here")
         answers = self.llm_function(
             prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
         )
@@ -108,6 +114,10 @@ class StructureReward(BaseReward):
 
             except Exception as err:
                 logging.warning(f"Failed to parse answer with error: {str(err)}.")
+        end = time.time()
+        logging.info(
+            f"TIMING: Slab symbols parsing finished in reward function {end-start}"
+        )
 
     def __call__(
         self,
@@ -119,6 +129,7 @@ class StructureReward(BaseReward):
         rewards = []
         slab_syms = [None] * len(states)
         attempts = 0
+        start = time.time()
         while any([s is None for s in slab_syms]) and attempts < self.max_attempts:
             if primary_reward:
                 self.run_generation_prompts(slab_syms, states)
@@ -126,6 +137,10 @@ class StructureReward(BaseReward):
             self.run_slab_sym_prompts(slab_syms, states)
 
             attempts += 1
+        end = time.time()
+        logging.info(
+            f"TIMING: Candidate/symbol generation finished in reward function {end-start}"
+        )
 
         for i, s in enumerate(states):
             ads_list = s.ads_symbols
@@ -140,6 +155,7 @@ class StructureReward(BaseReward):
                 gnn_time = 0
                 final_reward = self.penalty_value
             else:
+                start = time.time()
                 (
                     adslabs_and_energies,
                     gnn_calls,
@@ -148,6 +164,8 @@ class StructureReward(BaseReward):
                 ) = self.create_structures_and_calculate(
                     slab_syms[i], ads_list, candidates_list
                 )
+                end = time.time()
+                logging.info(f"TIMING: GNN calculations done {end-start}")
                 if s.ads_preferences is not None:
                     final_reward, reward_values = self.parse_adsorption_energies(
                         adslabs_and_energies,
@@ -220,7 +238,6 @@ class StructureReward(BaseReward):
                                 ase_interface.symbols_list_to_bulk(slab_sym)
                                 for _ in range(self.num_slab_samples)
                             ]
-                            print(slab_samples)
                         except ase_interface.StructureGenerationError as err:
                             logging.warning(err)
                             print(err)
@@ -398,8 +415,6 @@ class StructureReward(BaseReward):
                 )
                 == 0
             ):
-                print("****")
-                print(adslab)
                 adslab_batch.append(adslab)
                 fname_batch.append(str(fname) + f"-{uuid.uuid4()}")
             else:
@@ -456,7 +471,6 @@ class StructureReward(BaseReward):
         """Sample possible adsorbate+slab combinations."""
         adslabs = []
         for i in range(self.num_adslab_samples):
-            print(slab.info)
             adslab = ase_interface.generate_bulk_ads_pairs(
                 slab, ads, height=adsorbate_height
             )
@@ -510,7 +524,6 @@ class StructureReward(BaseReward):
         If there are two metals, the more prominant metal is listed first. If there are
         three, the metals are listed in alphabetical order.
         """
-        print(candidate_syms)
         if len(candidate_syms) == 1:
             formula = candidate_syms[0]
         if len(candidate_syms) == 2:

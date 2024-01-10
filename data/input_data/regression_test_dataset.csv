@@ -1,0 +1,6 @@
+dataset,query
+OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *O.
+BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrodeoxygenation reaction with High Binding Energy.
+RWGS,Generate a list of top-5 {catalysts} that exhibit higher adsorption energy for both CO2 and H2 for the production of CO (the reactants of the RWGS reaction).
+CO2ToEthanol,Generate a list of top-5 {catalysts} that exhibit high activity for the CO2 to ethanol conversion reaction.
+CO2ToMethanol,Generate a list of top-5 {bimetallic catalysts (combination of noble metal and base metal)} that exhibit high activity for the CO2 to methanol conversion reaction.

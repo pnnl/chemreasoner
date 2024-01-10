@@ -1,10 +1,13 @@
 """Run the queries for ICML."""
+import time
+
+start = time.time()
 import argparse
 import json
 import logging
 import os
 import sys
-import time
+
 
 from pathlib import Path
 
@@ -19,7 +22,11 @@ from search.reward import simulation_reward, reaction_reward, llm_reward  # noqa
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa:E402
 from search.state.reasoner_state import ReasonerState  # noqa:E402
 
+end = time.time()
+
 logging.getLogger().setLevel(logging.INFO)
+
+logging.info(f"TIMING: Imports finished {end-start}")
 
 # TODO: Complete arguments for each of these getter functions
 
@@ -163,9 +170,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--savedir", type=str, default=None)
+    parser.add_argument("--dataset-path", type=str, default=None)
     parser.add_argument("--start-query", type=int)
     parser.add_argument("--end-query", type=int)
     parser.add_argument("--depth", type=int, default=None)
+    parser.add_argument("--opt-debug", type=bool, default=False)
 
     # Policy
     parser.add_argument("--policy", type=str, default=None)
@@ -204,21 +213,28 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     assert isinstance(args.depth, int) and args.depth > 0
-
+    start = time.time()
     save_dir = Path(args.savedir)
     save_dir.mkdir(parents=True, exist_ok=True)
 
     llm_function = run_azure_openai_prompts
 
-    df = pd.read_csv(Path("data", "input_data", "dataset.csv"))
+    df = pd.read_csv(args.dataset_path)
     indeces = get_indeces(args)
+    end = time.time()
+    logging.info(f"TIMING: Initialization time: {end-start}")
 
     for i in indeces:
+        logging.info(
+            f"=============TIMING: Processing query {i}/{len(indeces)}================"
+        )
+        start = time.time()
         fname = save_dir / f"test_tree_{i}.json"
         starting_state = get_state_from_idx(i, df)
 
         policy = get_policy(args, llm_function)
         reward_fn = get_reward_function(args, starting_state, llm_function)
+
         if Path(fname).exists() and os.stat(fname).st_size != 0:
             print(f"Loading a tree from {fname}")
             logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
@@ -240,10 +256,14 @@ if __name__ == "__main__":
         else:
             search = get_search_method(args, starting_state, policy, reward_fn)
 
+        end = time.time()
+        logging.info(f"TIMING: Time to set up query: {end-start}")
+
         start_time = time.time()
         timing_data = [start_time]
         continue_searching = True
         while len(search) < args.depth and continue_searching:
+            start = time.time()
             try:
                 data = search.step_return()
                 end_time = time.time()
@@ -257,6 +277,8 @@ if __name__ == "__main__":
                 logging.warning(f"Could not complete search with error: {err}")
                 print(f"Could not complete search with error: {err}")
                 continue_searching = False
+            end = time.time()
+            logging.info(f"TIMING: One search iteration: {end-start}")
 
             print("=" * 20 + " " + str(i) + " " + "=" * 20)
             logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)

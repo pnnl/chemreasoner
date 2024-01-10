@@ -1,6 +1,7 @@
 """Class for the coherence policy."""
 import logging
 import sys
+import time
 
 from collections.abc import Callable
 
@@ -102,6 +103,7 @@ class CoherentPolicy(BasePolicy):
         """Return the actions along with their priors."""
         attempts = 0
         action_priors = [None] * len(states)
+        start = time.time()
         while any([i is None for i in action_priors]) and attempts < self.max_attempts:
             attempts += 1
             prompts = []
@@ -135,6 +137,8 @@ class CoherentPolicy(BasePolicy):
                     print(
                         "Could not parse the actions for the given state. Trying again."
                     )
+        end = time.time()
+        logging.info(f"TIMING: Get actions time {end-start}")
         action_priors = [a_p if a_p is not None else [] for a_p in action_priors]
 
         return action_priors

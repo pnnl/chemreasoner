@@ -297,7 +297,6 @@ def llm_answer_to_symbols(
         )
     else:
         syms = [typical_syms[ans] for ans in answer]
-        print(syms)
         return syms
     answer_list_parsed = [None] * len(answer)
     for line in answer_parsed.split("\n"):
@@ -397,8 +396,6 @@ def ads_symbols_to_structure(syms: str):
     else:
         ats = build.molecule(syms)
     ats.info.update({"syms": syms})
-    print(syms.lower())
-    print(ats)
     return ats
 
 
