@@ -245,7 +245,8 @@ if __name__ == "__main__":
 
         start_time = time.time()
         timing_data = [start_time]
-        while len(search) < args.depth:
+        continue_searching = True
+        while len(search) < args.depth and continue_searching:
             try:
                 data = search.step_return()
                 end_time = time.time()
@@ -258,7 +259,7 @@ if __name__ == "__main__":
             except Exception as err:
                 logging.warning(f"Could not complete search with error: {err}")
                 print(f"Could not complete search with error: {err}")
-                break
+                continue_searching = False
 
             print("=" * 20 + " " + str(i) + " " + "=" * 20)
             logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
