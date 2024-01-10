@@ -1,10 +1,13 @@
 """Run the queries for ICML."""
+import time
+
+start = time.time()
 import argparse
 import json
 import logging
 import os
 import sys
-import time
+
 
 from pathlib import Path
 
@@ -19,7 +22,11 @@ from search.reward import simulation_reward, reaction_reward, llm_reward  # noqa
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa:E402
 from search.state.reasoner_state import ReasonerState  # noqa:E402
 
+end = time.time()
+
 logging.getLogger().setLevel(logging.INFO)
+
+logging.info(f"TIMING: Imports finished {end-start}")
 
 # TODO: Complete arguments for each of these getter functions
 
@@ -206,7 +213,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     assert isinstance(args.depth, int) and args.depth > 0
-
+    start = time.time()
     save_dir = Path(args.savedir)
     save_dir.mkdir(parents=True, exist_ok=True)
 
@@ -214,6 +221,8 @@ if __name__ == "__main__":
 
     df = pd.read_csv(args.dataset_path)
     indeces = get_indeces(args)
+    end = time.time()
+    logging.info(f"TIMING: Initialization time: {end-start}")
 
     for i in indeces:
         logging.info(
