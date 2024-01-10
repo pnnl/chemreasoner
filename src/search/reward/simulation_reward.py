@@ -54,6 +54,7 @@ class StructureReward(BaseReward):
         self, slab_syms: list[list[str]], states: list[ReasonerState]
     ):
         """Run the generation prompts for the given states where the reward is None."""
+        start = time.time()
         prompts = []
         system_prompts = []
         for i, s in enumerate(states):
@@ -70,6 +71,10 @@ class StructureReward(BaseReward):
                 s.process_generation(generation_results[loop_counter])
 
                 loop_counter += 1
+        end = time.time()
+        logging.info(
+            f"TIMING: Candidate generation finished in reward function {end-start}"
+        )
 
     def run_slab_sym_prompts(
         self, slab_syms: list[list[str]], states: list[ReasonerState]
@@ -78,6 +83,7 @@ class StructureReward(BaseReward):
 
         Updates the given "slab_syms" list in-place.
         """
+        start = time.time()
         prompts = []
         system_prompts = []
         prompts_idx = []
@@ -94,7 +100,6 @@ class StructureReward(BaseReward):
                     )
                     if len(prompts) > len(system_prompts):
                         prompts.pop()
-        print("here")
         answers = self.llm_function(
             prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
         )
@@ -109,6 +114,10 @@ class StructureReward(BaseReward):
 
             except Exception as err:
                 logging.warning(f"Failed to parse answer with error: {str(err)}.")
+        end = time.time()
+        logging.info(
+            f"TIMING: Slab symbols parsing finished in reward function {end-start}"
+        )
 
     def __call__(
         self,
