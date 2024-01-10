@@ -262,6 +262,7 @@ if __name__ == "__main__":
             except Exception as err:
                 logging.warning(f"Could not complete search with error: {err}")
                 print(f"Could not complete search with error: {err}")
+                break
 
             print("=" * 20 + " " + str(i) + " " + "=" * 20)
             logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
