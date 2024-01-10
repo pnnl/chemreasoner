@@ -101,7 +101,7 @@ class PathReward(BaseReward):
             except Exception as err:
                 logging.warning(f"Failed to parse answer with error: {str(err)}.")
 
-    def __call__(self, paths):
+    def __call__(self, states: list[ReasonerState]):
         """Return the calculated adsorption energy from the predicted catalysts."""
 
         _, min_act_energy, min_act_energy_path = self.get_reward_for_paths(paths)
@@ -198,7 +198,7 @@ class PathReward(BaseReward):
         for idx, name, energy, valid_structure in adslabs_and_energies:
             cand = name_candidate_mapping[name]
             ads = name.split("_")[-1]
-            if valid_structure:
+            if valid_structure == 0:
                 if cand in reward_values.keys():
                     reward_values[cand][ads] += [energy]
                 else:

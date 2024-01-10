@@ -53,7 +53,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self,
         model: str,
         traj_dir: Path,
-        batch_size=240,
+        batch_size=40,
         device="cpu",
         ads_tag=0,
         fmax=0.005,
@@ -521,7 +521,7 @@ class AdsorbedStructureChecker:
     Uses convention created by Open Catalysis:
     https://github.com/Open-Catalyst-Project/ocp/blob/main/DATASET.md
 
-    "0 - no anomaly
+    0 - no anomaly
     1 - adsorbate dissociation
     2 - adsorbate desorption
     3 - surface reconstruction [not implemented in this code]
