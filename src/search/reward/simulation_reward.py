@@ -1,6 +1,7 @@
 """Module for reward funciton by calculation of adsorption energies in simulation."""
 import logging
 import sys
+import time
 import uuid
 
 from copy import deepcopy
@@ -119,6 +120,7 @@ class StructureReward(BaseReward):
         rewards = []
         slab_syms = [None] * len(states)
         attempts = 0
+        start = time.time()
         while any([s is None for s in slab_syms]) and attempts < self.max_attempts:
             if primary_reward:
                 self.run_generation_prompts(slab_syms, states)
@@ -126,6 +128,10 @@ class StructureReward(BaseReward):
             self.run_slab_sym_prompts(slab_syms, states)
 
             attempts += 1
+        end = time.time()
+        logging.info(
+            f"TIMING: Candidate/symbol generation finished in reward function {end-start}"
+        )
 
         for i, s in enumerate(states):
             ads_list = s.ads_symbols
@@ -140,6 +146,7 @@ class StructureReward(BaseReward):
                 gnn_time = 0
                 final_reward = self.penalty_value
             else:
+                start = time.time()
                 (
                     adslabs_and_energies,
                     gnn_calls,
@@ -148,6 +155,8 @@ class StructureReward(BaseReward):
                 ) = self.create_structures_and_calculate(
                     slab_syms[i], ads_list, candidates_list
                 )
+                end = time.time()
+                logging.info(f"TIMING: GNN calculations done {end-start}")
                 if s.ads_preferences is not None:
                     final_reward, reward_values = self.parse_adsorption_energies(
                         adslabs_and_energies,
