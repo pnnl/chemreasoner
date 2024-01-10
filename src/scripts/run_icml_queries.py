@@ -215,6 +215,7 @@ if __name__ == "__main__":
     indeces = get_indeces(args)
 
     for i in indeces:
+        logging.info(f"Processing query {i}")
         fname = save_dir / f"test_tree_{i}.json"
         starting_state = get_state_from_idx(i, df)
 
