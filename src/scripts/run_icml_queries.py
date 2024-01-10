@@ -226,7 +226,7 @@ if __name__ == "__main__":
 
     for i in indeces:
         logging.info(
-            f"=============Processing query {i}/{len(indeces)}================"
+            f"=============TIMING: Processing query {i}/{len(indeces)}================"
         )
         start = time.time()
         fname = save_dir / f"test_tree_{i}.json"
