@@ -35,7 +35,7 @@ with open("gnn_timing_info_big_batch.txt", "w") as f:
         **{
             "llm_function": None,
             "model": "gemnet",
-            "traj_dir": Path("data/output/cpu_test"),
+            "traj_dir": Path("data/output/cpu_test_omp"),
             "device": "cpu",
             "steps": 150,
             "ads_tag": 2,
