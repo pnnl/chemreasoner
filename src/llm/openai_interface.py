@@ -1,10 +1,13 @@
 """Functions to handle the openai llm interface."""
 import asyncio
+import logging
 import os
 
 from typing import Union
 
 import openai
+
+logging.getLogger().setLevel(logging.INFO)
 
 global openai_client
 openai_client = None
@@ -107,6 +110,7 @@ def run_openai_prompts(
             }
             for a in answer_objects
         ]
+
         return [{"answer": a, "usage": u} for a, u in zip(answer_strings, usages)]
 
 
