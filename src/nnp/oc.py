@@ -521,7 +521,7 @@ class AdsorbedStructureChecker:
     Uses convention created by Open Catalysis:
     https://github.com/Open-Catalyst-Project/ocp/blob/main/DATASET.md
 
-    "0 - no anomaly
+    0 - no anomaly
     1 - adsorbate dissociation
     2 - adsorbate desorption
     3 - surface reconstruction [not implemented in this code]

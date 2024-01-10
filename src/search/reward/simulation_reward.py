@@ -148,13 +148,24 @@ class StructureReward(BaseReward):
                 ) = self.create_structures_and_calculate(
                     slab_syms[i], ads_list, candidates_list
                 )
-
-                final_reward, reward_values = self.parse_adsorption_energies(
-                    adslabs_and_energies,
-                    name_candidate_mapping,
-                    candidates_list,
-                    s.ads_preferences,
-                )
+                if s.ads_preferences is not None:
+                    final_reward, reward_values = self.parse_adsorption_energies(
+                        adslabs_and_energies,
+                        name_candidate_mapping,
+                        candidates_list,
+                        s.ads_preferences,
+                    )
+                else:
+                    (
+                        final_reward,
+                        reward_values,
+                        adsorption_energies,
+                    ) = self.parse_adsorption_energies(
+                        adslabs_and_energies,
+                        name_candidate_mapping,
+                        candidates_list,
+                        s.reaction_pathways,
+                    )
 
             rewards.append(final_reward)
             if "simulation-reward" in s.info.keys():
@@ -175,6 +186,10 @@ class StructureReward(BaseReward):
                     "gnn_calls": gnn_calls,
                     "gnn_time": gnn_time,
                 }
+            if s.ads_preferences is None:
+                s.info["simulation-reward"].update(
+                    {"intermediate_energies": adsorption_energies}
+                )
 
         return rewards
 
@@ -252,7 +267,6 @@ class StructureReward(BaseReward):
                 print(
                     f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
                 )
-                pass
 
         adslabs_and_energies = self.create_batches_and_calculate(adslab_ats)
 
@@ -279,7 +293,7 @@ class StructureReward(BaseReward):
         for idx, name, energy, valid_structure in adslabs_and_energies:
             cand = name_candidate_mapping[name]
             ads = name.split("_")[-1]
-            if valid_structure:
+            if valid_structure == 0:
                 if cand in reward_values.keys():
                     reward_values[cand][ads] += [energy]
                 else:
@@ -295,7 +309,7 @@ class StructureReward(BaseReward):
                 rewards.append(
                     sum(
                         [
-                            -((min(reward_values[cand][ads])) ** ads_preferences[i])
+                            -((min(reward_values[cand][ads])) * ads_preferences[i])
                             if len(reward_values[cand][ads]) > 0
                             else self.penalty_value
                             for i, ads in enumerate(reward_values[cand].keys())
@@ -309,6 +323,62 @@ class StructureReward(BaseReward):
         final_reward = np.mean(rewards)
 
         return final_reward, reward_values  # return mean over candidates
+
+    def parse_adsorption_pathways(
+        self,
+        adslabs_and_energies,
+        name_candidate_mapping,
+        candidates_list,
+        pathways,
+    ):
+        """Parse adsorption energies to get the reward value."""
+        # Parse out the rewards into candidate/adsorbate
+        reward_values = {}
+        for idx, name, energy, valid_structure in adslabs_and_energies:
+            cand = name_candidate_mapping[name]
+            ads = name.split("_")[-1]
+            if valid_structure == 0:
+                if cand in reward_values.keys():
+                    reward_values[cand][ads] += [energy]
+                else:
+                    reward_values[cand] = {ads: [energy]}
+            else:
+                if cand not in reward_values.keys():
+                    reward_values[cand] = {ads: []}
+
+        # aggregate the rewards
+        rewards = []
+        pathways = {}
+        for cand in candidates_list:
+            if cand in reward_values.keys():
+                adsorption_energies = [[None] * len(p) for p in pathways]
+                for i, path in enumerate(pathways):
+                    for j, ads in enumerate(path):
+                        adsorption_energies[i][j] = (
+                            min(reward_values[cand][ads])
+                            if len(reward_values[cand][ads]) > 0
+                            else None
+                        )
+                pathways[cand] = adsorption_energies
+                paths_without_none = [p for p in adsorption_energies if None not in p]
+                if len(paths_without_none) != 0:
+                    rewards.append(
+                        min(paths_without_none, key=lambda path: max(np.diff(path)))
+                    )
+                else:
+                    rewards.append(self.penalty_value)
+
+            else:  # Handle default here TODO: determine some logic/pentaly for this
+                print(cand)
+                rewards.append(self.penalty_value)
+
+        final_reward = np.mean(rewards)
+
+        return (
+            final_reward,
+            reward_values,
+            adsorption_energies,
+        )  # return mean over candidates
 
     def create_batches_and_calculate(self, adslabs):
         """Split adslabs into batches and run the simulations."""
