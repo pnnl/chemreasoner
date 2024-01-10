@@ -163,6 +163,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--savedir", type=str, default=None)
+    parser.add_argument("--dataset-path", type=str, default=None)
     parser.add_argument("--start-query", type=int)
     parser.add_argument("--end-query", type=int)
     parser.add_argument("--depth", type=int, default=None)
@@ -210,7 +211,7 @@ if __name__ == "__main__":
 
     llm_function = run_azure_openai_prompts
 
-    df = pd.read_csv(Path("data", "input_data", "dataset.csv"))
+    df = pd.read_csv(args.dataset_path)
     indeces = get_indeces(args)
 
     for i in indeces:
