@@ -101,7 +101,7 @@ def get_reward_function(args, state, llm_function):
             nnp_kwargs = {
                 "model": args.gnn_model,
                 "traj_dir": args.gnn_traj_dir,
-                "batch_size": args.batch_size,
+                "batch_size": args.gnn_batch_size,
                 "device": args.gnn_device,
                 "ads_tag": args.gnn_ads_tag,
                 "fmax": args.gnn_fmax,
