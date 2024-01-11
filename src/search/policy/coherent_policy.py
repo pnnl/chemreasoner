@@ -112,7 +112,8 @@ class CoherentPolicy(BasePolicy):
                 try:
                     prompts.append(s.priors_prompt)
                     prompts_idx.append(i)
-                except Exception:
+                except Exception as err:
+                    raise err
                     print("Cannot generate prompt for state.")
             llm_answers = self.llm_function(prompts)
 
