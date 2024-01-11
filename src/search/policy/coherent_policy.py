@@ -114,8 +114,7 @@ class CoherentPolicy(BasePolicy):
                 try:
                     prompts.append(s.priors_prompt)
                     prompts_idx.append(i)
-                except Exception as err:
-                    raise err
+                except Exception:
                     print("Cannot generate prompt for state.")
 
             if len(prompts) > 0:
