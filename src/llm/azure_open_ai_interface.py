@@ -5,7 +5,7 @@ import os
 from typing import Union
 
 from dotenv import load_dotenv
-from openai import AsyncAzureOpenAI
+from openai import AsyncAzureOpenAI, RateLimitError
 
 
 def init_azure_openai(model):
@@ -28,9 +28,22 @@ async def parallel_azure_openai_chat_completion(
     if system_prompt is not None:
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
-    return await client.chat.completions.create(
-        messages=messages, model=model, **kwargs
-    )
+    try:
+        return await client.chat.completions.create(
+            messages=messages, model=model, **kwargs
+        )
+    except RateLimitError as err:
+        error_message = str(err)
+        if "Please retry after " in error_message:
+            retry_time = float(
+                error_message.split("Please retry after ")[-1].split(" seconds")[0]
+            )
+            asyncio.sleep(retry_time)
+        else:
+            asyncio.sleep(60)
+        return await client.chat.completions.create(
+            messages=messages, model=model, **kwargs
+        )
 
 
 async def azure_openai_chat_async_evaluation(
