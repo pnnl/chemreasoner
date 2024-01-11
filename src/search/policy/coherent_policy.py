@@ -109,6 +109,8 @@ class CoherentPolicy(BasePolicy):
             prompts = []
             prompts_idx = []
             for i, s in enumerate(states):
+                if s.priors_template is None:
+                    s.priors_template = priors_template
                 try:
                     prompts.append(s.priors_prompt)
                     prompts_idx.append(i)
