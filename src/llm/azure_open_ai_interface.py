@@ -1,11 +1,14 @@
 """Functions for running azync azure openai prompts."""
 import asyncio
+import logging
 import os
 
 from typing import Union
 
 from dotenv import load_dotenv
 from openai import AsyncAzureOpenAI, RateLimitError
+
+logging.getLogger().setLevel(logging.INFO)
 
 
 def init_azure_openai(model):
@@ -34,6 +37,7 @@ async def parallel_azure_openai_chat_completion(
         )
     except RateLimitError as err:
         error_message = str(err)
+        logging.info(f"TIMING: Recieved RateLimitError {error_message}")
         if "Please retry after " in error_message:
             retry_time = float(
                 error_message.split("Please retry after ")[-1].split(" seconds")[0]
@@ -62,7 +66,7 @@ def run_azure_openai_prompts(
     prompts: list[str],
     system_prompts: list[Union[str, None]] = None,
     model="gpt-4",
-    **kwargs
+    **kwargs,
 ):
     """Run the given prompts with the openai interface."""
     client = init_azure_openai(model)
