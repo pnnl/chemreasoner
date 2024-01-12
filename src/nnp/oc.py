@@ -487,7 +487,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Choose the minimum slab from a given set of slabs."""
         atoms = self.copy_atoms_list(slab_samples)
         self.prepare_atoms_list(atoms)
-        batch = Batch.from_data_list(self.ats_to_graphs.convert_all(atoms))
+        batch = Batch.from_data_list(
+            self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
+        )
         batch = batch.to(self.device)
 
         calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
