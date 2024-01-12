@@ -242,9 +242,7 @@ class StructureReward(BaseReward):
                             logging.warning(err)
                             print(err)
                             slab_syms[i] = None
-                            raise err
-                            # slab_syms[i] = None
-                            # valid_slab_sym = False
+                            valid_slab_sym = False
 
                         if valid_slab_sym:
                             slab_ats = self.adsorption_calculator.choose_slab(

@@ -248,7 +248,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             ads_e.append(e_ref)
             bulk_atoms.append(bulk_ats.copy())
         # convert to torch geometric batch
-        batch = Batch.from_data_list(self.ats_to_graphs.convert_all(bulk_atoms))
+        batch = Batch.from_data_list(
+            self.ats_to_graphs.convert_all(bulk_atoms, disable_tqdm=True)
+        )
         # device='cpu'
         batch = batch.to(device if device is not None else self.device)
 

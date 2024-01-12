@@ -283,5 +283,4 @@ if __name__ == "__main__":
             end = time.time()
             logging.info(f"TIMING: One search iteration: {end-start}")
 
-            print("=" * 20 + " " + str(i) + " " + "=" * 20)
             logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
