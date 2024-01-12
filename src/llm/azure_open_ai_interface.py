@@ -23,10 +23,6 @@ def init_azure_openai(model):
     return client
 
 
-class response:
-    request = "travagsadffsd"
-
-
 async def parallel_azure_openai_chat_completion(
     client, prompt, system_prompt=None, model="gpt-4", **kwargs
 ):
@@ -36,11 +32,6 @@ async def parallel_azure_openai_chat_completion(
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
     try:
-        # raise RateLimitError(
-        #     "Please retry after 10 seconds",
-        #     response=response,
-        #     body="body",
-        # )
         return await client.chat.completions.create(
             messages=messages, model=model, **kwargs
         )
