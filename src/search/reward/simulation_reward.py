@@ -168,6 +168,7 @@ class StructureReward(BaseReward):
                 logging.info(f"TIMING: GNN calculations done {end-start}")
                 if s.ads_preferences is not None:
                     final_reward, reward_values = self.parse_adsorption_energies(
+                        s,
                         adslabs_and_energies,
                         name_candidate_mapping,
                         candidates_list,
@@ -178,7 +179,7 @@ class StructureReward(BaseReward):
                         final_reward,
                         reward_values,
                         adsorption_energies,
-                    ) = self.parse_adsorption_energies(
+                    ) = self.parse_adsorption_pathways(
                         adslabs_and_energies,
                         name_candidate_mapping,
                         candidates_list,
@@ -293,6 +294,7 @@ class StructureReward(BaseReward):
 
     def parse_adsorption_energies(
         self,
+        state,
         adslabs_and_energies,
         name_candidate_mapping,
         candidates_list,
@@ -304,7 +306,9 @@ class StructureReward(BaseReward):
         for idx, name, energy, valid_structure in adslabs_and_energies:
             cand = name_candidate_mapping[name]
             ads = name.split("_")[-1]
-            if valid_structure == 0 or (ads[1] == 2 and ads_preferences[i] < 0):
+            if valid_structure == 0 or (
+                ads[1] == 2 and state.get_ads_preferences(ads) < 0
+            ):
                 if cand in reward_values.keys():
                     reward_values[cand][ads] += [(energy)]
                 else:
@@ -320,11 +324,13 @@ class StructureReward(BaseReward):
                 rewards.append(
                     sum(
                         [
-                            -((min(reward_values[cand][ads])) * ads_preferences[i])
+                            -(
+                                (min(reward_values[cand][ads]))
+                                * state.get_ads_preferences(ads)
+                            )
                             if len(reward_values[cand][ads]) > 0
                             else self.penalty_value
                             for i, ads in enumerate(reward_values[cand].keys())
-                            if ads[1] == 0
                         ]
                     )
                 )
