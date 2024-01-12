@@ -62,19 +62,20 @@ class StructureReward(BaseReward):
                 prompts.append(s.generation_prompt)
                 system_prompts.append(s.generation_system_prompt)
 
-        generation_results = self.llm_function(
-            prompts, system_prompts, **{"temperature": 0.7, "top_p": 0.95}
-        )
-        loop_counter = 0
-        for i, s in enumerate(states):
-            if slab_syms[i] is None:
-                s.process_generation(generation_results[loop_counter])
+        if len(prompts) > 0:
+            generation_results = self.llm_function(
+                prompts, system_prompts, **{"temperature": 0.7, "top_p": 0.95}
+            )
+            loop_counter = 0
+            for i, s in enumerate(states):
+                if slab_syms[i] is None:
+                    s.process_generation(generation_results[loop_counter])
 
-                loop_counter += 1
-        end = time.time()
-        logging.info(
-            f"TIMING: Candidate generation finished in reward function {end-start}"
-        )
+                    loop_counter += 1
+            end = time.time()
+            logging.info(
+                f"TIMING: Candidate generation finished in reward function {end-start}"
+            )
 
     def run_slab_sym_prompts(
         self, slab_syms: list[list[str]], states: list[ReasonerState]
@@ -100,24 +101,25 @@ class StructureReward(BaseReward):
                     )
                     if len(prompts) > len(system_prompts):
                         prompts.pop()
-        answers = self.llm_function(
-            prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
-        )
-        print(answers)
+        if len(prompts) > 0:
+            answers = self.llm_function(
+                prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
+            )
+            print(answers)
 
-        for i, p in enumerate(prompts):
-            state_idx = prompts_idx[i]
-            s = states[state_idx]
-            try:
-                print(s.process_catalyst_symbols(answers[i]))
-                slab_syms[state_idx] = s.process_catalyst_symbols(answers[i])
+            for i, p in enumerate(prompts):
+                state_idx = prompts_idx[i]
+                s = states[state_idx]
+                try:
+                    print(s.process_catalyst_symbols(answers[i]))
+                    slab_syms[state_idx] = s.process_catalyst_symbols(answers[i])
 
-            except Exception as err:
-                logging.warning(f"Failed to parse answer with error: {str(err)}.")
-        end = time.time()
-        logging.info(
-            f"TIMING: Slab symbols parsing finished in reward function {end-start}"
-        )
+                except Exception as err:
+                    logging.warning(f"Failed to parse answer with error: {str(err)}.")
+            end = time.time()
+            logging.info(
+                f"TIMING: Slab symbols parsing finished in reward function {end-start}"
+            )
 
     def __call__(
         self,
