@@ -47,8 +47,12 @@ async def parallel_azure_openai_chat_completion(
         else:
             asyncio.sleep(60)
 
-        return await client.chat.completions.create(
-            messages=messages, model=model, **kwargs
+        return await parallel_azure_openai_chat_completion(
+            client=client,
+            prompt=prompt,
+            system_prompt=system_prompt,
+            model=model,
+            **kwargs,
         )
 
 
