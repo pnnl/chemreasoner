@@ -101,7 +101,6 @@ def run_azure_openai_prompts(
             }
             for a in answer_objects
         ]
-        print(answer_objects[0].choices[0].message.content)
         return [{"answer": a, "usage": u} for a, u in zip(answer_strings, usages)]
 
 

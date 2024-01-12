@@ -28,8 +28,6 @@ logging.getLogger().setLevel(logging.INFO)
 
 logging.info(f"TIMING: Imports finished {end-start}")
 
-# TODO: Complete arguments for each of these getter functions
-
 
 class NpEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -162,7 +160,6 @@ def get_state_from_idx(idx, df: pd.DataFrame):
 
 def get_indeces(args):
     """Get the state indeces provided in args."""
-    print(args.start_query)
     assert isinstance(args.start_query, int) and args.start_query >= 0
     assert isinstance(args.end_query, int) and args.end_query > args.start_query
     return list(range(args.start_query, args.end_query))
@@ -278,7 +275,6 @@ if __name__ == "__main__":
             except Exception as err:
                 raise err
                 logging.warning(f"Could not complete search with error: {err}")
-                print(f"Could not complete search with error: {err}")
                 continue_searching = False
             end = time.time()
             logging.info(f"TIMING: One search iteration: {end-start}")

@@ -91,7 +91,6 @@ class CoherentPolicy(BasePolicy):
     def strings_to_actions(action_lists: dict[str, str]) -> list[callable]:
         """Turn the strings returned by the language model into actions."""
         actions = []
-        print(action_lists)
         for k, v in action_lists.items():
             actions += [action_name_keys[k](a) for a in v]
         return actions
@@ -115,7 +114,7 @@ class CoherentPolicy(BasePolicy):
                     prompts.append(s.priors_prompt)
                     prompts_idx.append(i)
                 except Exception:
-                    print("Cannot generate prompt for state.")
+                    logging.warning("Cannot generate prompt for state.")
 
             if len(prompts) > 0:
                 llm_answers = self.llm_function(prompts)
@@ -139,7 +138,7 @@ class CoherentPolicy(BasePolicy):
 
                         action_priors[prompts_idx[i]] = (actions, priors)
                     except Exception:
-                        print(
+                        logging.warning(
                             "Could not parse the actions for the given state. Trying again."
                         )
         end = time.time()

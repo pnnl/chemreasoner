@@ -105,13 +105,11 @@ class StructureReward(BaseReward):
             answers = self.llm_function(
                 prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
             )
-            print(answers)
 
             for i, p in enumerate(prompts):
                 state_idx = prompts_idx[i]
                 s = states[state_idx]
                 try:
-                    print(s.process_catalyst_symbols(answers[i]))
                     slab_syms[state_idx] = s.process_catalyst_symbols(answers[i])
 
                 except Exception as err:
@@ -242,7 +240,6 @@ class StructureReward(BaseReward):
                             ]
                         except ase_interface.StructureGenerationError as err:
                             logging.warning(err)
-                            print(err)
                             slab_syms[i] = None
                             valid_slab_sym = False
 
@@ -279,9 +276,6 @@ class StructureReward(BaseReward):
                                     name_candidate_mapping[name] = candidates_list[i]
             except Exception:
                 logging.warning(
-                    f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
-                )
-                print(
                     f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
                 )
 
