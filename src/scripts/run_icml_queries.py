@@ -39,6 +39,8 @@ class NpEncoder(json.JSONEncoder):
             return float(obj)
         if isinstance(obj, np.ndarray):
             return obj.tolist()
+        if isinstance(obj, set):
+            return list(obj)
         return super(NpEncoder, self).default(obj)
 
 
