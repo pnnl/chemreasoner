@@ -192,7 +192,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         # Set up calculation for oc
         self.prepare_atoms_list(atoms)
         # convert to torch geometric batch
-        batch = Batch.from_data_list(self.ats_to_graphs.convert_all(atoms))
+        batch = Batch.from_data_list(
+            self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
+        )
         batch.sid = atoms_names
         batch = batch.to(device if device is not None else self.device)
 
