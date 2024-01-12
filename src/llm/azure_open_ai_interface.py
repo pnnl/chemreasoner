@@ -33,14 +33,14 @@ async def parallel_azure_openai_chat_completion(
     messages.append({"role": "user", "content": prompt})
     try:
         raise RateLimitError(
-            "Please retry after 10 seconds", reponse="response", body="body"
+            "Please retry after 10 seconds", response="response", body="body"
         )
         return await client.chat.completions.create(
             messages=messages, model=model, **kwargs
         )
     except RateLimitError as err:
         error_message = str(err)
-        logging.info(f"TIMING: Recieved RateLimitError {error_message}", response)
+        logging.info(f"TIMING: Recieved RateLimitError {error_message}")
         if "Please retry after " in error_message:
             retry_time = float(
                 error_message.split("Please retry after ")[-1].split(" seconds")[0]
