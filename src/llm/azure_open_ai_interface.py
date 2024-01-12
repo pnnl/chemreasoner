@@ -42,10 +42,9 @@ async def parallel_azure_openai_chat_completion(
             retry_time = float(
                 error_message.split("Please retry after ")[-1].split(" seconds")[0]
             )
-            print(retry_time)
-            asyncio.sleep(retry_time)
+            await asyncio.sleep(retry_time)
         else:
-            asyncio.sleep(60)
+            await asyncio.sleep(60)
 
         return await parallel_azure_openai_chat_completion(
             client=client,
