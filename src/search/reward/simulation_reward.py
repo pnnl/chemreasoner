@@ -545,31 +545,31 @@ class _TestState:
 
 if __name__ == "__main__":
     # traj_dir = "random"
-    traj_dir = "heuristic"
+    # traj_dir = "heuristic"
 
-    print("using heuristic methods")
-    sr = StructureReward(
-        **{
-            "llm_function": None,
-            "model": "gemnet",
-            "traj_dir": Path("data", "output", f"{traj_dir}"),
-            "device": "cpu",
-            "steps": 2,
-            "ads_tag": 2,
-            "num_adslab_samples": 1,
-        }
-    )
+    # print("using heuristic methods")
+    # sr = StructureReward(
+    #     **{
+    #         "llm_function": None,
+    #         "model": "gemnet",
+    #         "traj_dir": Path("data", "output", f"{traj_dir}"),
+    #         "device": "cpu",
+    #         "steps": 2,
+    #         "ads_tag": 2,
+    #         "num_adslab_samples": 1,
+    #     }
+    # )
 
-    print(
-        sr.create_structures_and_calculate(
-            [["O"], ["fdsfds"], [], [None], ["Zeolite"], ["Z", "O"], ["Cu"]],
-            ["CO"],
-            ["O", "fdsfds", "", None, "Zeolite", "ZO", "Cu"],
-            placement_type="heuristic",
-        )
-    )
+    # print(
+    #     sr.create_structures_and_calculate(
+    #         [["O"], ["fdsfds"], [], [None], ["Zeolite"], ["Z", "O"], ["Cu"]],
+    #         ["CO"],
+    #         ["O", "fdsfds", "", None, "Zeolite", "ZO", "Cu"],
+    #         placement_type="heuristic",
+    #     )
+    # )
 
-    for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
+    for p in Path("check_structures").rglob("*.traj"):
         break_trajectory(p)
 
 

@@ -21,8 +21,8 @@ computational_pathways_methanol = [
 ]
 
 computational_pathways_ethanol = [
-    ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
-    ["CO2", "*CO", "*CH2*O", "*OCH2CH3"],
+    ["CO2", "*CO", "*COOH", "*CHOH", "*OHCH2CH3"],
+    ["CO2", "*CO", "*CH2*O", "*OHCH2CH3"],
 ]
 
 
