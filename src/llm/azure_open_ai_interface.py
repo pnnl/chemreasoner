@@ -11,9 +11,9 @@ from openai import AsyncAzureOpenAI, RateLimitError
 logging.getLogger().setLevel(logging.INFO)
 
 
-def init_azure_openai(model):
+def init_azure_openai(model, dotenv_path):
     """Initialize connection to OpenAI."""
-    load_dotenv()
+    load_dotenv(dotenv_path=dotenv_path)
     client = AsyncAzureOpenAI(
         api_key=os.environ["AZURE_OPENAI_API_KEY"],
         api_version=os.environ["AZURE_OPENAI_API_VERSION"],
@@ -67,44 +67,48 @@ async def azure_openai_chat_async_evaluation(
     return answers
 
 
-def run_azure_openai_prompts(
-    prompts: list[str],
-    system_prompts: list[Union[str, None]] = None,
-    model="gpt-4",
-    **kwargs,
-):
-    """Run the given prompts with the openai interface."""
-    client = init_azure_openai(model)
-    # Apply defaults to kwargs
-    kwargs["temperature"] = kwargs.get("temperature", 0.7)
-    kwargs["top_p"] = kwargs.get("top_p", 0.95)
-    kwargs["max_tokens"] = kwargs.get("max_tokens", 800)
+class AzureOpenaiInterface:
+    """A class to handle comminicating with Azuer openai."""
 
-    if system_prompts is None:
-        system_prompts = [None] * len(prompts)
+    def __init__(self, dotenv_path=str, model="gpt-4"):
+        """Load the client for the given dotenv path."""
+        self.client = init_azure_openai(model, dotenv_path)
+        self.model = model
 
-    if model == "text-davinci-003":
-        pass
+    def __call__(
+        self,
+        prompts: list[str],
+        system_prompts: list[Union[str, None]] = None,
+        **kwargs,
+    ):
+        """Run the given prompts with the openai interface."""
+        # Apply defaults to kwargs
+        kwargs["temperature"] = kwargs.get("temperature", 0.7)
+        kwargs["top_p"] = kwargs.get("top_p", 0.95)
+        kwargs["max_tokens"] = kwargs.get("max_tokens", 800)
 
-    elif "gpt-3.5" in model or "gpt-4" in model:
-        answer_objects = asyncio.run(
-            azure_openai_chat_async_evaluation(
-                client,
-                prompts,
-                system_prompts=system_prompts,
-                model=model,
-                **kwargs,
+        if system_prompts is None:
+            system_prompts = [None] * len(prompts)
+
+        elif "gpt-3.5" in self.model or "gpt-4" in self.model:
+            answer_objects = asyncio.run(
+                azure_openai_chat_async_evaluation(
+                    self.client,
+                    prompts,
+                    system_prompts=system_prompts,
+                    model=self.model,
+                    **kwargs,
+                )
             )
-        )
-        answer_strings = [a.choices[0].message.content for a in answer_objects]
-        usages = [
-            {
-                "completion_tokens": a.usage.completion_tokens,
-                "prompt_tokens": a.usage.prompt_tokens,
-            }
-            for a in answer_objects
-        ]
-        return [{"answer": a, "usage": u} for a, u in zip(answer_strings, usages)]
+            answer_strings = [a.choices[0].message.content for a in answer_objects]
+            usages = [
+                {
+                    "completion_tokens": a.usage.completion_tokens,
+                    "prompt_tokens": a.usage.prompt_tokens,
+                }
+                for a in answer_objects
+            ]
+            return [{"answer": a, "usage": u} for a, u in zip(answer_strings, usages)]
 
 
 if __name__ == "__main__":

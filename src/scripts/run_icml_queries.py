@@ -16,7 +16,7 @@ import pandas as pd
 
 sys.path.append("src")
 from datasets import reasoner_data_loader  # noqa:E402
-from llm.azure_open_ai_interface import run_azure_openai_prompts  # noqa:E402
+from llm.azure_open_ai_interface import AzureOpenaiInterface  # noqa:E402
 from search.policy import coherent_policy, reasoner_policy  # noqa:E402
 from search.reward import simulation_reward, reaction_reward, llm_reward  # noqa:E402
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa:E402
@@ -218,7 +218,7 @@ if __name__ == "__main__":
     save_dir = Path(args.savedir)
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    llm_function = run_azure_openai_prompts
+    llm_function = AzureOpenaiInterface(args.dotenv_path)
 
     df = pd.read_csv(args.dataset_path)
     indeces = get_indeces(args)
