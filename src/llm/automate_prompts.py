@@ -25,6 +25,10 @@ computational_pathways_ethanol = [
     ["CO2", "*CO", "*CH2*O", "*OHCH2CH3"],
 ]
 
+computational_pathways_RWGS = [
+    ["CO2", "*CO"],
+]
+
 
 def find_all(string, sub):
     """Find all instances of sub string in a string."""
@@ -141,7 +145,8 @@ def get_initial_state_rwgs(
     # If there are no adsorbates in the prompt...
     if len(ads_symbols) == 0:
         # Do the reaction
-        ...
+        ads_symbols = ["*CO", "CO2", "H2"]
+        ads_preference = [-1, 1, 1]
 
     qs = ReasonerState(
         template=template,
@@ -187,9 +192,7 @@ def get_initial_state_methanol(
             preference = -1 if possible_ads == "methanol" else 1
             ads_preference.append(preference)
 
-    # If there are no adsorbates in the prompt...
     if len(ads_symbols) != 0:
-        # Do the reaction
         qs = ReasonerState(
             template=template,
             reward_template=None,
@@ -201,8 +204,9 @@ def get_initial_state_methanol(
             prediction_model=prediction_model,
             reward_model=reward_model,
         )
-
+    # If there are no adsorbates in the prompt...
     else:
+        # Do the reaction
         ads_symbols = set(
             [syms for syms_l in computational_pathways_methanol for syms in syms_l]
         )
