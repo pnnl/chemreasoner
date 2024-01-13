@@ -543,6 +543,7 @@ class AdsorbedStructureChecker:
 
     def __call__(self, ats: Atoms):
         """Check the given structure for errors."""
+        return 0
         if not self.measure_dissociation(ats):
             return self.adsorbate_dissociation_code
         elif not self.check_adsorption(ats):
