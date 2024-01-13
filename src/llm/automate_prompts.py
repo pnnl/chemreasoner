@@ -145,7 +145,7 @@ def get_initial_state_rwgs(
     # If there are no adsorbates in the prompt...
     if len(ads_symbols) == 0:
         # Do the reaction
-        ads_symbols = ["*CO", "CO2", "H2"]
+        ads_symbols = ["*CO", "CO2", "H2", "*OH2"]
         ads_preference = [-1, 1, 1]
 
     qs = ReasonerState(
