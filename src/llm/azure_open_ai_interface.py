@@ -90,25 +90,24 @@ class AzureOpenaiInterface:
         if system_prompts is None:
             system_prompts = [None] * len(prompts)
 
-        elif "gpt-3.5" in self.model or "gpt-4" in self.model:
-            answer_objects = asyncio.run(
-                azure_openai_chat_async_evaluation(
-                    self.client,
-                    prompts,
-                    system_prompts=system_prompts,
-                    model=self.model,
-                    **kwargs,
-                )
+        answer_objects = asyncio.run(
+            azure_openai_chat_async_evaluation(
+                self.client,
+                prompts,
+                system_prompts=system_prompts,
+                model=self.model,
+                **kwargs,
             )
-            answer_strings = [a.choices[0].message.content for a in answer_objects]
-            usages = [
-                {
-                    "completion_tokens": a.usage.completion_tokens,
-                    "prompt_tokens": a.usage.prompt_tokens,
-                }
-                for a in answer_objects
-            ]
-            return [{"answer": a, "usage": u} for a, u in zip(answer_strings, usages)]
+        )
+        answer_strings = [a.choices[0].message.content for a in answer_objects]
+        usages = [
+            {
+                "completion_tokens": a.usage.completion_tokens,
+                "prompt_tokens": a.usage.prompt_tokens,
+            }
+            for a in answer_objects
+        ]
+        return [{"answer": a, "usage": u} for a, u in zip(answer_strings, usages)]
 
 
 if __name__ == "__main__":
