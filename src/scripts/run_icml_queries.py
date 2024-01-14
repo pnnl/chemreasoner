@@ -275,6 +275,7 @@ if __name__ == "__main__":
                     )
                     json.dump(data, f, cls=NpEncoder)
             except Exception as err:
+                raise err
                 logging.warning(f"Could not complete search with error: {err}")
                 continue_searching = False
             end = time.time()
