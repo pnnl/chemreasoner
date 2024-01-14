@@ -72,7 +72,7 @@ class AzureOpenaiInterface:
 
     def __init__(self, dotenv_path=str, model="gpt-4"):
         """Load the client for the given dotenv path."""
-        self.client = init_azure_openai(model, dotenv_path)
+        self.dotenv_path = dotenv_path
         self.model = model
 
     def __call__(
@@ -82,6 +82,7 @@ class AzureOpenaiInterface:
         **kwargs,
     ):
         """Run the given prompts with the openai interface."""
+        client = init_azure_openai(self.model, self.dotenv_path)
         # Apply defaults to kwargs
         kwargs["temperature"] = kwargs.get("temperature", 0.7)
         kwargs["top_p"] = kwargs.get("top_p", 0.95)
@@ -92,7 +93,7 @@ class AzureOpenaiInterface:
 
         answer_objects = asyncio.run(
             azure_openai_chat_async_evaluation(
-                self.client,
+                client,
                 prompts,
                 system_prompts=system_prompts,
                 model=self.model,
