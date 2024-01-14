@@ -20,6 +20,7 @@ def init_azure_openai(model, dotenv_path):
         azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
         azure_deployment=os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"],
     )
+    logging.info(os.environ["AZURE_OPENAI_API_KEY"])
     return client
 
 
