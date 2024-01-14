@@ -230,7 +230,7 @@ if __name__ == "__main__":
             f"=============TIMING: Processing query {i}/{len(indeces)}================"
         )
         start = time.time()
-        fname = save_dir / f"test_tree_{i}.json"
+        fname = save_dir / f"search_tree_{i}.json"
         starting_state = get_state_from_idx(i, df)
 
         policy = get_policy(args, llm_function)

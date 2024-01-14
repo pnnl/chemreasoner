@@ -27,6 +27,7 @@ async def parallel_azure_openai_chat_completion(
     client, prompt, system_prompt=None, model="gpt-4", **kwargs
 ):
     """Run chat completion calls on openai, in parallel."""
+    logging.info("single_eval")
     messages = []
     if system_prompt is not None:
         messages.append({"role": "system", "content": system_prompt})
@@ -90,6 +91,7 @@ class AzureOpenaiInterface:
         if system_prompts is None:
             system_prompts = [None] * len(prompts)
 
+        logging.info("sending prompts")
         answer_objects = asyncio.run(
             azure_openai_chat_async_evaluation(
                 self.client,
@@ -99,6 +101,7 @@ class AzureOpenaiInterface:
                 **kwargs,
             )
         )
+        logging.info("recieved answers")
         answer_strings = [a.choices[0].message.content for a in answer_objects]
         usages = [
             {
