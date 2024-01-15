@@ -267,15 +267,15 @@ if __name__ == "__main__":
             continue_searching = True
             while len(search) < args.depth and continue_searching:
                 start = time.time()
-                try:
-                    data = search.step_return()
-                    end_time = time.time()
-                    timing_data.append(end_time - timing_data[-1])
-                    with open(fname, "w") as f:
-                        data.update(
-                            {"total_time": end_time - start_time, "step_times": timing_data}
-                        )
-                        json.dump(data, f, cls=NpEncoder)
+
+                data = search.step_return()
+                end_time = time.time()
+                timing_data.append(end_time - timing_data[-1])
+                with open(fname, "w") as f:
+                    data.update(
+                        {"total_time": end_time - start_time, "step_times": timing_data}
+                    )
+                    json.dump(data, f, cls=NpEncoder)
                 
                 end = time.time()
                 logging.info(f"TIMING: One search iteration: {end-start}")
