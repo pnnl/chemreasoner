@@ -564,9 +564,9 @@ if __name__ == "__main__":
 
     print(
         sr.create_structures_and_calculate(
-            ["Cu", "Zn"],
-            ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
             ["CuZn"],
+            ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
+            ["Cu", "Zn"],
             placement_type="heuristic",
         )
     )
