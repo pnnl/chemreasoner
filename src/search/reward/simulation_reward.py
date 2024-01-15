@@ -567,7 +567,7 @@ if __name__ == "__main__":
             [["Cu", "Zn"]],
             ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
             ["CuZn"],
-            placement_type="heuristic",
+            placement_type=None,
         )
     )
 
