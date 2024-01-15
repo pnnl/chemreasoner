@@ -226,58 +226,61 @@ if __name__ == "__main__":
     logging.info(f"TIMING: Initialization time: {end-start}")
 
     for i in indeces:
-        logging.info(
-            f"=============TIMING: Processing query {i}/{len(indeces)}================"
-        )
-        start = time.time()
-        fname = save_dir / f"search_tree_{i}.json"
-        starting_state = get_state_from_idx(i, df)
-
-        policy = get_policy(args, llm_function)
-        reward_fn = get_reward_function(args, starting_state, llm_function)
-
-        if Path(fname).exists() and os.stat(fname).st_size != 0:
-            print(f"Loading a tree from {fname}")
-            logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
-            with open(fname, "r") as f:
-                tree_data = json.load(f)
-                search = BeamSearchTree.from_data(
-                    tree_data,
-                    policy,
-                    reward_fn,
-                    node_constructor=ReasonerState.from_dict,
-                )
-                assert (
-                    isinstance(args.num_keep, int) and args.num_keep == search.num_keep
-                ), "mismatch parameter"
-                assert (
-                    isinstance(args.num_generate, int)
-                    and args.num_generate == search.num_generate
-                ), "mismatch parameter"
-        else:
-            search = get_search_method(args, starting_state, policy, reward_fn)
-
-        end = time.time()
-        logging.info(f"TIMING: Time to set up query: {end-start}")
-
-        start_time = time.time()
-        timing_data = [start_time]
         continue_searching = True
-        while len(search) < args.depth and continue_searching:
+        try:
+            logging.info(
+                f"=============TIMING: Processing query {i}/{len(indeces)}================"
+            )
             start = time.time()
-            try:
-                data = search.step_return()
-                end_time = time.time()
-                timing_data.append(end_time - timing_data[-1])
-                with open(fname, "w") as f:
-                    data.update(
-                        {"total_time": end_time - start_time, "step_times": timing_data}
-                    )
-                    json.dump(data, f, cls=NpEncoder)
-            except Exception as err:
-                logging.warning(f"Could not complete search with error: {err}")
-                continue_searching = False
-            end = time.time()
-            logging.info(f"TIMING: One search iteration: {end-start}")
+            fname = save_dir / f"search_tree_{i}.json"
+            starting_state = get_state_from_idx(i, df)
 
-            logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
+            policy = get_policy(args, llm_function)
+            reward_fn = get_reward_function(args, starting_state, llm_function)
+
+            if Path(fname).exists() and os.stat(fname).st_size != 0:
+                print(f"Loading a tree from {fname}")
+                logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
+                with open(fname, "r") as f:
+                    tree_data = json.load(f)
+                    search = BeamSearchTree.from_data(
+                        tree_data,
+                        policy,
+                        reward_fn,
+                        node_constructor=ReasonerState.from_dict,
+                    )
+                    assert (
+                        isinstance(args.num_keep, int) and args.num_keep == search.num_keep
+                    ), "mismatch parameter"
+                    assert (
+                        isinstance(args.num_generate, int)
+                        and args.num_generate == search.num_generate
+                    ), "mismatch parameter"
+            else:
+                search = get_search_method(args, starting_state, policy, reward_fn)
+
+            end = time.time()
+            logging.info(f"TIMING: Time to set up query: {end-start}")
+
+            start_time = time.time()
+            timing_data = [start_time]
+            continue_searching = True
+            while len(search) < args.depth and continue_searching:
+                start = time.time()
+                try:
+                    data = search.step_return()
+                    end_time = time.time()
+                    timing_data.append(end_time - timing_data[-1])
+                    with open(fname, "w") as f:
+                        data.update(
+                            {"total_time": end_time - start_time, "step_times": timing_data}
+                        )
+                        json.dump(data, f, cls=NpEncoder)
+                
+                end = time.time()
+                logging.info(f"TIMING: One search iteration: {end-start}")
+
+                logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
+        except Exception as err:
+            logging.warning(f"Could not complete search with error: {err}")
+            continue_searching = False
