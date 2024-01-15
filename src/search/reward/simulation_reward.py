@@ -275,6 +275,8 @@ class StructureReward(BaseReward):
 
                                 if candidates_list is not None:
                                     name_candidate_mapping[name] = candidates_list[i]
+                        else:
+                            raise ValueError(f"Unkown placement type {placement_type}.")
             except Exception:
                 logging.warning(
                     f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
@@ -565,7 +567,7 @@ if __name__ == "__main__":
             ["Cu", "Zn"],
             ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
             ["CuZn"],
-            placement_type=None,
+            placement_type="heuristic",
         )
     )
 
