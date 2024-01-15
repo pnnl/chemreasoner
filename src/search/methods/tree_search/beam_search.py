@@ -56,9 +56,9 @@ class BeamSearchTree:
             action_idxs = np.argsort(these_priors)[-self.num_generate :]  # noqa: E203
 
             these_new_nodes = []
-            for i in action_idxs:
-                if these_priors[i] > 0:
-                    a = actions[i]
+            for j in action_idxs:
+                if these_priors[j] > 0:
+                    a = actions[j]
                     these_new_nodes.append(a(node))
             new_nodes += these_new_nodes
             parent_idx += [i] * len(these_new_nodes)
