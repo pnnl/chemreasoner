@@ -251,7 +251,7 @@ def convert_alloy(bulk, other_symbols=Union[str, list[str]]):
             "bcc",
             "hcp",
         ]:
-            raise StructureGenerationError(f"Invalide alloy element {other_symbol}.")
+            raise StructureGenerationError(f"Invalid alloy element {other_symbol}.")
 
     bulk = bulk.copy()
 
