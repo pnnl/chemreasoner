@@ -557,7 +557,7 @@ if __name__ == "__main__":
             "llm_function": None,
             "model": "gemnet",
             "traj_dir": Path("/var/tmp/presentation_numbers"),
-            "device": "cuda",
+            "device": "cpu",
             "steps": 150,
             "ads_tag": 2,
             "num_adslab_samples": 16,
@@ -567,7 +567,7 @@ if __name__ == "__main__":
     print(
         sr.create_structures_and_calculate(
             [["Cu", "Zn"]],
-            ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
+            ["*CH2*O"],
             ["CuZn"],
             placement_type=None,
         )

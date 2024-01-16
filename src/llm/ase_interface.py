@@ -452,3 +452,5 @@ if __name__ == "__main__":
     # print(adslab)
     # print(adslab.get_tags())
     # print(adslab.get_atomic_numbers())
+
+    print(ads_symbols_to_structure("*CH2*O"))
