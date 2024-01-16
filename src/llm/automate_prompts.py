@@ -69,14 +69,15 @@ def get_initial_state_open_catalyst(
     chain_of_thought=True,
 ):
     """Get initial state for LLM query from adsorbate string."""
-    question = question.replace("{catalysts}", "{catalyst_label}")
+    catalyst_type = question[question.find("{") : question.find("}") + 1]  # noqa
+    question = question.replace(catalyst_type, "{catalyst_label}")
     template = get_template(question, chain_of_thought=chain_of_thought)
     adsorbate = question.split("adsorption of ")[-1].split(".")[0]
     starting_state = ReasonerState(
         template=template,
         reward_template=None,
         ads_symbols=[adsorbate],
-        catalyst_label = "metallic catalysts",
+        catalyst_label =catalyst_type.replace("{", "").replace("}", ""),
         ads_preferences=[1],
         num_answers=5,
         prediction_model=prediction_model,
@@ -106,6 +107,7 @@ def get_initial_state_bio_fuels(
         ads_symbols=[adsorbate],
         ads_preferences=[1],
         num_answers=3,
+        catalyst_label = catalyst_type.replace("{", "").replace("}", ""),
         include_list=[property_name],
         prediction_model=prediction_model,
         reward_model=reward_model,
