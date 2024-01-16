@@ -94,7 +94,8 @@ def get_initial_state_bio_fuels(
     chain_of_thought=True,
 ):
     """Generate initial query for non RWGS reaction prompt."""
-    question = question.replace("{catalysts}", "{catalyst_label}")
+    catalyst_type = question[question.find("{") : question.find("}") + 1]  # noqa
+    question = question.replace(catalyst_type, "{catalyst_label}")
     adsorbate = question.split("bind ")[1].split(" in")[0]
     reaction_name = question.split("in ")[1].split(" reaction")[0]
     property_name = question.split("with ")[1].split(".")[0].lower()
@@ -106,7 +107,7 @@ def get_initial_state_bio_fuels(
         reward_template=None,
         ads_symbols=[adsorbate],
         ads_preferences=[1],
-        num_answers=3,
+        num_answers=5,
         catalyst_label = catalyst_type.replace("{", "").replace("}", ""),
         include_list=[property_name],
         prediction_model=prediction_model,
@@ -158,7 +159,7 @@ def get_initial_state_rwgs(
         ads_preferences=ads_preference,
         catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
         include_list=include_list,
-        num_answers=3,
+        num_answers=5,
         prediction_model=prediction_model,
         reward_model=reward_model,
     )
@@ -203,7 +204,7 @@ def get_initial_state_methanol(
             ads_preferences=ads_preference,
             catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
             include_list=include_list,
-            num_answers=3,
+            num_answers=5,
             prediction_model=prediction_model,
             reward_model=reward_model,
         )
@@ -221,7 +222,7 @@ def get_initial_state_methanol(
             pathways=computational_pathways_methanol,
             catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
             include_list=include_list,
-            num_answers=3,
+            num_answers=5,
             prediction_model=prediction_model,
             reward_model=reward_model,
         )
@@ -271,7 +272,7 @@ def get_initial_state_ethanol(
             pathways=computational_pathways_methanol,
             catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
             include_list=include_list,
-            num_answers=3,
+            num_answers=5,
             prediction_model=prediction_model,
             reward_model=reward_model,
         )
@@ -283,7 +284,7 @@ def get_initial_state_ethanol(
             catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
             ads_preferences=ads_preference,
             include_list=include_list,
-            num_answers=3,
+            num_answers=5,
             prediction_model=prediction_model,
             reward_model=reward_model,
         )
