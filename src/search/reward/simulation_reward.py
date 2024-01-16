@@ -383,6 +383,7 @@ class StructureReward(BaseReward):
             if cand in reward_values.keys():
                 adsorption_energies = [[None] * len(p) for p in pathways]
                 for i, path in enumerate(pathways):
+                    logging.info(path)
                     for j, ads in enumerate(path):
                         adsorption_energies[i][j] = (
                             min(reward_values[cand][ads])
