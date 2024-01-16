@@ -314,7 +314,10 @@ class StructureReward(BaseReward):
                 ads[1] == 2 and state.get_ads_preferences(ads) < 0
             ):
                 if cand in reward_values.keys():
-                    reward_values[cand][ads] += [(energy)]
+                    if ads in reward_values.keys():
+                        reward_values[cand][ads] += [(energy)]
+                    else:
+                        reward_values[cand][ads] = [(energy)]
                 else:
                     reward_values[cand] = {ads: [(energy)]}
             else:
