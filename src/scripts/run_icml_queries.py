@@ -282,6 +282,5 @@ if __name__ == "__main__":
 
                 logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
         except Exception as err:
-            raise err
             logging.warning(f"Could not complete search with error: {err}")
             continue_searching = False
