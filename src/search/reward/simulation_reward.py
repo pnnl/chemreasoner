@@ -362,11 +362,16 @@ class StructureReward(BaseReward):
         for idx, name, energy, valid_structure in adslabs_and_energies:
             cand = name_candidate_mapping[name]
             ads = name.split("_")[-1]
-            if valid_structure == 0:
+            if valid_structure == 0 or (
+                ads[1] == 2 and state.get_ads_preferences(ads) < 0
+            ):
                 if cand in reward_values.keys():
-                    reward_values[cand][ads] += [energy]
+                    if ads in reward_values.keys():
+                        reward_values[cand][ads] += [(energy)]
+                    else:
+                        reward_values[cand][ads] = [(energy)]
                 else:
-                    reward_values[cand] = {ads: [energy]}
+                    reward_values[cand] = {ads: [(energy)]}
             else:
                 if cand not in reward_values.keys():
                     reward_values[cand] = {ads: []}
