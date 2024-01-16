@@ -235,6 +235,8 @@ class StructureReward(BaseReward):
                     slab_ats = self.adsorption_calculator.get_slab(slab_name)
                     if slab_ats is None:
                         try:
+                            if "U" in slab_sym:
+                                raise ValueError("Cannot create bulk with U.")
                             slab_samples = [
                                 ase_interface.symbols_list_to_bulk(slab_sym)
                                 for _ in range(self.num_slab_samples)
