@@ -208,9 +208,9 @@ def get_initial_state_methanol(
     # If there are no adsorbates in the prompt...
     else:
         # Do the reaction
-        ads_symbols = set(
-            [syms for syms_l in computational_pathways_methanol for syms in syms_l]
-        )
+        ads_symbols = list(set(
+            [syms for syms_l in computational_pathways_ethanol for syms in syms_l]
+        ))
         qs = ReasonerState(
             template=template,
             reward_template=None,
@@ -257,9 +257,9 @@ def get_initial_state_ethanol(
 
     # If there are no adsorbates in the prompt...
     if len(ads_symbols) == 0:
-        ads_symbols = set(
+        ads_symbols = list(set(
             [syms for syms_l in computational_pathways_ethanol for syms in syms_l]
-        )
+        ))
         qs = ReasonerState(
             template=template,
             reward_template=None,
