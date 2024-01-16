@@ -12,7 +12,7 @@ molecule_conversions = {
     "H2O": "*OH2",
     "H2": "H2",
     "methanol": "*OHCH3",
-    "ethanol": "*OHCH2CH3",
+    "ethanol": "*OCH2CH3",
 }
 
 computational_pathways_methanol = [
