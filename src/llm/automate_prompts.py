@@ -76,6 +76,7 @@ def get_initial_state_open_catalyst(
         template=template,
         reward_template=None,
         ads_symbols=[adsorbate],
+        catalyst_label = "metallic catalysts",
         ads_preferences=[1],
         num_answers=5,
         prediction_model=prediction_model,
