@@ -162,7 +162,7 @@ class StructureReward(BaseReward):
                     gnn_time,
                     name_candidate_mapping,
                 ) = self.create_structures_and_calculate(
-                    slab_syms[i], ads_list, candidates_list
+                    slab_syms[i], ads_list, candidates_list, placement_type = "heuristic"
                 )
                 end = time.time()
                 logging.info(f"TIMING: GNN calculations done {end-start}")
