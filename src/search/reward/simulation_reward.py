@@ -235,7 +235,7 @@ class StructureReward(BaseReward):
                     slab_ats = self.adsorption_calculator.get_slab(slab_name)
                     if slab_ats is None:
                         try:
-                            if any([s not in chemical_symbols or chemical_symbols.index(s) >= 92 for s in slab_sym]):
+                            if any([s not in chemical_symbols or chemical_symbols.index(s) > 82 for s in slab_sym]):
                                 raise ase_interface.StructureGenerationError(f"Cannot create bulk with slab_syms {slab_sym}.")
                             slab_samples = [
                                 ase_interface.symbols_list_to_bulk(slab_sym)
@@ -575,9 +575,9 @@ if __name__ == "__main__":
 
     print(
         sr.create_structures_and_calculate(
-            [["Cu", "Zn"]],
+            [["Pb",]],
             ["*CH2*O"],
-            ["CuZn"],
+            ["Pb"],
             placement_type=None,
         )
     )
