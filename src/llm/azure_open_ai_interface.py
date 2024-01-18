@@ -41,7 +41,7 @@ async def parallel_azure_openai_chat_completion(
         logging.info(f"TIMING: Recieved RateLimitError {error_message}")
         if "Please retry after " in error_message:
             retry_time = float(
-                error_message.split("Please retry after ")[-1].split(" seconds")[0]
+                error_message.split("Please retry after ")[-1].split(" second")[0]
             )
             await asyncio.sleep(retry_time)
         else:
