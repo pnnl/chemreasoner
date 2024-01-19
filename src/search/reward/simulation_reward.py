@@ -565,19 +565,19 @@ if __name__ == "__main__":
         **{
             "llm_function": None,
             "model": "gemnet",
-            "traj_dir": Path("/var/tmp/presentation_numbers"),
+            "traj_dir": Path("/var/tmp/testing-gnn"),
             "device": "cpu",
             "steps": 150,
             "ads_tag": 2,
-            "num_adslab_samples": 16,
+            "num_adslab_samples": 32,
         }
     )
 
     print(
         sr.create_structures_and_calculate(
-            [["Pb",]],
-            ["*CH2*O"],
-            ["Pb"],
+            [["Cu"], ["Zn"], ["CuZn"]],
+            ["CO2", "*CO", "*COOH", "*CH2*O", "*OCH2CH3"],
+            ["Cu", "Zn", "CuZn"],
             placement_type=None,
         )
     )
