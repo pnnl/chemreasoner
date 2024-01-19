@@ -566,7 +566,7 @@ if __name__ == "__main__":
             "llm_function": None,
             "model": "gemnet",
             "traj_dir": Path("/var/tmp/testing-gnn"),
-            "device": "cpu",
+            "device": "cuda",
             "steps": 150,
             "ads_tag": 2,
             "num_adslab_samples": 32,
