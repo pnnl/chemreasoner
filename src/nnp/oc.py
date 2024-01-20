@@ -74,7 +74,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.model = model
         # self.model_weights_paths  = Path("/Users/pana982/models/chemreasoner")
         self.ads_tag = ads_tag  # gihan
-        if self.model == "gemnet":
+        if self.model == "gemnet-t":
             self.model_path = self.model_weights_paths / "gemnet_t_direct_h512_all.pt"
             # print('model path', self.model_path)
             if not self.model_path.exists():
@@ -87,7 +87,20 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 print("Done!")
             self.config_path = self.model_configs_paths / "gemnet" / "gemnet-dT.yml"
 
-        elif self.model == "equiformer":
+        if self.model == "gemnet-oc-large":
+            self.model_path = self.model_weights_paths / "gemnet_oc_large_s2ef_all_md.pt"
+            # print('model path', self.model_path)
+            if not self.model_path.exists():
+                print("Downloading weights for gemnet...")
+                wget.download(
+                    "https://dl.fbaipublicfiles.com/opencatalystproject/models/"
+                    "2022_07/s2ef/gemnet_oc_large_s2ef_all_md.pt",
+                    out=str(self.model_weights_paths),
+                )
+                print("Done!")
+            self.config_path = self.model_configs_paths / "gemnet" / "gemnet-oc-large.yml"
+
+        elif self.model == "eq2":
             self.model_path = self.model_weights_paths / "eq2_153M_ec4_allmd.pt"
             if not self.model_path.exists():
                 print("Downloading weights for equiformer...")
