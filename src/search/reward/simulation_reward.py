@@ -595,7 +595,7 @@ if __name__ == "__main__":
                 f.write(format_exc())
 
 
-    for p in Path("check_structures").rglob("*.traj"):
+    for p in Path(f"/var/tmp/testing-gnn").rglob("*.traj"):
         break_trajectory(p)
 
 
