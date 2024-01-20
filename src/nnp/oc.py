@@ -48,7 +48,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         7: -8.083,
         8: -7.204,
     }
-
+"https://dl.fbaipublicfiles.com/opencatalystproject/models/2023_03/s2ef/escn_l6_m3_lay20_all_md_s2ef.pt"
     def __init__(
         self,
         model: str,
@@ -99,6 +99,19 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 )
                 print("Done!")
             self.config_path = self.model_configs_paths / "gemnet" / "gemnet-oc-large.yml"
+
+        elif self.model == "escn":
+            self.model_path = self.model_weights_paths / "gemnet_oc_large_s2ef_all_md.pt"
+            # print('model path', self.model_path)
+            if not self.model_path.exists():
+                print("Downloading weights for gemnet...")
+                wget.download(
+                    "https://dl.fbaipublicfiles.com/opencatalystproject/models/"
+                    "2023_03/s2ef/escn_l6_m3_lay20_all_md_s2ef.pt",
+                    out=str(self.model_weights_paths),
+                )
+                print("Done!")
+            self.config_path = self.model_configs_paths / "escn" / "eSCN-L6-M3-Lay20-All-MD.yml"
 
         elif self.model == "eq2":
             self.model_path = self.model_weights_paths / "eq2_153M_ec4_allmd.pt"
