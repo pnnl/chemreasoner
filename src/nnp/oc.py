@@ -87,7 +87,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 print("Done!")
             self.config_path = self.model_configs_paths / "gemnet" / "gemnet-dT.yml"
 
-        if self.model == "gemnet-oc-large":
+        elif self.model == "gemnet-oc-large":
             self.model_path = self.model_weights_paths / "gemnet_oc_large_s2ef_all_md.pt"
             # print('model path', self.model_path)
             if not self.model_path.exists():
