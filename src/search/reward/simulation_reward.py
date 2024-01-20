@@ -6,6 +6,7 @@ import uuid
 
 from copy import deepcopy
 from pathlib import Path
+from traceback import format_exc
 
 import numpy as np
 
@@ -561,33 +562,37 @@ if __name__ == "__main__":
     # traj_dir = "heuristic"
 
     for model in ["gemnet-t", "gemnet-oc-large", "eq2", "escn"]:
-        start = time.time()
-        sr = StructureReward(
-            **{
-                "llm_function": None,
-                "model": model,
-                "traj_dir": Path(f"/var/tmp/testing-gnn/{model}"),
-                "device": "cuda",
-                "steps": 150,
-                "ads_tag": 2,
-                "num_adslab_samples": 32,
-            }
-        )
-
-        print(
-            sr.create_structures_and_calculate(
-                [["Cu"], ["Zn"], ["Cu", "Zn"]],
-                ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
-                ["Cu", "Zn", "CuZn"],
-                placement_type=None,
+        try:
+            start = time.time()
+            sr = StructureReward(
+                **{
+                    "llm_function": None,
+                    "model": model,
+                    "traj_dir": Path(f"/var/tmp/testing-gnn/{model}"),
+                    "device": "cuda",
+                    "steps": 150,
+                    "ads_tag": 2,
+                    "num_adslab_samples": 32,
+                }
             )
-        )
 
-        end = time.time()
-        print(end - start)
+            print(
+                sr.create_structures_and_calculate(
+                    [["Cu"], ["Zn"], ["Cu", "Zn"]],
+                    ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
+                    ["Cu", "Zn", "CuZn"],
+                    placement_type=None,
+                )
+            )
 
-        with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
-            f.write(str(end-start))
+            end = time.time()
+            print(end - start)
+
+            with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
+                f.write(str(end-start))
+        except Exception as err:
+            with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
+                f.write(format_exc())
 
 
     for p in Path("check_structures").rglob("*.traj"):
