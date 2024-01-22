@@ -88,7 +88,7 @@ def get_reward_function(args, state, llm_function):
                 isinstance(args.reward_max_attempts, int)
                 and args.reward_max_attempts > 0
             ), "invalid parameter"
-            assert args.gnn_model == "gemnet", "invalid parameter"
+            assert args.gnn_model in ["gemnet-t", "gemnet-oc", "escn", "eq2"], "invalid parameter"
             assert isinstance(args.gnn_traj_dir, str), "invalid parameter"
             assert (
                 isinstance(args.gnn_batch_size, int) and args.gnn_batch_size > 0
