@@ -85,43 +85,43 @@ OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of
 OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OCHO.
 OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *COOH.
 OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OOH.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind anisole in the hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind methyl in the hydrogenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind phenolate in the hydrogenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrogenation reaction with Low Cost.
-RWGS,Generate a list of top-5 {catalysts} that exhibit higher adsorption energy for both CO2 and H2 for the production of CO (the reactants of the RWGS reaction).
-RWGS,Generate a list of top-5 {catalysts} that exhibit weak adsorption energy for CO (the product of the RWGS reaction).
-RWGS,Generate a list of top-5 {catalysts} that exhibit high activity for the RWGS reaction.
-RWGS,Generate a list of top-5 {catalysts} that[ are cheap and] demonstrate higher adsorption energy for both CO2 and H2 (the reactants of the RWGS reaction).
-RWGS,Generate a list of top-5 {catalysts} that[ are cheap and] exhibit weak adsorption energy for CO (the product of the RWGS reaction).
-RWGS,Generate a list of top-5 {catalysts} that[ are cheap and] exhibit high activity for the RWGS reaction.
-RWGS,Generate a list of top-5 {catalysts} that perform the RWGS reaction at lower temperature (<200 C).
-RWGS,Generate a list of top-5 {catalysts} that[ are cheap and] perform the RWGS reaction at lower temperature (<200 C).
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetate in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetic acid in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind ethanol in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind methanol in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind phenol in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetate in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetic acid in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind ethanol in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind methanol in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind phenol in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetate in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetic acid in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind ethanol in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind methanol in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind phenol in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind anisole in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetate in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetic acid in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind ethanol in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind methanol in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind phenol in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind methyl in the hydrogenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind phenolate in the hydrogenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetate in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetic acid in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind ethanol in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind methanol in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind phenol in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetate in the hydrogenation reaction with Low Cost.
+RWGS,Generate a list of top-5 {metallic catalysts} that exhibit higher adsorption energy for both CO2 and H2 for the production of CO (the reactants of the RWGS reaction).
+RWGS,Generate a list of top-5 {metallic catalysts} that exhibit weak adsorption energy for CO (the product of the RWGS reaction).
+RWGS,Generate a list of top-5 {metallic catalysts} that exhibit high activity for the RWGS reaction.
+RWGS,Generate a list of top-5 {metallic catalysts} that[ are cheap and] demonstrate higher adsorption energy for both CO2 and H2 (the reactants of the RWGS reaction).
+RWGS,Generate a list of top-5 {metallic catalysts} that[ are cheap and] exhibit weak adsorption energy for CO (the product of the RWGS reaction).
+RWGS,Generate a list of top-5 {metallic catalysts} that[ are cheap and] exhibit high activity for the RWGS reaction.
+RWGS,Generate a list of top-5 {metallic catalysts} that perform the RWGS reaction at lower temperature (<200 C).
+RWGS,Generate a list of top-5 {metallic catalysts} that[ are cheap and] perform the RWGS reaction at lower temperature (<200 C).
 RWGS,Generate a list of top-5 {bimetallic catalysts} that exhibit high activity for the RWGS reaction.
 RWGS,Generate a list of top-5 {bimetallic catalysts (combination of noble metal and base metal)} that exhibit high activity for the RWGS reaction.
 CO2ToEthanol,Generate a list of top-5 {metallic catalysts} that exhibit higher adsorption energy for both CO2 and H2 for the production of ethanol (the reactants of the CO2 to ethanol conversion reaction).
