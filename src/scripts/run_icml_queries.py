@@ -8,8 +8,8 @@ import logging
 import os
 import sys
 
-
 from pathlib import Path
+from traceback import format_exc
 
 import numpy as np
 import pandas as pd
@@ -281,4 +281,5 @@ if __name__ == "__main__":
                 logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
         except Exception as err:
             logging.warning(f"Could not complete search with error: {err}")
+            logging.warning(format_exc())
             continue_searching = False
