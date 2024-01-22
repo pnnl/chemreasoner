@@ -118,34 +118,26 @@ class RelationToCandidateListChanger:
 
 
 _catalyst_label_types = [
-    "",
-    "unary ",
-    "binary ",
-    "ternary ",
+    "metallic catalysts",
+    "monometallic catalysts",
+    "bimetallic catalysts",
+    "trimetallic catalysts",
 ]
 
 
 class CatalystLabelChanger:
-    """Class to add property to a state."""
+    """Class to change catalyst label of a state."""
 
     def __init__(self, catalyst_label_type):
         """Save the property name."""
         self.catalyst_label_type = catalyst_label_type
-        if catalyst_label_type == "":
-            self._message = f"Predict any type of catalysts."
-        else:
-            self._message = f"Predict {catalyst_label_type}catalysts."
+
+        self._message = f"Predict {catalyst_label_type}."
 
     def __call__(self, state, trial=False):
         """Add propery to the state."""
         new_state = state.return_next()
-        if "oxide" in new_state.catalyst_label:
-            new_state.catalyst_label = f"{self.catalyst_label_type}oxide cayalysts"
-        else:
-            new_state.catalyst_label = f"{self.catalyst_label_type}catalysts"
-        if not trial:
-            pass
-            # new_state.query()
+        new_state.catalyst_label = self.catalyst_label_type
         return new_state
 
     def message(self, state):
@@ -205,7 +197,7 @@ class ReasonerPolicy:
             str
         ] = _relationship_to_candidate_list_types,
         catalyst_label_types: list[str] = _catalyst_label_types,
-        try_oxides: bool = True,
+        try_oxides: bool = False,
     ):
         """Initialize the state and action pairs."""
         self.actions = []
@@ -238,6 +230,13 @@ class ReasonerPolicy:
                 if a.property_name in state.include_list + state.exclude_list:
                     self.weights[i] = 0
 
+    def check_repeated_catalyst_type(self, state):
+        """Prevent changing to the same catalyst type."""
+        for i, a in enumerate(self.actions):
+            if isinstance(a, CatalystLabelChanger):
+                if a.catalyst_label_type == state.catalyst_label:
+                    self.weights[i] = 0
+
     def check_relationship_to_candidate_list(self, state):
         """Ensure a relationship to candidate list exists if candidate list does."""
         if state.relation_to_candidate_list is None and len(state.candidates) != 0:
@@ -257,17 +256,14 @@ class ReasonerPolicy:
         self, states: list[ReasonerState]
     ) -> tuple[list[Callable], list[np.array]]:
         """Return a actions and prior_logits for given state."""
-        priors = []
+        action_priors = []
         for state in states:
             self.init_weights()
             self.check_repeated_properties(state)
             self.check_relationship_to_candidate_list(state)
             normalization = np.sum(self.weights) if np.sum(self.weights) != 0 else 1
-            priors.append(self.weights / normalization)
-        return (
-            self.actions,
-            priors,
-        )
+            action_priors.append((self.actions, self.weights / normalization))
+        return action_priors
 
     @staticmethod
     def early_stopping(*args):
