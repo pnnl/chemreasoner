@@ -96,7 +96,6 @@ class StructureReward(BaseReward):
                     system_prompts.append(None)
                     prompts_idx.append(i)
                 except Exception as err:
-                    raise err
                     logging.warning(
                         f"Failed to generate prompts with error: {str(err)}. "
                         "Skipping this prompt."
@@ -281,7 +280,8 @@ class StructureReward(BaseReward):
                                     name_candidate_mapping[name] = candidates_list[i]
                         else:
                             raise ValueError(f"Unkown placement type {placement_type}.")
-            except Exception:
+            except Exception err:
+                raise err
                 logging.warning(
                     f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
                 )
