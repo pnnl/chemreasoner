@@ -18,7 +18,7 @@ sys.path.append("src")
 from datasets import reasoner_data_loader  # noqa:E402
 from llm.azure_open_ai_interface import AzureOpenaiInterface  # noqa:E402
 from search.policy import coherent_policy, reasoner_policy  # noqa:E402
-from search.reward import simulation_reward, reaction_reward, llm_reward  # noqa:E402
+from search.reward import simulation_reward, llm_reward  # noqa:E402
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa:E402
 from search.state.reasoner_state import ReasonerState  # noqa:E402
 
@@ -72,59 +72,57 @@ def get_reward_function(args, state, llm_function):
     ), "invalid parameter"
 
     if args.reward_function == "simulation-reward":
-        if state.reaction_pathways is None:
-            assert (
-                isinstance(args.nnp_class, str) and args.nnp_class == "oc"
-            ), "invalid parameter"
-            assert (
-                isinstance(args.num_slab_samples, int) and args.num_slab_samples > 0
-            ), "invalid parameter"
-            assert (
-                isinstance(args.num_adslab_samples, int) and args.num_adslab_samples > 0
-            ), "invalid parameter"
 
-            # check nnp_kwargs
-            assert (
-                isinstance(args.reward_max_attempts, int)
-                and args.reward_max_attempts > 0
-            ), "invalid parameter"
-            assert args.gnn_model in ["gemnet-t", "gemnet-oc", "escn", "eq2"], "invalid parameter"
-            assert isinstance(args.gnn_traj_dir, str), "invalid parameter"
-            assert (
-                isinstance(args.gnn_batch_size, int) and args.gnn_batch_size > 0
-            ), "invalid parameter"
-            assert isinstance(args.gnn_device, str) and (
-                args.gnn_device == "cpu" or args.gnn_device == "cuda"
-            ), "invalid parameter"
-            assert (
-                isinstance(args.gnn_ads_tag, int) and args.gnn_ads_tag == 2
-            ), "invalid parameter"
-            assert (
-                isinstance(args.gnn_fmax, float) and args.gnn_fmax > 0
-            ), "invalid parameter"
-            assert (
-                isinstance(args.gnn_steps, int) and args.gnn_steps >= 0
-            ), "invalid parameter"
-            nnp_kwargs = {
-                "model": args.gnn_model,
-                "traj_dir": Path(args.gnn_traj_dir),
-                "batch_size": args.gnn_batch_size,
-                "device": args.gnn_device,
-                "ads_tag": args.gnn_ads_tag,
-                "fmax": args.gnn_fmax,
-                "steps": args.gnn_steps,
-            }
-            return simulation_reward.StructureReward(
-                llm_function=llm_function,
-                penalty_value=args.penalty_value,
-                nnp_class=args.nnp_class,
-                num_slab_samples=args.num_slab_samples,
-                num_adslab_samples=args.num_adslab_samples,
-                max_attempts=args.reward_max_attempts,
-                **nnp_kwargs,
-            )
-        else:
-            return reaction_reward.PathReward
+        assert (
+            isinstance(args.nnp_class, str) and args.nnp_class == "oc"
+        ), "invalid parameter"
+        assert (
+            isinstance(args.num_slab_samples, int) and args.num_slab_samples > 0
+        ), "invalid parameter"
+        assert (
+            isinstance(args.num_adslab_samples, int) and args.num_adslab_samples > 0
+        ), "invalid parameter"
+
+        # check nnp_kwargs
+        assert (
+            isinstance(args.reward_max_attempts, int)
+            and args.reward_max_attempts > 0
+        ), "invalid parameter"
+        assert args.gnn_model in ["gemnet-t", "gemnet-oc", "escn", "eq2"], "invalid parameter"
+        assert isinstance(args.gnn_traj_dir, str), "invalid parameter"
+        assert (
+            isinstance(args.gnn_batch_size, int) and args.gnn_batch_size > 0
+        ), "invalid parameter"
+        assert isinstance(args.gnn_device, str) and (
+            args.gnn_device == "cpu" or args.gnn_device == "cuda"
+        ), "invalid parameter"
+        assert (
+            isinstance(args.gnn_ads_tag, int) and args.gnn_ads_tag == 2
+        ), "invalid parameter"
+        assert (
+            isinstance(args.gnn_fmax, float) and args.gnn_fmax > 0
+        ), "invalid parameter"
+        assert (
+            isinstance(args.gnn_steps, int) and args.gnn_steps >= 0
+        ), "invalid parameter"
+        nnp_kwargs = {
+            "model": args.gnn_model,
+            "traj_dir": Path(args.gnn_traj_dir),
+            "batch_size": args.gnn_batch_size,
+            "device": args.gnn_device,
+            "ads_tag": args.gnn_ads_tag,
+            "fmax": args.gnn_fmax,
+            "steps": args.gnn_steps,
+        }
+        return simulation_reward.StructureReward(
+            llm_function=llm_function,
+            penalty_value=args.penalty_value,
+            nnp_class=args.nnp_class,
+            num_slab_samples=args.num_slab_samples,
+            num_adslab_samples=args.num_adslab_samples,
+            max_attempts=args.reward_max_attempts,
+            **nnp_kwargs,
+        )
 
     elif args.reward_function == "llm-reward":
         assert isinstance(args.reward_limit, float), "invalid parameter"
