@@ -143,10 +143,10 @@ def get_initial_state_rwgs(
 
     ads_symbols = []
     ads_preference = []
-    for possible_ads in ["CO", "CO2", "H2"]:
+    for possible_ads in ["CO ", "CO2", "H2"]:
         if possible_ads in question.replace("RWGS reaction", ""):
-            ads_symbols.append(molecule_conversions[possible_ads])
-            preference = -1 if possible_ads == "CO" else 1
+            ads_symbols.append(molecule_conversions[possible_ads.strip()])
+            preference = -1 if possible_ads == "CO " else 1
             ads_preference.append(preference)
 
     # If there are no adsorbates in the prompt...
