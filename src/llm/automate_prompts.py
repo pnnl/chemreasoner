@@ -1,10 +1,13 @@
 """Functions to automate prompts for the bio fuels dataset."""
+import logging
 import sys
 
 import pandas as pd
 
 sys.path.append("src")
 from search.state.reasoner_state import ReasonerState  # noqa: E402
+
+logging.getLogger().setLevel(logging.INFO)
 
 molecule_conversions = {
     "CO2": "CO2",
