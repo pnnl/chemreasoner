@@ -48,7 +48,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         7: -8.083,
         8: -7.204,
     }
-"https://dl.fbaipublicfiles.com/opencatalystproject/models/2023_03/s2ef/escn_l6_m3_lay20_all_md_s2ef.pt"
+
     def __init__(
         self,
         model: str,
