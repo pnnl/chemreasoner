@@ -9,6 +9,7 @@ from pathlib import Path
 from traceback import format_exc
 
 import numpy as np
+import torch
 
 from ase import Atoms
 from ase.io import read
@@ -588,6 +589,8 @@ if __name__ == "__main__":
 
             end = time.time()
             print(end - start)
+
+            torch.cuda.empty_cache()
 
             with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
                 f.write(str(end-start))
