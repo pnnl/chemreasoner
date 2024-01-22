@@ -595,6 +595,7 @@ if __name__ == "__main__":
             with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
                 f.write(str(end-start))
         except Exception as err:
+            raise err
             with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
                 f.write(format_exc())
 
