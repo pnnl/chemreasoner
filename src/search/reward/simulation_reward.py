@@ -394,8 +394,9 @@ class StructureReward(BaseReward):
                         )
                 paths_without_none = [p for p in adsorption_energies if None not in p]
                 if len(paths_without_none) != 0:
+                    reduce_pathways = [max(np.diff(path)) for path in paths_without_none]
                     rewards.append(
-                        min(paths_without_none, key=lambda path: max(np.diff(path)))
+                        min(reduce_pathways)
                     )
                 else:
                     rewards.append(self.penalty_value)
