@@ -13,6 +13,7 @@ from llm.azure_openai_interface import AzureOpenaiInterface  # noqa:E402
 llm_function = AzureOpenaiInterface(".env")
 
 df = pd.read_csv(Path("data", "input_data", "dataset.csv"))
+num_samples = 10
 for j in range(num_samples):
     data = []
     for i, row in df.iterrows():
