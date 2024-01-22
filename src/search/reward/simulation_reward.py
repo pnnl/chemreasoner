@@ -377,6 +377,7 @@ class StructureReward(BaseReward):
             else:
                 if cand not in reward_values.keys():
                     reward_values[cand] = {ads: []}
+        logging.info(reward_values)
 
         # aggregate the rewards
         rewards = []
