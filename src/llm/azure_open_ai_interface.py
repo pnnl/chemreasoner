@@ -71,7 +71,7 @@ async def azure_openai_chat_async_evaluation(
 class AzureOpenaiInterface:
     """A class to handle comminicating with Azuer openai."""
 
-    def __init__(self, dotenv_path=str, model="gpt-4"):
+    def __init__(self, dotenv_path:str=".env", model="gpt-4"):
         """Load the client for the given dotenv path."""
         self.dotenv_path = dotenv_path
         self.model = model
