@@ -46,6 +46,7 @@ class ReasonerState:
         reward: float = None,
         root_prompt: str = None,
         debug=False,
+        **kwargs,
     ):
         """Initialize the object."""
         self.template = template
