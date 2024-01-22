@@ -1,22 +1,26 @@
 """Functions for running azync azure openai prompts."""
 import asyncio
+import logging
 import os
 
 from typing import Union
 
 from dotenv import load_dotenv
-from openai import AsyncAzureOpenAI
+from openai import AsyncAzureOpenAI, RateLimitError
+
+logging.getLogger().setLevel(logging.INFO)
 
 
-def init_azure_openai(model):
+def init_azure_openai(model, dotenv_path):
     """Initialize connection to OpenAI."""
-    load_dotenv()
+    load_dotenv(dotenv_path=dotenv_path)
     client = AsyncAzureOpenAI(
         api_key=os.environ["AZURE_OPENAI_API_KEY"],
         api_version=os.environ["AZURE_OPENAI_API_VERSION"],
         azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
         azure_deployment=os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"],
     )
+    logging.info(os.environ["AZURE_OPENAI_API_KEY"])
     return client
 
 
@@ -28,9 +32,28 @@ async def parallel_azure_openai_chat_completion(
     if system_prompt is not None:
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
-    return await client.chat.completions.create(
-        messages=messages, model=model, **kwargs
-    )
+    try:
+        return await client.chat.completions.create(
+            messages=messages, model=model, **kwargs
+        )
+    except RateLimitError as err:
+        error_message = str(err)
+        logging.info(f"TIMING: Recieved RateLimitError {error_message}")
+        if "Please retry after " in error_message:
+            retry_time = float(
+                error_message.split("Please retry after ")[-1].split(" second")[0]
+            )
+            await asyncio.sleep(retry_time)
+        else:
+            await asyncio.sleep(60)
+
+        return await parallel_azure_openai_chat_completion(
+            client=client,
+            prompt=prompt,
+            system_prompt=system_prompt,
+            model=model,
+            **kwargs,
+        )
 
 
 async def azure_openai_chat_async_evaluation(
@@ -45,32 +68,36 @@ async def azure_openai_chat_async_evaluation(
     return answers
 
 
-def run_azure_openai_prompts(
-    prompts: list[str],
-    system_prompts: list[Union[str, None]] = None,
-    model="gpt-4",
-    **kwargs
-):
-    """Run the given prompts with the openai interface."""
-    client = init_azure_openai(model)
-    # Apply defaults to kwargs
-    kwargs["temperature"] = kwargs.get("temperature", 0.7)
-    kwargs["top_p"] = kwargs.get("top_p", 0.95)
-    kwargs["max_tokens"] = kwargs.get("max_tokens", 800)
+class AzureOpenaiInterface:
+    """A class to handle comminicating with Azuer openai."""
 
-    if system_prompts is None:
-        system_prompts = [None] * len(prompts)
+    def __init__(self, dotenv_path:str=".env", model="gpt-4"):
+        """Load the client for the given dotenv path."""
+        self.dotenv_path = dotenv_path
+        self.model = model
 
-    if model == "text-davinci-003":
-        pass
+    def __call__(
+        self,
+        prompts: list[str],
+        system_prompts: list[Union[str, None]] = None,
+        **kwargs,
+    ):
+        """Run the given prompts with the openai interface."""
+        client = init_azure_openai(self.model, self.dotenv_path)
+        # Apply defaults to kwargs
+        kwargs["temperature"] = kwargs.get("temperature", 0.7)
+        kwargs["top_p"] = kwargs.get("top_p", 0.95)
+        kwargs["max_tokens"] = kwargs.get("max_tokens", 800)
 
-    elif "gpt-3.5" in model or "gpt-4" in model:
+        if system_prompts is None:
+            system_prompts = [None] * len(prompts)
+
         answer_objects = asyncio.run(
             azure_openai_chat_async_evaluation(
                 client,
                 prompts,
                 system_prompts=system_prompts,
-                model=model,
+                model=self.model,
                 **kwargs,
             )
         )
@@ -82,7 +109,6 @@ def run_azure_openai_prompts(
             }
             for a in answer_objects
         ]
-        print(answer_objects[0].choices[0].message.content)
         return [{"answer": a, "usage": u} for a, u in zip(answer_strings, usages)]
 
 

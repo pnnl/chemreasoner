@@ -74,7 +74,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.model = model
         # self.model_weights_paths  = Path("/Users/pana982/models/chemreasoner")
         self.ads_tag = ads_tag  # gihan
-        if self.model == "gemnet":
+        if self.model == "gemnet-t":
             self.model_path = self.model_weights_paths / "gemnet_t_direct_h512_all.pt"
             # print('model path', self.model_path)
             if not self.model_path.exists():
@@ -87,7 +87,33 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 print("Done!")
             self.config_path = self.model_configs_paths / "gemnet" / "gemnet-dT.yml"
 
-        elif self.model == "equiformer":
+        elif self.model == "gemnet-oc-large":
+            self.model_path = self.model_weights_paths / "gemnet_oc_large_s2ef_all_md.pt"
+            # print('model path', self.model_path)
+            if not self.model_path.exists():
+                print("Downloading weights for gemnet...")
+                wget.download(
+                    "https://dl.fbaipublicfiles.com/opencatalystproject/models/"
+                    "2022_07/s2ef/gemnet_oc_large_s2ef_all_md.pt",
+                    out=str(self.model_weights_paths),
+                )
+                print("Done!")
+            self.config_path = self.model_configs_paths / "gemnet" / "gemnet-oc-large.yml"
+
+        elif self.model == "escn":
+            self.model_path = self.model_weights_paths / "escn_l6_m3_lay20_all_md_s2ef.pt"
+            # print('model path', self.model_path)
+            if not self.model_path.exists():
+                print("Downloading weights for gemnet...")
+                wget.download(
+                    "https://dl.fbaipublicfiles.com/opencatalystproject/models/"
+                    "2023_03/s2ef/escn_l6_m3_lay20_all_md_s2ef.pt",
+                    out=str(self.model_weights_paths),
+                )
+                print("Done!")
+            self.config_path = self.model_configs_paths / "escn" / "eSCN-L6-M3-Lay20-All-MD.yml"
+
+        elif self.model == "eq2":
             self.model_path = self.model_weights_paths / "eq2_153M_ec4_allmd.pt"
             if not self.model_path.exists():
                 print("Downloading weights for equiformer...")
@@ -192,7 +218,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         # Set up calculation for oc
         self.prepare_atoms_list(atoms)
         # convert to torch geometric batch
-        batch = Batch.from_data_list(self.ats_to_graphs.convert_all(atoms))
+        batch = Batch.from_data_list(
+            self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
+        )
         batch.sid = atoms_names
         batch = batch.to(device if device is not None else self.device)
 
@@ -246,7 +274,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             ads_e.append(e_ref)
             bulk_atoms.append(bulk_ats.copy())
         # convert to torch geometric batch
-        batch = Batch.from_data_list(self.ats_to_graphs.convert_all(bulk_atoms))
+        batch = Batch.from_data_list(
+            self.ats_to_graphs.convert_all(bulk_atoms, disable_tqdm=True)
+        )
         # device='cpu'
         batch = batch.to(device if device is not None else self.device)
 
@@ -483,7 +513,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Choose the minimum slab from a given set of slabs."""
         atoms = self.copy_atoms_list(slab_samples)
         self.prepare_atoms_list(atoms)
-        batch = Batch.from_data_list(self.ats_to_graphs.convert_all(atoms))
+        batch = Batch.from_data_list(
+            self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
+        )
         batch = batch.to(self.device)
 
         calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
@@ -537,7 +569,8 @@ class AdsorbedStructureChecker:
 
     def __call__(self, ats: Atoms):
         """Check the given structure for errors."""
-        if not self.check_adsorption(ats):
+        return 0
+        if not self.measure_dissociation(ats):
             return self.adsorbate_dissociation_code
         elif not self.check_adsorption(ats):
             return self.desorption_code

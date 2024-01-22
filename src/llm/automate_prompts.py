@@ -1,4 +1,5 @@
 """Functions to automate prompts for the bio fuels dataset."""
+import logging
 import sys
 
 import pandas as pd
@@ -6,13 +7,15 @@ import pandas as pd
 sys.path.append("src")
 from search.state.reasoner_state import ReasonerState  # noqa: E402
 
+logging.getLogger().setLevel(logging.INFO)
+
 molecule_conversions = {
     "CO2": "CO2",
     "CO": "*CO",
     "H2O": "*OH2",
     "H2": "H2",
     "methanol": "*OHCH3",
-    "ethanol": "*OHCH2CH3",
+    "ethanol": "*OCH2CH3",
 }
 
 computational_pathways_methanol = [
@@ -21,8 +24,12 @@ computational_pathways_methanol = [
 ]
 
 computational_pathways_ethanol = [
-    ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
-    ["CO2", "*CO", "*CH2*O", "*OCH2CH3"],
+    ["CO2", "*CO", "*COOH", "*CHOH", "*OHCH2CH3"],
+    ["CO2", "*CO", "*CH2*O", "*OHCH2CH3"],
+]
+
+computational_pathways_RWGS = [
+    ["CO2", "*CO"],
 ]
 
 
@@ -65,13 +72,15 @@ def get_initial_state_open_catalyst(
     chain_of_thought=True,
 ):
     """Get initial state for LLM query from adsorbate string."""
-    question = question.replace("{catalysts}", "{catalyst_label}")
+    catalyst_type = question[question.find("{") : question.find("}") + 1]  # noqa
+    question = question.replace(catalyst_type, "{catalyst_label}")
     template = get_template(question, chain_of_thought=chain_of_thought)
     adsorbate = question.split("adsorption of ")[-1].split(".")[0]
     starting_state = ReasonerState(
         template=template,
         reward_template=None,
         ads_symbols=[adsorbate],
+        catalyst_label =catalyst_type.replace("{", "").replace("}", ""),
         ads_preferences=[1],
         num_answers=5,
         prediction_model=prediction_model,
@@ -88,7 +97,8 @@ def get_initial_state_bio_fuels(
     chain_of_thought=True,
 ):
     """Generate initial query for non RWGS reaction prompt."""
-    question = question.replace("{catalysts}", "{catalyst_label}")
+    catalyst_type = question[question.find("{") : question.find("}") + 1]  # noqa
+    question = question.replace(catalyst_type, "{catalyst_label}")
     adsorbate = question.split("bind ")[1].split(" in")[0]
     reaction_name = question.split("in ")[1].split(" reaction")[0]
     property_name = question.split("with ")[1].split(".")[0].lower()
@@ -100,7 +110,8 @@ def get_initial_state_bio_fuels(
         reward_template=None,
         ads_symbols=[adsorbate],
         ads_preferences=[1],
-        num_answers=3,
+        num_answers=5,
+        catalyst_label = catalyst_type.replace("{", "").replace("}", ""),
         include_list=[property_name],
         prediction_model=prediction_model,
         reward_model=reward_model,
@@ -132,16 +143,17 @@ def get_initial_state_rwgs(
 
     ads_symbols = []
     ads_preference = []
-    for possible_ads in ["CO", "CO2", "H2"]:
+    for possible_ads in ["CO ", "CO2", "H2"]:
         if possible_ads in question.replace("RWGS reaction", ""):
-            ads_symbols.append(molecule_conversions[possible_ads])
-            preference = -1 if possible_ads == "CO" else 1
+            ads_symbols.append(molecule_conversions[possible_ads.strip()])
+            preference = -1 if possible_ads == "CO " else 1
             ads_preference.append(preference)
 
     # If there are no adsorbates in the prompt...
     if len(ads_symbols) == 0:
         # Do the reaction
-        ...
+        ads_symbols = ["*CO", "CO2", "H2", "*OH2"]
+        ads_preference = [-1, 1, 1, -1]
 
     qs = ReasonerState(
         template=template,
@@ -150,7 +162,7 @@ def get_initial_state_rwgs(
         ads_preferences=ads_preference,
         catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
         include_list=include_list,
-        num_answers=3,
+        num_answers=5,
         prediction_model=prediction_model,
         reward_model=reward_model,
     )
@@ -187,9 +199,7 @@ def get_initial_state_methanol(
             preference = -1 if possible_ads == "methanol" else 1
             ads_preference.append(preference)
 
-    # If there are no adsorbates in the prompt...
     if len(ads_symbols) != 0:
-        # Do the reaction
         qs = ReasonerState(
             template=template,
             reward_template=None,
@@ -197,23 +207,25 @@ def get_initial_state_methanol(
             ads_preferences=ads_preference,
             catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
             include_list=include_list,
-            num_answers=3,
+            num_answers=5,
             prediction_model=prediction_model,
             reward_model=reward_model,
         )
-
+    # If there are no adsorbates in the prompt...
     else:
-        ads_symbols = set(
+        # Do the reaction
+        ads_symbols = list(set(
             [syms for syms_l in computational_pathways_methanol for syms in syms_l]
-        )
+        ))
         qs = ReasonerState(
             template=template,
             reward_template=None,
             ads_symbols=ads_symbols,
+            ads_preferences=None,
             pathways=computational_pathways_methanol,
             catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
             include_list=include_list,
-            num_answers=3,
+            num_answers=5,
             prediction_model=prediction_model,
             reward_model=reward_model,
         )
@@ -246,38 +258,42 @@ def get_initial_state_ethanol(
     ads_preference = []
     for possible_ads in ["ethanol", "CO2", "H2"]:
         if possible_ads in question.replace("CO2 to ethanol conversion reaction", ""):
+            logging.info(possible_ads)
             ads_symbols.append(molecule_conversions[possible_ads])
             preference = -1 if possible_ads == "ethanol" else 1
             ads_preference.append(preference)
 
     # If there are no adsorbates in the prompt...
     if len(ads_symbols) == 0:
-        ads_symbols = set(
+        ads_symbols = list(set(
             [syms for syms_l in computational_pathways_ethanol for syms in syms_l]
-        )
+        ))
+        
         qs = ReasonerState(
             template=template,
             reward_template=None,
             ads_symbols=ads_symbols,
-            pathways=computational_pathways_methanol,
+            ads_preferences=None,
+            reaction_pathways=computational_pathways_ethanol,
             catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
             include_list=include_list,
-            num_answers=3,
+            num_answers=5,
             prediction_model=prediction_model,
             reward_model=reward_model,
         )
-
-    qs = ReasonerState(
-        template=template,
-        reward_template=None,
-        ads_symbols=ads_symbols,
-        catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
-        ads_preferences=ads_preference,
-        include_list=include_list,
-        num_answers=3,
-        prediction_model=prediction_model,
-        reward_model=reward_model,
-    )
+    else:
+        qs = ReasonerState(
+            template=template,
+            reward_template=None,
+            ads_symbols=ads_symbols,
+            catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
+            ads_preferences=ads_preference,
+            include_list=include_list,
+            num_answers=5,
+            prediction_model=prediction_model,
+            reward_model=reward_model,
+        )
+    logging.info(vars(qs))
     return qs
 
 

@@ -1,146 +1,146 @@
 dataset,query
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *O.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *H.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *OH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *OH2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *C.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CO.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHO.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *COH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CH2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CH2*O.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHOH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *OCH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CH2OH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CH4.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *OHCH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *C*C.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CCO.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CCH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHCO.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CCHO.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *COCHO.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CCHOH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CCH2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CH*CH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of CH2*CO.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHCHO.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of CH*COH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *COCH2O.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHO*CHO.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *COHCHO.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *COHCOH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CCH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHCH2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *COCH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *OCHCH2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *COHCH2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHCHOH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CCH2OH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHOCHOH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *COCH2OH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *COHCHOH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CH2*CH2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *OCHCH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *COHCH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHOHCH2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHCH2OH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *OCH2CHOH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHOCH2OH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *COHCH2OH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHOHCHOH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CH2CH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *OCH2CH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHOHCH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CH2CH2OH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CHOHCH2OH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *OHCH2CH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *NH2N(CH3)2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *ONN(CH3)2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *OHNNCH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *NNCH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *ONH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *NHNH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *NH2NH2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *N*NH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *ONNO2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *NO2NO2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *N*NO.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *N2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *ONNH2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *NH2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *NH3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *NONH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *NH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *NO2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *NO.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *N.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *NO3.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *OHNH2.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *ONOH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *CN.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of CO*COH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *OCHO.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *COOH.
-OpenCatalyst,Generate a list of top-5 {catalysts} for the adsorption of *OOH.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrodeoxygenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrodeoxygenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind anisole in the hydrodeoxygenation reaction with High Selectivity.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrogenation reaction with High Conversion.
-BioFuels,Generate a list of top-5 catalysts can bind methyl in the hydrogenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind phenolate in the hydrogenation reaction with High Binding Energy.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind acetic acid in the hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind ethanol in the hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind methanol in the hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind phenol in the hydrodeoxygenation reaction with Low Cost.
-BioFuels,Generate a list of top-5 catalysts can bind acetate in the hydrogenation reaction with Low Cost.
-RWGS,Generate a list of top-5 {catalysts} that exhibit higher adsorption energy for both CO2 and H2 for the production of CO (the reactants of the RWGS reaction).
-RWGS,Generate a list of top-5 {catalysts} that exhibit weak adsorption energy for CO (the product of the RWGS reaction).
-RWGS,Generate a list of top-5 {catalysts} that exhibit high activity for the RWGS reaction.
-RWGS,Generate a list of top-5 {catalysts} that[ are cheap and] demonstrate higher adsorption energy for both CO2 and H2 (the reactants of the RWGS reaction).
-RWGS,Generate a list of top-5 {catalysts} that[ are cheap and] exhibit weak adsorption energy for CO (the product of the RWGS reaction).
-RWGS,Generate a list of top-5 {catalysts} that[ are cheap and] exhibit high activity for the RWGS reaction.
-RWGS,Generate a list of top-5 {catalysts} that perform the RWGS reaction at lower temperature (<200 C).
-RWGS,Generate a list of top-5 {catalysts} that[ are cheap and] perform the RWGS reaction at lower temperature (<200 C).
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *O.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *H.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OH2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *C.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CO.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHO.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *COH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CH2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CH2*O.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHOH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OCH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CH2OH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CH4.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OHCH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *C*C.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CCO.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CCH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHCO.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CCHO.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *COCHO.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CCHOH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CCH2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CH*CH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of CH2*CO.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHCHO.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of CH*COH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *COCH2O.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHO*CHO.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *COHCHO.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *COHCOH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CCH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHCH2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *COCH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OCHCH2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *COHCH2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHCHOH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CCH2OH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHOCHOH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *COCH2OH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *COHCHOH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CH2*CH2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OCHCH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *COHCH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHOHCH2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHCH2OH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OCH2CHOH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHOCH2OH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *COHCH2OH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHOHCHOH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CH2CH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OCH2CH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHOHCH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CH2CH2OH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CHOHCH2OH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OHCH2CH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *NH2N(CH3)2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *ONN(CH3)2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OHNNCH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *NNCH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *ONH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *NHNH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *NH2NH2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *N*NH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *ONNO2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *NO2NO2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *N*NO.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *N2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *ONNH2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *NH2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *NH3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *NONH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *NH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *NO2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *NO.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *N.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *NO3.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OHNH2.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *ONOH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *CN.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of CO*COH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OCHO.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *COOH.
+OpenCatalyst,Generate a list of top-5 {metallic catalysts} for the adsorption of *OOH.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetate in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetic acid in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind ethanol in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind methanol in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind phenol in the hydrodeoxygenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetate in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetic acid in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind ethanol in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind methanol in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind phenol in the hydrodeoxygenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetate in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetic acid in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind ethanol in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind methanol in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind phenol in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind anisole in the hydrodeoxygenation reaction with High Selectivity.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetate in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetic acid in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind ethanol in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind methanol in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind phenol in the hydrogenation reaction with High Conversion.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind methyl in the hydrogenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind phenolate in the hydrogenation reaction with High Binding Energy.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetate in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetic acid in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind ethanol in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind methanol in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind phenol in the hydrodeoxygenation reaction with Low Cost.
+BioFuels,Generate a list of top-5 {metallic catalysts} can bind acetate in the hydrogenation reaction with Low Cost.
+RWGS,Generate a list of top-5 {metallic catalysts} that exhibit higher adsorption energy for both CO2 and H2 for the production of CO (the reactants of the RWGS reaction).
+RWGS,Generate a list of top-5 {metallic catalysts} that exhibit weak adsorption energy for CO (the product of the RWGS reaction).
+RWGS,Generate a list of top-5 {metallic catalysts} that exhibit high activity for the RWGS reaction.
+RWGS,Generate a list of top-5 {metallic catalysts} that[ are cheap and] demonstrate higher adsorption energy for both CO2 and H2 (the reactants of the RWGS reaction).
+RWGS,Generate a list of top-5 {metallic catalysts} that[ are cheap and] exhibit weak adsorption energy for CO (the product of the RWGS reaction).
+RWGS,Generate a list of top-5 {metallic catalysts} that[ are cheap and] exhibit high activity for the RWGS reaction.
+RWGS,Generate a list of top-5 {metallic catalysts} that perform the RWGS reaction at lower temperature (<200 C).
+RWGS,Generate a list of top-5 {metallic catalysts} that[ are cheap and] perform the RWGS reaction at lower temperature (<200 C).
 RWGS,Generate a list of top-5 {bimetallic catalysts} that exhibit high activity for the RWGS reaction.
 RWGS,Generate a list of top-5 {bimetallic catalysts (combination of noble metal and base metal)} that exhibit high activity for the RWGS reaction.
-CO2ToEthanol,Generate a list of top-5 {catalysts} that exhibit higher adsorption energy for both CO2 and H2 for the production of ethanol (the reactants of the CO2 to ethanol conversion reaction).
-CO2ToEthanol,Generate a list of top-5 {catalysts} that exhibit weak adsorption energy for ethanol (the product of the CO2 to ethanol conversion reaction).
-CO2ToEthanol,Generate a list of top-5 {catalysts} that exhibit high activity for the CO2 to ethanol conversion reaction.
-CO2ToEthanol,Generate a list of top-5 {catalysts} that[ are cheap and] demonstrate higher adsorption energy for both CO2 and H2 (the reactants of the CO2 to ethanol conversion reaction).
-CO2ToEthanol,Generate a list of top-5 {catalysts} that[ are cheap and] exhibit weak adsorption energy for ethanol (of the CO2 to ethanol conversion reaction).
-CO2ToEthanol,Generate a list of top-5 {catalysts} that[ are cheap and] exhibit high activity for the CO2 to ethanol conversion reaction.
-CO2ToEthanol,Generate a list of top-5 {catalysts} that perform the CO2 to ethanol conversion reaction at lower temperature (<200 C).
-CO2ToEthanol,Generate a list of top-5 {catalysts} that[ are cheap and] perform the CO2 to ethanol conversion reaction at lower temperature (<200 C).
+CO2ToEthanol,Generate a list of top-5 {metallic catalysts} that exhibit higher adsorption energy for both CO2 and H2 for the production of ethanol (the reactants of the CO2 to ethanol conversion reaction).
+CO2ToEthanol,Generate a list of top-5 {metallic catalysts} that exhibit weak adsorption energy for ethanol (the product of the CO2 to ethanol conversion reaction).
+CO2ToEthanol,Generate a list of top-5 {metallic catalysts} that exhibit high activity for the CO2 to ethanol conversion reaction.
+CO2ToEthanol,Generate a list of top-5 {metallic catalysts} that[ are cheap and] demonstrate higher adsorption energy for both CO2 and H2 (the reactants of the CO2 to ethanol conversion reaction).
+CO2ToEthanol,Generate a list of top-5 {metallic catalysts} that[ are cheap and] exhibit weak adsorption energy for ethanol (of the CO2 to ethanol conversion reaction).
+CO2ToEthanol,Generate a list of top-5 {metallic catalysts} that[ are cheap and] exhibit high activity for the CO2 to ethanol conversion reaction.
+CO2ToEthanol,Generate a list of top-5 {metallic catalysts} that perform the CO2 to ethanol conversion reaction at lower temperature (<200 C).
+CO2ToEthanol,Generate a list of top-5 {metallic catalysts} that[ are cheap and] perform the CO2 to ethanol conversion reaction at lower temperature (<200 C).
 CO2ToEthanol,Generate a list of top-5 {bimetallic catalysts} that exhibit high activity for the CO2 to ethanol conversion reaction.
 CO2ToEthanol,Generate a list of top-5 {bimetallic catalysts (combination of noble metal and base metal)} that exhibit high activity for the CO2 to ethanol conversion reaction.
-CO2ToMethanol,Generate a list of top-5 {catalysts} that exhibit higher adsorption energy for both CO2 and H2 for the production of methanol (the reactants of the CO2 to methanol conversion reaction).
-CO2ToMethanol,Generate a list of top-5 {catalysts} that exhibit weak adsorption energy for methanol (the product of the CO2 to methanol conversion reaction).
-CO2ToMethanol,Generate a list of top-5 {catalysts} that exhibit high activity for the CO2 to methanol conversion reaction.
-CO2ToMethanol,Generate a list of top-5 {catalysts} that[ are cheap and] demonstrate higher adsorption energy for both CO2 and H2 (the reactants of the CO2 to Methanol conversion reaction).
-CO2ToMethanol,Generate a list of top-5 {catalysts} that[ are cheap and] exhibit weak adsorption energy for methanol (of the CO2 to methanol conversion reaction).
-CO2ToMethanol,Generate a list of top-5 {catalysts} that[ are cheap and] exhibit high activity for the CO2 to methanol conversion reaction.
-CO2ToMethanol,Generate a list of top-5 {catalysts} that perform the CO2 to methanol conversion reaction at lower temperature (<200 C).
-CO2ToMethanol,Generate a list of top-5 {catalysts} that[ are cheap and] perform the CO2 to methanol conversion reaction at lower temperature (<200 C).
+CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that exhibit higher adsorption energy for both CO2 and H2 for the production of methanol (the reactants of the CO2 to methanol conversion reaction).
+CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that exhibit weak adsorption energy for methanol (the product of the CO2 to methanol conversion reaction).
+CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that exhibit high activity for the CO2 to methanol conversion reaction.
+CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that[ are cheap and] demonstrate higher adsorption energy for both CO2 and H2 (the reactants of the CO2 to Methanol conversion reaction).
+CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that[ are cheap and] exhibit weak adsorption energy for methanol (of the CO2 to methanol conversion reaction).
+CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that[ are cheap and] exhibit high activity for the CO2 to methanol conversion reaction.
+CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that perform the CO2 to methanol conversion reaction at lower temperature (<200 C).
+CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that[ are cheap and] perform the CO2 to methanol conversion reaction at lower temperature (<200 C).
 CO2ToMethanol,Generate a list of top-5 {bimetallic catalysts} that exhibit high activity for the CO2 to methanol conversion reaction.
 CO2ToMethanol,Generate a list of top-5 {bimetallic catalysts (combination of noble metal and base metal)} that exhibit high activity for the CO2 to methanol conversion reaction.

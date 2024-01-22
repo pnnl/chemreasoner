@@ -231,6 +231,11 @@ class ReasonerState:
             ]
         print(self.candidates)
 
+    def get_ads_preferences(self, syms: str):
+        """Get the adsorbate preferences corresponding to the given adsorbate syms."""
+        idx = self.ads_symbols.index(syms)
+        return self.ads_preferences[idx]
+
     @property
     def adsorption_energy_prompts(self):
         """Return the prompt for this state."""

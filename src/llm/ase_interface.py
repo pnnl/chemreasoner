@@ -113,9 +113,9 @@ def generate_bulk_ads_pairs(
         y_rot = random.uniform(0, 15)
 
         # Do in-plane rotations first
-        new_ads.rotate("z", z_rot)
         new_ads.rotate("x", x_rot)
         new_ads.rotate("y", y_rot)
+        new_ads.rotate("z", z_rot)
 
         # Apply adsorbate to new_bullk
         new_bulk = combine_adsorbate_slab(
@@ -251,7 +251,7 @@ def convert_alloy(bulk, other_symbols=Union[str, list[str]]):
             "bcc",
             "hcp",
         ]:
-            raise StructureGenerationError(f"Invalide alloy element {other_symbol}.")
+            raise StructureGenerationError(f"Invalid alloy element {other_symbol}.")
 
     bulk = bulk.copy()
 
@@ -452,3 +452,5 @@ if __name__ == "__main__":
     # print(adslab)
     # print(adslab.get_tags())
     # print(adslab.get_atomic_numbers())
+
+    print(ads_symbols_to_structure("*CH2*O"))

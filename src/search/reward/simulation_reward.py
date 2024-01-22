@@ -6,8 +6,10 @@ import uuid
 
 from copy import deepcopy
 from pathlib import Path
+from traceback import format_exc
 
 import numpy as np
+import torch
 
 from ase import Atoms
 from ase.io import read
@@ -62,19 +64,20 @@ class StructureReward(BaseReward):
                 prompts.append(s.generation_prompt)
                 system_prompts.append(s.generation_system_prompt)
 
-        generation_results = self.llm_function(
-            prompts, system_prompts, **{"temperature": 0.7, "top_p": 0.95}
-        )
-        loop_counter = 0
-        for i, s in enumerate(states):
-            if slab_syms[i] is None:
-                s.process_generation(generation_results[loop_counter])
+        if len(prompts) > 0:
+            generation_results = self.llm_function(
+                prompts, system_prompts, **{"temperature": 0.7, "top_p": 0.95}
+            )
+            loop_counter = 0
+            for i, s in enumerate(states):
+                if slab_syms[i] is None:
+                    s.process_generation(generation_results[loop_counter])
 
-                loop_counter += 1
-        end = time.time()
-        logging.info(
-            f"TIMING: Candidate generation finished in reward function {end-start}"
-        )
+                    loop_counter += 1
+            end = time.time()
+            logging.info(
+                f"TIMING: Candidate generation finished in reward function {end-start}"
+            )
 
     def run_slab_sym_prompts(
         self, slab_syms: list[list[str]], states: list[ReasonerState]
@@ -100,24 +103,23 @@ class StructureReward(BaseReward):
                     )
                     if len(prompts) > len(system_prompts):
                         prompts.pop()
-        answers = self.llm_function(
-            prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
-        )
-        print(answers)
+        if len(prompts) > 0:
+            answers = self.llm_function(
+                prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
+            )
 
-        for i, p in enumerate(prompts):
-            state_idx = prompts_idx[i]
-            s = states[state_idx]
-            try:
-                print(s.process_catalyst_symbols(answers[i]))
-                slab_syms[state_idx] = s.process_catalyst_symbols(answers[i])
+            for i, p in enumerate(prompts):
+                state_idx = prompts_idx[i]
+                s = states[state_idx]
+                try:
+                    slab_syms[state_idx] = s.process_catalyst_symbols(answers[i])
 
-            except Exception as err:
-                logging.warning(f"Failed to parse answer with error: {str(err)}.")
-        end = time.time()
-        logging.info(
-            f"TIMING: Slab symbols parsing finished in reward function {end-start}"
-        )
+                except Exception as err:
+                    logging.warning(f"Failed to parse answer with error: {str(err)}.")
+            end = time.time()
+            logging.info(
+                f"TIMING: Slab symbols parsing finished in reward function {end-start}"
+            )
 
     def __call__(
         self,
@@ -162,12 +164,13 @@ class StructureReward(BaseReward):
                     gnn_time,
                     name_candidate_mapping,
                 ) = self.create_structures_and_calculate(
-                    slab_syms[i], ads_list, candidates_list
+                    slab_syms[i], ads_list, candidates_list,
                 )
                 end = time.time()
                 logging.info(f"TIMING: GNN calculations done {end-start}")
                 if s.ads_preferences is not None:
                     final_reward, reward_values = self.parse_adsorption_energies(
+                        s,
                         adslabs_and_energies,
                         name_candidate_mapping,
                         candidates_list,
@@ -178,7 +181,7 @@ class StructureReward(BaseReward):
                         final_reward,
                         reward_values,
                         adsorption_energies,
-                    ) = self.parse_adsorption_energies(
+                    ) = self.parse_adsorption_pathways(
                         adslabs_and_energies,
                         name_candidate_mapping,
                         candidates_list,
@@ -216,7 +219,7 @@ class StructureReward(BaseReward):
         slab_syms,
         ads_list,
         candidates_list=None,
-        adsorbate_height=1,
+        adsorbate_height=1.87,
         placement_type=None,
     ):
         """Create the structures from the symbols and calculate adsorption energies."""
@@ -234,17 +237,16 @@ class StructureReward(BaseReward):
                     slab_ats = self.adsorption_calculator.get_slab(slab_name)
                     if slab_ats is None:
                         try:
+                            if any([s not in chemical_symbols or chemical_symbols.index(s) > 82 for s in slab_sym]):
+                                raise ase_interface.StructureGenerationError(f"Cannot create bulk with slab_syms {slab_sym}.")
                             slab_samples = [
                                 ase_interface.symbols_list_to_bulk(slab_sym)
                                 for _ in range(self.num_slab_samples)
                             ]
                         except ase_interface.StructureGenerationError as err:
                             logging.warning(err)
-                            print(err)
                             slab_syms[i] = None
-                            raise err
-                            # slab_syms[i] = None
-                            # valid_slab_sym = False
+                            valid_slab_sym = False
 
                         if valid_slab_sym:
                             slab_ats = self.adsorption_calculator.choose_slab(
@@ -277,11 +279,10 @@ class StructureReward(BaseReward):
 
                                 if candidates_list is not None:
                                     name_candidate_mapping[name] = candidates_list[i]
-            except Exception:
+                        else:
+                            raise ValueError(f"Unkown placement type {placement_type}.")
+            except Exception as err:
                 logging.warning(
-                    f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
-                )
-                print(
                     f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
                 )
 
@@ -299,6 +300,7 @@ class StructureReward(BaseReward):
 
     def parse_adsorption_energies(
         self,
+        state,
         adslabs_and_energies,
         name_candidate_mapping,
         candidates_list,
@@ -310,11 +312,16 @@ class StructureReward(BaseReward):
         for idx, name, energy, valid_structure in adslabs_and_energies:
             cand = name_candidate_mapping[name]
             ads = name.split("_")[-1]
-            if valid_structure == 0:
+            if valid_structure == 0 or (
+                ads[1] == 2 and state.get_ads_preferences(ads) < 0
+            ):
                 if cand in reward_values.keys():
-                    reward_values[cand][ads] += [energy]
+                    if ads in reward_values.keys():
+                        reward_values[cand][ads] += [(energy)]
+                    else:
+                        reward_values[cand][ads] = [(energy)]
                 else:
-                    reward_values[cand] = {ads: [energy]}
+                    reward_values[cand] = {ads: [(energy)]}
             else:
                 if cand not in reward_values.keys():
                     reward_values[cand] = {ads: []}
@@ -326,7 +333,10 @@ class StructureReward(BaseReward):
                 rewards.append(
                     sum(
                         [
-                            -((min(reward_values[cand][ads])) * ads_preferences[i])
+                            -(
+                                (min(reward_values[cand][ads]))
+                                * state.get_ads_preferences(ads)
+                            )
                             if len(reward_values[cand][ads]) > 0
                             else self.penalty_value
                             for i, ads in enumerate(reward_values[cand].keys())
@@ -354,33 +364,39 @@ class StructureReward(BaseReward):
         for idx, name, energy, valid_structure in adslabs_and_energies:
             cand = name_candidate_mapping[name]
             ads = name.split("_")[-1]
-            if valid_structure == 0:
+            if valid_structure == 0 or (
+                ads[1] == 2 and state.get_ads_preferences(ads) < 0
+            ):
                 if cand in reward_values.keys():
-                    reward_values[cand][ads] += [energy]
+                    if ads in reward_values.keys():
+                        reward_values[cand][ads] += [(energy)]
+                    else:
+                        reward_values[cand][ads] = [(energy)]
                 else:
-                    reward_values[cand] = {ads: [energy]}
+                    reward_values[cand] = {ads: [(energy)]}
             else:
                 if cand not in reward_values.keys():
                     reward_values[cand] = {ads: []}
 
+
         # aggregate the rewards
         rewards = []
-        pathways = {}
         for cand in candidates_list:
             if cand in reward_values.keys():
                 adsorption_energies = [[None] * len(p) for p in pathways]
                 for i, path in enumerate(pathways):
+
                     for j, ads in enumerate(path):
                         adsorption_energies[i][j] = (
                             min(reward_values[cand][ads])
                             if len(reward_values[cand][ads]) > 0
                             else None
                         )
-                pathways[cand] = adsorption_energies
                 paths_without_none = [p for p in adsorption_energies if None not in p]
                 if len(paths_without_none) != 0:
+                    reduce_pathways = [max(np.diff(path)) for path in paths_without_none]
                     rewards.append(
-                        min(paths_without_none, key=lambda path: max(np.diff(path)))
+                        min(reduce_pathways)
                     )
                 else:
                     rewards.append(self.penalty_value)
@@ -544,31 +560,46 @@ class _TestState:
 
 if __name__ == "__main__":
     # traj_dir = "random"
-    traj_dir = "heuristic"
+    # traj_dir = "heuristic"
 
-    print("using heuristic methods")
-    sr = StructureReward(
-        **{
-            "llm_function": None,
-            "model": "gemnet",
-            "traj_dir": Path("data", "output", f"{traj_dir}"),
-            "device": "cpu",
-            "steps": 2,
-            "ads_tag": 2,
-            "num_adslab_samples": 1,
-        }
-    )
+    for model in ["gemnet-oc-large", "gemnet-t", "escn","eq2",]:
+        try:
+            start = time.time()
+            sr = StructureReward(
+                **{
+                    "llm_function": None,
+                    "model": model,
+                    "traj_dir": Path(f"/var/tmp/testing-gnn/{model}"),
+                    "device": "cuda",
+                    "steps": 150,
+                    "ads_tag": 2,
+                    "batch_size":32,
+                    "num_adslab_samples": 32,
+                }
+            )
 
-    print(
-        sr.create_structures_and_calculate(
-            [["O"], ["fdsfds"], [], [None], ["Zeolite"], ["Z", "O"], ["Cu"]],
-            ["CO"],
-            ["O", "fdsfds", "", None, "Zeolite", "ZO", "Cu"],
-            placement_type="heuristic",
-        )
-    )
+            print(
+                sr.create_structures_and_calculate(
+                    [["Cu"], ["Zn"], ["Cu", "Zn"]],
+                    ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
+                    ["Cu", "Zn", "CuZn"],
+                    placement_type=None,
+                )
+            )
 
-    for p in Path("data", "output", f"{traj_dir}").rglob("*.traj"):
+            end = time.time()
+            print(end - start)
+
+            torch.cuda.empty_cache()
+
+            with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
+                f.write(str(end-start))
+        except Exception as err:
+            with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
+                f.write(format_exc())
+
+
+    for p in Path(f"/var/tmp/testing-gnn").rglob("*.traj"):
         break_trajectory(p)
 
 

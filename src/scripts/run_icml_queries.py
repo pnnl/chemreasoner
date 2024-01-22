@@ -8,17 +8,17 @@ import logging
 import os
 import sys
 
-
 from pathlib import Path
+from traceback import format_exc
 
 import numpy as np
 import pandas as pd
 
 sys.path.append("src")
 from datasets import reasoner_data_loader  # noqa:E402
-from llm.azure_open_ai_interface import run_azure_openai_prompts  # noqa:E402
+from llm.azure_open_ai_interface import AzureOpenaiInterface  # noqa:E402
 from search.policy import coherent_policy, reasoner_policy  # noqa:E402
-from search.reward import simulation_reward, reaction_reward, llm_reward  # noqa:E402
+from search.reward import simulation_reward, llm_reward  # noqa:E402
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa:E402
 from search.state.reasoner_state import ReasonerState  # noqa:E402
 
@@ -27,8 +27,6 @@ end = time.time()
 logging.getLogger().setLevel(logging.INFO)
 
 logging.info(f"TIMING: Imports finished {end-start}")
-
-# TODO: Complete arguments for each of these getter functions
 
 
 class NpEncoder(json.JSONEncoder):
@@ -39,6 +37,8 @@ class NpEncoder(json.JSONEncoder):
             return float(obj)
         if isinstance(obj, np.ndarray):
             return obj.tolist()
+        if isinstance(obj, set):
+            return list(obj)
         return super(NpEncoder, self).default(obj)
 
 
@@ -72,59 +72,57 @@ def get_reward_function(args, state, llm_function):
     ), "invalid parameter"
 
     if args.reward_function == "simulation-reward":
-        if state.reaction_pathways is None:
-            assert (
-                isinstance(args.nnp_class, str) and args.nnp_class == "oc"
-            ), "invalid parameter"
-            assert (
-                isinstance(args.num_slab_samples, int) and args.num_slab_samples > 0
-            ), "invalid parameter"
-            assert (
-                isinstance(args.num_adslab_samples, int) and args.num_adslab_samples > 0
-            ), "invalid parameter"
 
-            # check nnp_kwargs
-            assert (
-                isinstance(args.reward_max_attempts, int)
-                and args.reward_max_attempts > 0
-            ), "invalid parameter"
-            assert args.gnn_model == "gemnet", "invalid parameter"
-            assert isinstance(args.gnn_traj_dir, str), "invalid parameter"
-            assert (
-                isinstance(args.gnn_batch_size, int) and args.gnn_batch_size > 0
-            ), "invalid parameter"
-            assert isinstance(args.gnn_device, str) and (
-                args.gnn_device == "cpu" or args.gnn_device == "cuda"
-            ), "invalid parameter"
-            assert (
-                isinstance(args.gnn_ads_tag, int) and args.gnn_ads_tag == 2
-            ), "invalid parameter"
-            assert (
-                isinstance(args.gnn_fmax, float) and args.gnn_fmax > 0
-            ), "invalid parameter"
-            assert (
-                isinstance(args.gnn_steps, int) and args.gnn_steps >= 0
-            ), "invalid parameter"
-            nnp_kwargs = {
-                "model": args.gnn_model,
-                "traj_dir": Path(args.gnn_traj_dir),
-                "batch_size": args.gnn_batch_size,
-                "device": args.gnn_device,
-                "ads_tag": args.gnn_ads_tag,
-                "fmax": args.gnn_fmax,
-                "steps": args.gnn_steps,
-            }
-            return simulation_reward.StructureReward(
-                llm_function=llm_function,
-                penalty_value=args.penalty_value,
-                nnp_class=args.nnp_class,
-                num_slab_samples=args.num_slab_samples,
-                num_adslab_samples=args.num_adslab_samples,
-                max_attempts=args.reward_max_attempts,
-                **nnp_kwargs,
-            )
-        else:
-            return reaction_reward.PathReward
+        assert (
+            isinstance(args.nnp_class, str) and args.nnp_class == "oc"
+        ), "invalid parameter"
+        assert (
+            isinstance(args.num_slab_samples, int) and args.num_slab_samples > 0
+        ), "invalid parameter"
+        assert (
+            isinstance(args.num_adslab_samples, int) and args.num_adslab_samples > 0
+        ), "invalid parameter"
+
+        # check nnp_kwargs
+        assert (
+            isinstance(args.reward_max_attempts, int)
+            and args.reward_max_attempts > 0
+        ), "invalid parameter"
+        assert args.gnn_model in ["gemnet-t", "gemnet-oc", "escn", "eq2"], "invalid parameter"
+        assert isinstance(args.gnn_traj_dir, str), "invalid parameter"
+        assert (
+            isinstance(args.gnn_batch_size, int) and args.gnn_batch_size > 0
+        ), "invalid parameter"
+        assert isinstance(args.gnn_device, str) and (
+            args.gnn_device == "cpu" or args.gnn_device == "cuda"
+        ), "invalid parameter"
+        assert (
+            isinstance(args.gnn_ads_tag, int) and args.gnn_ads_tag == 2
+        ), "invalid parameter"
+        assert (
+            isinstance(args.gnn_fmax, float) and args.gnn_fmax > 0
+        ), "invalid parameter"
+        assert (
+            isinstance(args.gnn_steps, int) and args.gnn_steps >= 0
+        ), "invalid parameter"
+        nnp_kwargs = {
+            "model": args.gnn_model,
+            "traj_dir": Path(args.gnn_traj_dir),
+            "batch_size": args.gnn_batch_size,
+            "device": args.gnn_device,
+            "ads_tag": args.gnn_ads_tag,
+            "fmax": args.gnn_fmax,
+            "steps": args.gnn_steps,
+        }
+        return simulation_reward.StructureReward(
+            llm_function=llm_function,
+            penalty_value=args.penalty_value,
+            nnp_class=args.nnp_class,
+            num_slab_samples=args.num_slab_samples,
+            num_adslab_samples=args.num_adslab_samples,
+            max_attempts=args.reward_max_attempts,
+            **nnp_kwargs,
+        )
 
     elif args.reward_function == "llm-reward":
         assert isinstance(args.reward_limit, float), "invalid parameter"
@@ -160,7 +158,6 @@ def get_state_from_idx(idx, df: pd.DataFrame):
 
 def get_indeces(args):
     """Get the state indeces provided in args."""
-    print(args.start_query)
     assert isinstance(args.start_query, int) and args.start_query >= 0
     assert isinstance(args.end_query, int) and args.end_query > args.start_query
     return list(range(args.start_query, args.end_query))
@@ -175,6 +172,7 @@ if __name__ == "__main__":
     parser.add_argument("--end-query", type=int)
     parser.add_argument("--depth", type=int, default=None)
     parser.add_argument("--opt-debug", type=bool, default=False)
+    parser.add_argument("--dotenv-path", type=str, default=False)
 
     # Policy
     parser.add_argument("--policy", type=str, default=None)
@@ -213,11 +211,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     assert isinstance(args.depth, int) and args.depth > 0
+    assert isinstance(args.dotenv_path, str)
     start = time.time()
     save_dir = Path(args.savedir)
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    llm_function = run_azure_openai_prompts
+    llm_function = AzureOpenaiInterface(args.dotenv_path)
 
     df = pd.read_csv(args.dataset_path)
     indeces = get_indeces(args)
@@ -225,46 +224,48 @@ if __name__ == "__main__":
     logging.info(f"TIMING: Initialization time: {end-start}")
 
     for i in indeces:
-        logging.info(
-            f"=============TIMING: Processing query {i}/{len(indeces)}================"
-        )
-        start = time.time()
-        fname = save_dir / f"test_tree_{i}.json"
-        starting_state = get_state_from_idx(i, df)
-
-        policy = get_policy(args, llm_function)
-        reward_fn = get_reward_function(args, starting_state, llm_function)
-
-        if Path(fname).exists() and os.stat(fname).st_size != 0:
-            print(f"Loading a tree from {fname}")
-            logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
-            with open(fname, "r") as f:
-                tree_data = json.load(f)
-                search = BeamSearchTree.from_data(
-                    tree_data,
-                    policy,
-                    reward_fn,
-                    node_constructor=ReasonerState.from_dict,
-                )
-                assert (
-                    isinstance(args.num_keep, int) and args.num_keep == search.num_keep
-                ), "mismatch parameter"
-                assert (
-                    isinstance(args.num_generate, int)
-                    and args.num_generate == search.num_generate
-                ), "mismatch parameter"
-        else:
-            search = get_search_method(args, starting_state, policy, reward_fn)
-
-        end = time.time()
-        logging.info(f"TIMING: Time to set up query: {end-start}")
-
-        start_time = time.time()
-        timing_data = [start_time]
         continue_searching = True
-        while len(search) < args.depth and continue_searching:
+        try:
+            logging.info(
+                f"=============TIMING: Processing query {i}/{len(indeces)}================"
+            )
             start = time.time()
-            try:
+            fname = save_dir / f"search_tree_{i}.json"
+            starting_state = get_state_from_idx(i, df)
+
+            policy = get_policy(args, llm_function)
+            reward_fn = get_reward_function(args, starting_state, llm_function)
+
+            if Path(fname).exists() and os.stat(fname).st_size != 0:
+                print(f"Loading a tree from {fname}")
+                logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
+                with open(fname, "r") as f:
+                    tree_data = json.load(f)
+                    search = BeamSearchTree.from_data(
+                        tree_data,
+                        policy,
+                        reward_fn,
+                        node_constructor=ReasonerState.from_dict,
+                    )
+                    assert (
+                        isinstance(args.num_keep, int) and args.num_keep == search.num_keep
+                    ), "mismatch parameter"
+                    assert (
+                        isinstance(args.num_generate, int)
+                        and args.num_generate == search.num_generate
+                    ), "mismatch parameter"
+            else:
+                search = get_search_method(args, starting_state, policy, reward_fn)
+
+            end = time.time()
+            logging.info(f"TIMING: Time to set up query: {end-start}")
+
+            start_time = time.time()
+            timing_data = [start_time]
+            continue_searching = True
+            while len(search) < args.depth and continue_searching:
+                start = time.time()
+
                 data = search.step_return()
                 end_time = time.time()
                 timing_data.append(end_time - timing_data[-1])
@@ -273,12 +274,12 @@ if __name__ == "__main__":
                         {"total_time": end_time - start_time, "step_times": timing_data}
                     )
                     json.dump(data, f, cls=NpEncoder)
-            except Exception as err:
-                logging.warning(f"Could not complete search with error: {err}")
-                print(f"Could not complete search with error: {err}")
-                continue_searching = False
-            end = time.time()
-            logging.info(f"TIMING: One search iteration: {end-start}")
+                
+                end = time.time()
+                logging.info(f"TIMING: One search iteration: {end-start}")
 
-            print("=" * 20 + " " + str(i) + " " + "=" * 20)
-            logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
+                logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
+        except Exception as err:
+            logging.warning(f"Could not complete search with error: {err}")
+            logging.warning(format_exc())
+            continue_searching = False

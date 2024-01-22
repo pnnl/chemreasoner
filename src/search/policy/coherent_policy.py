@@ -91,7 +91,6 @@ class CoherentPolicy(BasePolicy):
     def strings_to_actions(action_lists: dict[str, str]) -> list[callable]:
         """Turn the strings returned by the language model into actions."""
         actions = []
-        print(action_lists)
         for k, v in action_lists.items():
             actions += [action_name_keys[k](a) for a in v]
         return actions
@@ -109,34 +108,39 @@ class CoherentPolicy(BasePolicy):
             prompts = []
             prompts_idx = []
             for i, s in enumerate(states):
+                if s.priors_template is None:
+                    s.priors_template = priors_template
                 try:
                     prompts.append(s.priors_prompt)
                     prompts_idx.append(i)
                 except Exception:
-                    print("Cannot generate prompt for state.")
-            llm_answers = self.llm_function(prompts)
+                    logging.warning("Cannot generate prompt for state.")
 
-            for i, ans in enumerate(llm_answers):
-                try:
-                    s = states[prompts_idx[i]]
-                    action_lists = s.process_prior(ans)
-                    actions = self.strings_to_actions(action_lists)
+            if len(prompts) > 0:
+                llm_answers = self.llm_function(prompts)
 
-                    if len(actions) >= self.max_num_actions:
-                        actions = actions[: self.max_num_actions]
-                        priors = np.array([1 / len(actions)] * len(actions))
-                    elif len(actions) < self.max_num_actions:
-                        length_difference = self.max_num_actions - len(actions)
-                        priors = np.array(
-                            [1 / len(actions)] * len(actions) + [0] * length_difference
+                for i, ans in enumerate(llm_answers):
+                    try:
+                        s = states[prompts_idx[i]]
+                        action_lists = s.process_prior(ans)
+                        actions = self.strings_to_actions(action_lists)
+
+                        if len(actions) >= self.max_num_actions:
+                            actions = actions[: self.max_num_actions]
+                            priors = np.array([1 / len(actions)] * len(actions))
+                        elif len(actions) < self.max_num_actions:
+                            length_difference = self.max_num_actions - len(actions)
+                            priors = np.array(
+                                [1 / len(actions)] * len(actions)
+                                + [0] * length_difference
+                            )
+                            actions += [None] * length_difference
+
+                        action_priors[prompts_idx[i]] = (actions, priors)
+                    except Exception:
+                        logging.warning(
+                            "Could not parse the actions for the given state. Trying again."
                         )
-                        actions += [None] * length_difference
-
-                    action_priors[prompts_idx[i]] = (actions, priors)
-                except Exception:
-                    print(
-                        "Could not parse the actions for the given state. Trying again."
-                    )
         end = time.time()
         logging.info(f"TIMING: Get actions time {end-start}")
         action_priors = [a_p if a_p is not None else [] for a_p in action_priors]
