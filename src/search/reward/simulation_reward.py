@@ -96,6 +96,7 @@ class StructureReward(BaseReward):
                     system_prompts.append(None)
                     prompts_idx.append(i)
                 except Exception as err:
+                    raise err
                     logging.warning(
                         f"Failed to generate prompts with error: {str(err)}. "
                         "Skipping this prompt."

@@ -101,7 +101,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             self.config_path = self.model_configs_paths / "gemnet" / "gemnet-oc-large.yml"
 
         elif self.model == "escn":
-            self.model_path = self.model_weights_paths / "gemnet_oc_large_s2ef_all_md.pt"
+            self.model_path = self.model_weights_paths / "escn_l6_m3_lay20_all_md_s2ef.pt"
             # print('model path', self.model_path)
             if not self.model_path.exists():
                 print("Downloading weights for gemnet...")
