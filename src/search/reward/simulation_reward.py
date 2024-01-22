@@ -561,7 +561,7 @@ if __name__ == "__main__":
     # traj_dir = "random"
     # traj_dir = "heuristic"
 
-    for model in ["gemnet-oc-large", "eq2", "escn","gemnet-t",]:
+    for model in ["gemnet-oc-large", "gemnet-t", "escn","eq2",]:
         try:
             start = time.time()
             sr = StructureReward(
