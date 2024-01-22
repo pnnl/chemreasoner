@@ -572,6 +572,7 @@ if __name__ == "__main__":
                     "device": "cuda",
                     "steps": 150,
                     "ads_tag": 2,
+                    "batch_size":32,
                     "num_adslab_samples": 32,
                 }
             )
