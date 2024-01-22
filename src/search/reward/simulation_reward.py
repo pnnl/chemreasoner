@@ -282,7 +282,6 @@ class StructureReward(BaseReward):
                         else:
                             raise ValueError(f"Unkown placement type {placement_type}.")
             except Exception as err:
-                raise err
                 logging.warning(
                     f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
                 )
@@ -378,7 +377,7 @@ class StructureReward(BaseReward):
             else:
                 if cand not in reward_values.keys():
                     reward_values[cand] = {ads: []}
-        logging.info(reward_values)
+
 
         # aggregate the rewards
         rewards = []
@@ -386,7 +385,7 @@ class StructureReward(BaseReward):
             if cand in reward_values.keys():
                 adsorption_energies = [[None] * len(p) for p in pathways]
                 for i, path in enumerate(pathways):
-                    logging.info(path)
+
                     for j, ads in enumerate(path):
                         adsorption_energies[i][j] = (
                             min(reward_values[cand][ads])
@@ -595,7 +594,6 @@ if __name__ == "__main__":
             with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
                 f.write(str(end-start))
         except Exception as err:
-            raise err
             with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
                 f.write(format_exc())
 
