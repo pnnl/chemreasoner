@@ -215,7 +215,7 @@ def get_initial_state_methanol(
     else:
         # Do the reaction
         ads_symbols = list(set(
-            [syms for syms_l in computational_pathways_ethanol for syms in syms_l]
+            [syms for syms_l in computational_pathways_methanol for syms in syms_l]
         ))
         qs = ReasonerState(
             template=template,
@@ -274,7 +274,7 @@ def get_initial_state_ethanol(
             reward_template=None,
             ads_symbols=ads_symbols,
             ads_preferences=None,
-            reaction_pathways=computational_pathways_methanol,
+            reaction_pathways=computational_pathways_ethanol,
             catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
             include_list=include_list,
             num_answers=5,
