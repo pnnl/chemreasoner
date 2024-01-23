@@ -23,6 +23,8 @@ from evaluation.break_traj_files import break_trajectory  # noqa: E402
 from nnp import oc  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
 
+import redis
+
 logging.getLogger().setLevel(logging.INFO)
 
 print("finished imports")
@@ -560,6 +562,9 @@ class _TestState:
 
 
 if __name__ == "__main__":
+    redis_db = redis.Redis(host='localhost', port=6379, db=0, protocol=3)
+    redis_db.set("/test/thing", json.dumps({"1":{"2":1,"3":2}, "4":{"2":1,"3":2}}))
+    logging.info(json.loads(redis_db.get("/test/thing")))
     # traj_dir = "random"
     # traj_dir = "heuristic"
 
