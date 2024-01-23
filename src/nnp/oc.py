@@ -485,9 +485,10 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Get the adsorption energy from adslab_name for given idx.
 
         If the calculation has not been done, returns None."""
+       
+        data = self.read_json(self.adsorption_path(adslab_name))
         print(self.adsorption_path(adslab_name))
         print(data)
-        data = self.read_json(self.adsorption_path(adslab_name))
         if data is not None and idx in data.keys() and "adsorption_energy" in data[idx].keys():
             ads_energy = data[idx]["adsorption_energy"]
             return ads_energy
