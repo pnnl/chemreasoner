@@ -381,18 +381,19 @@ class StructureReward(BaseReward):
 
         # aggregate the rewards
         rewards = []
+        adsorption_energies = {}
         for cand in candidates_list:
             if cand in reward_values.keys():
-                adsorption_energies = [[None] * len(p) for p in pathways]
+                adsorption_energies[cand] = [[None] * len(p) for p in pathways]
                 for i, path in enumerate(pathways):
 
                     for j, ads in enumerate(path):
-                        adsorption_energies[i][j] = (
+                        adsorption_energies[cand][i][j] = (
                             min(reward_values[cand][ads])
                             if len(reward_values[cand][ads]) > 0
                             else None
                         )
-                paths_without_none = [p for p in adsorption_energies if None not in p]
+                paths_without_none = [p for p in adsorption_energies[cand] if None not in p]
                 if len(paths_without_none) != 0:
                     reduce_pathways = [max(np.diff(path)) for path in paths_without_none]
                     rewards.append(
