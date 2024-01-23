@@ -593,7 +593,7 @@ if __name__ == "__main__":
             logging.info(end - start)
 
             torch.cuda.empty_cache()
- d
+ 
 
     for model in ["gemnet-t"]:
         logging.info("running second...")
