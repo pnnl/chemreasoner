@@ -593,12 +593,7 @@ if __name__ == "__main__":
             logging.info(end - start)
 
             torch.cuda.empty_cache()
-
-            with open(f"/dev/shm/testing-gnn/{model}", "w") as f:
-                f.write(str(end-start))
-        except Exception as err:
-            with open(f"/dev/shm/testing-gnn/{model}", "w") as f:
-                f.write(format_exc())
+ d
 
     for model in ["gemnet-t"]:
         logging.info("running second...")
@@ -630,12 +625,7 @@ if __name__ == "__main__":
             logging.info(end - start)
 
             torch.cuda.empty_cache()
-
-            with open(f"/dev/shm/testing-gnn/{model}", "w") as f:
-                f.write(str(end-start))
-        except Exception as err:
-            with open(f"/dev/shm/testing-gnn/{model}", "w") as f:
-                f.write(format_exc())
+ 
 
 
     # for p in Path(f"/var/tmp/testing-gnn").rglob("*.traj"):
