@@ -463,7 +463,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         adslab_dir.mkdir(parents=True, exist_ok=True)
         return adslab_dir / "adsorption.json"
 
-    def get_prediction(self, adslab_name, idx) -> Optional[float]:
+    def get_prediction_deprecated(self, adslab_name, idx) -> Optional[float]:
         """Get the adsorption energy from adslab_name for given idx.
 
         If the calculation has not been done, returns None."""
@@ -477,7 +477,19 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         else:
             return None
 
-    def get_validity(self, adslab_name, idx) -> Optional[float]:
+    def get_prediction(self, adslab_name, idx) -> Optional[float]:
+        """Get the adsorption energy from adslab_name for given idx.
+
+        If the calculation has not been done, returns None."""
+        data = self.read_json(self.adsorption_path(adslab_name))
+        if data is not None and idx in data.keys() and "adsorption_energy" in data[idx].keys():
+            ads_energy = data[idx]["adsorption_energy"]
+            return ads_energy
+        else:
+            return None
+
+
+    def get_validity_deprecated(self, adslab_name, idx) -> Optional[float]:
         """Get the adsorption energy from adslab_name for given idx.
 
         If the calculation has not been done, returns None."""
@@ -490,6 +502,18 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 return None
         else:
             return None
+
+    def get_validity(self, adslab_name, idx) -> Optional[float]:
+        """Get the adsorption energy from adslab_name for given idx.
+
+        If the calculation has not been done, returns None."""
+        data = self.read_json(self.adsorption_path(adslab_name))
+        if data is not None and idx in data.keys() and "validity" in data[idx].keys():
+            validity = data[idx]["validity"]
+            return validity
+        else:
+            return None
+
 
     def slab_path(self, slab_name: str) -> Path:
         """Return the path to the slab file for slab_name."""
