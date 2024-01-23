@@ -151,7 +151,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.ase_calc = None
         self.torch_calc = None
 
-        self.redis_db = redis.Redis(host='localhost', port=6379, db=0, protocol=3)
+        self.redis_db = redis.Redis(host='localhost', port=6379, db=0)
 
     @property
     def get_ase_calculator(self):
