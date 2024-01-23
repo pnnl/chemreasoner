@@ -455,7 +455,11 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def read_json(self, fname: Path):
         """Write given data dict to json file with exclusive access."""
-        return json.loads(self.redis_db.get(str(fname)))
+        data = self.redis_db.get(str(fname))
+        if data is not None:
+            return json.loads(self.redis_db.get(str(fname)))
+        else:
+            return None
 
     def prediction_path(self, adslab_name):
         """Return the adsorption path for the given adslab."""
@@ -508,6 +512,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
         If the calculation has not been done, returns None."""
         data = self.read_json(self.adsorption_path(adslab_name))
+        print(data)
         if data is not None and idx in data.keys() and "validity" in data[idx].keys():
             validity = data[idx]["validity"]
             return validity
