@@ -563,7 +563,7 @@ class _TestState:
 
 
 if __name__ == "__main__":
-    redis_db = redis.Redis(host='localhost', port=6379, db=0, protocol=3)
+    redis_db = redis.Redis(host='localhost', port=6379, db=0)
     redis_db.set("/test/thing", "chemreasoner")
     logging.info(json.loads(redis_db.get("/test/thing")))
     # traj_dir = "random"
