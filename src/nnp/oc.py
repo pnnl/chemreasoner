@@ -32,6 +32,8 @@ from torch_geometric.data import Batch
 
 from .base_nnp import BaseAdsorptionCalculator
 
+import redis
+
 
 class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     """Class to calculate adsorption energies. Follows Open Catalyst Porject methods."""
