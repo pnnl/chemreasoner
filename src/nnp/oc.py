@@ -149,6 +149,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.ase_calc = None
         self.torch_calc = None
 
+        self.redis_db = redis.Redis(host='localhost', port=6379, db=0, protocol=3)
+
     @property
     def get_ase_calculator(self):
         """Return an ase calculator for self.
@@ -417,33 +419,41 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Copy the atoms in a list and return the copy."""
         return [ats.copy() for ats in atoms_list]
 
-    @staticmethod
-    def write_json(fname: Path, data_dict: dict):
+    # @staticmethod
+    # def write_json_deprecated(fname: Path, data_dict: dict):
+    #     """Write given data dict to json file with exclusive access."""
+    #     written = False
+    #     while not written:
+    #         try:
+    #             with open(str(fname) + "-lock", "x") as f:
+    #                 try:
+    #                     if fname.exists():
+    #                         with open(fname, "r") as f:
+    #                             file_data = json.load(f)
+    #                     else:
+    #                         file_data = {}
+
+    #                     data_dict.update(
+    #                         file_data
+    #                     )  # Update with runs that have finished
+    #                     with open(fname, "w") as f:
+    #                         json.dump(data_dict, f)
+
+    #                 except BaseException as err:
+    #                     Path(str(fname) + "-lock").unlink()
+    #                     raise err
+    #             Path(str(fname) + "-lock").unlink()
+    #             written = True
+    #         except FileExistsError:
+    #             pass
+
+    def write_json(self, fname: Path, data_dict: dict):
         """Write given data dict to json file with exclusive access."""
-        written = False
-        while not written:
-            try:
-                with open(str(fname) + "-lock", "x") as f:
-                    try:
-                        if fname.exists():
-                            with open(fname, "r") as f:
-                                file_data = json.load(f)
-                        else:
-                            file_data = {}
+        self.redis_db.set(str(fname), json.dumps(data_dict))
 
-                        data_dict.update(
-                            file_data
-                        )  # Update with runs that have finished
-                        with open(fname, "w") as f:
-                            json.dump(data_dict, f)
-
-                    except BaseException as err:
-                        Path(str(fname) + "-lock").unlink()
-                        raise err
-                Path(str(fname) + "-lock").unlink()
-                written = True
-            except FileExistsError:
-                pass
+    def read_json(self, fname: Path):
+        """Write given data dict to json file with exclusive access."""
+        return json.loads(self.redis_db.get(str(fname)))
 
     def prediction_path(self, adslab_name):
         """Return the adsorption path for the given adslab."""
@@ -456,11 +466,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
         If the calculation has not been done, returns None."""
         if self.adsorption_path(adslab_name).exists():
-            with open(
-                self.adsorption_path(adslab_name),
-                "r",
-            ) as f:
-                data = json.load(f)
+            data = self.read_json(self.adsorption_path(adslab_name))
             if idx in data.keys() and "adsorption_energy" in data[idx].keys():
                 ads_energy = data[idx]["adsorption_energy"]
                 return ads_energy
@@ -474,11 +480,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
         If the calculation has not been done, returns None."""
         if self.adsorption_path(adslab_name).exists():
-            with open(
-                self.adsorption_path(adslab_name),
-                "r",
-            ) as f:
-                data = json.load(f)
+            data = self.read_json(self.adsorption_path(adslab_name))
             if idx in data.keys() and "validity" in data[idx].keys():
                 validity = data[idx]["validity"]
                 return validity
