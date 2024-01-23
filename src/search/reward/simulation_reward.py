@@ -563,45 +563,83 @@ if __name__ == "__main__":
     # traj_dir = "random"
     # traj_dir = "heuristic"
 
-    for model in ["gemnet-oc-large", "gemnet-t", "escn","eq2",]:
+    for model in ["gemnet-t"]:
+        logging.info("running first...")
         try:
             start = time.time()
             sr = StructureReward(
                 **{
                     "llm_function": None,
                     "model": model,
-                    "traj_dir": Path(f"/var/tmp/testing-gnn/{model}"),
+                    "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
                     "device": "cuda",
-                    "steps": 150,
+                    "steps": 64,
                     "ads_tag": 2,
-                    "batch_size":32,
-                    "num_adslab_samples": 32,
+                    "batch_size":40,
+                    "num_adslab_samples": 16,
                 }
             )
 
             print(
                 sr.create_structures_and_calculate(
-                    [["Cu"], ["Zn"], ["Cu", "Zn"]],
-                    ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
-                    ["Cu", "Zn", "CuZn"],
+                    [["Cu"], ["Zn"]],
+                    ["CO2", "*CO"],
+                    ["Cu", "Zn"],
                     placement_type=None,
                 )
             )
 
             end = time.time()
-            print(end - start)
+            logging.info(end - start)
 
             torch.cuda.empty_cache()
 
-            with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
+            with open(f"/dev/shm/testing-gnn/{model}", "w") as f:
                 f.write(str(end-start))
         except Exception as err:
-            with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
+            with open(f"/dev/shm/testing-gnn/{model}", "w") as f:
+                f.write(format_exc())
+
+    for model in ["gemnet-t"]:
+        logging.info("running second...")
+        try:
+            start = time.time()
+            sr = StructureReward(
+                **{
+                    "llm_function": None,
+                    "model": model,
+                    "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
+                    "device": "cuda",
+                    "steps": 64,
+                    "ads_tag": 2,
+                    "batch_size":40,
+                    "num_adslab_samples": 16,
+                }
+            )
+
+            print(
+                sr.create_structures_and_calculate(
+                    [["Cu"], ["Zn"]],
+                    ["CO2", "*CO"],
+                    ["Cu", "Zn"],
+                    placement_type=None,
+                )
+            )
+
+            end = time.time()
+            logging.info(end - start)
+
+            torch.cuda.empty_cache()
+
+            with open(f"/dev/shm/testing-gnn/{model}", "w") as f:
+                f.write(str(end-start))
+        except Exception as err:
+            with open(f"/dev/shm/testing-gnn/{model}", "w") as f:
                 f.write(format_exc())
 
 
-    for p in Path(f"/var/tmp/testing-gnn").rglob("*.traj"):
-        break_trajectory(p)
+    # for p in Path(f"/var/tmp/testing-gnn").rglob("*.traj"):
+    #     break_trajectory(p)
 
 
 # model weights have to placed in data/model_weights
