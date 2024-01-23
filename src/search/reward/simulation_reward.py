@@ -1,4 +1,5 @@
 """Module for reward funciton by calculation of adsorption energies in simulation."""
+import json
 import logging
 import sys
 import time
