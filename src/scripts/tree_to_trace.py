@@ -55,7 +55,7 @@ for p in processed_dir.rglob("*.json"):
         [graph.nodes(data=True)[i]["node_rewards"] if get_max_adsorption_energies(graph.nodes(data=True)[i]) < max_reward else -np.inf for i in range(len(graph.nodes))]
     )
     print([graph.nodes(data=True)[i]["node_rewards"] for i in range(len(graph.nodes))][max_idx])
-    filtered_list = [(i, get_max_adsorption_energies(graph.nodes(data=True)[i])) for i in range(len(graph.nodes)) if get_max_adsorption_energies(graph.nodes(data=True)[i]) < max_reward]
+    filtered_list = [(i, get_max_adsorption_energies(graph.nodes(data=True)[i])) for i in range(len(graph.nodes)) if get_max_adsorption_energies(graph.nodes(data=True)[i]) > max_reward]
     
     if len(filtered_list) > 0:
         print(f"\nFiltered out nodes: {filtered_list}\n")
