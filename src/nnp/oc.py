@@ -551,6 +551,12 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Get the slab configuration for the given slab_name.
 
         If the calculation has not been done, returns None."""
+        data = self.redis_db.get(str(self.slab_path(slab_name)))
+        if data is not None:
+            return pickle.loads(data)
+        else:
+            return None
+
         if self.slab_path(slab_name).exists():
             with open(self.slab_path(slab_name), "rb") as f:
                 return pickle.load(f)
@@ -582,8 +588,11 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     def save_slab(self, slab_name: str, slab: Path, slab_samples=None):
         """Save the given slab."""
         try:
+            
             with open(self.slab_path(slab_name), "xb") as f:
                 pickle.dump(slab, f)
+            self.redis_db.set(str(self.slab_path(slab_name)), pickle.dumps(slab))
+
             if slab_samples is not None:
                 with open(self.slab_samples_path(slab_name), "xb") as f:
                     pickle.dump(slab_samples, f)

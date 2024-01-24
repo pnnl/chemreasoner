@@ -1,5 +1,6 @@
 """Save all adsorption energy results into a db."""
 import json
+import pickle
 
 from pathlib import Path
 from tqdm import tqdm
@@ -15,9 +16,9 @@ for p in tqdm(Path("/qfs/projects/aqe_tec4/catalysis/chemreasoner/").rglob("*/ad
 
     redis_db.set(str(p), json.dumps(data))
 
-for p in tqdm(Path("/qfs/projects/aqe_tec4/catalysis/chemreasoner/").rglob("*/adsorption.json")):
+for p in tqdm(Path("/qfs/projects/aqe_tec4/catalysis/chemreasoner/", "slabs").rglob("*.pkl")):
     
-    with open(str(p), "r") as f:
-        data = json.load(f)
+    with open(str(p), "rb") as f:
+        data = pickle.load(f)
 
-    redis_db.set(str(p), json.dumps(data))
+    redis_db.set(str(p), pickle.dumps(data))

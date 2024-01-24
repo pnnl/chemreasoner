@@ -425,10 +425,6 @@ class StructureReward(BaseReward):
         fname_batch = []
         for idx, name, adslab in adslabs:
             fname = Path(f"{name}") / f"{idx}"
-            (self.adsorption_calculator.traj_dir / fname).parent.mkdir(
-                parents=True, exist_ok=True
-            )
-
             idx = str(fname.stem)
             name = str(fname.parent)
 
@@ -440,6 +436,9 @@ class StructureReward(BaseReward):
             else:
                 adslab_batch.append(adslab)
                 fname_batch.append(str(fname) + f"-{uuid.uuid4()}")
+                (self.adsorption_calculator.traj_dir / fname).parent.mkdir(
+                    parents=True, exist_ok=True
+                )
 
             # dispatch the batch
             if len(adslab_batch) == self.adsorption_calculator.batch_size:
