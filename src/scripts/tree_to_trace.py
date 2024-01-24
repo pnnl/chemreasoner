@@ -39,6 +39,9 @@ for p in processed_dir.rglob("*.json"):
     )
     print([graph.nodes(data=True)[i]["node_rewards"] for i in range(len(graph.nodes))][max_idx])
     filtered_list = [(i, graph.nodes(data=True)[i]["node_rewards"]) for i in range(len(graph.nodes)) if graph.nodes(data=True)[i]["node_rewards"] < max_reward ]
+    
+    if len(filtered_list) > 0:
+        print(f"\nFiltered out nodes: {filtered_list}\n")
 
     sp = nx.all_simple_paths(graph, 0, max_idx)
     output_nodes = []
