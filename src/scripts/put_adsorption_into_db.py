@@ -16,7 +16,7 @@ for p in tqdm(Path("/qfs/projects/aqe_tec4/catalysis/chemreasoner/").rglob("*/ad
 
     redis_db.set(str(p), json.dumps(data))
 
-for p in tqdm(Path("/qfs/projects/aqe_tec4/catalysis/chemreasoner/", "slabs").rglob("*.pkl")):
+for p in tqdm(Path("/qfs/projects/aqe_tec4/catalysis/chemreasoner/catalysis", "slabs").rglob("*.pkl")):
     
     with open(str(p), "rb") as f:
         data = pickle.load(f)
