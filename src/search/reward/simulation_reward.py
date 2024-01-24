@@ -24,7 +24,7 @@ from evaluation.break_traj_files import break_trajectory  # noqa: E402
 from nnp import oc  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
 
-import redis
+#import redis
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -553,74 +553,75 @@ class _TestState:
 
 
 if __name__ == "__main__":
-    redis_db = redis.Redis(host='localhost', port=6379, db=0)
-    redis_db.set("/test/thing", "chemreasoner")
-    logging.info(redis_db.get("/test/thing"))
-    # traj_dir = "random"
-    # traj_dir = "heuristic"
+    pass
+    #redis_db = redis.Redis(host='localhost', port=6379, db=0)
+    # redis_db.set("/test/thing", "chemreasoner")
+    # logging.info(redis_db.get("/test/thing"))
+    # # traj_dir = "random"
+    # # traj_dir = "heuristic"
 
-    for model in ["gemnet-t"]:
-        logging.info("running first...")
+    # for model in ["gemnet-t"]:
+    #     logging.info("running first...")
 
-        start = time.time()
-        sr = StructureReward(
-            **{
-                "llm_function": None,
-                "model": model,
-                "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
-                "device": "cuda",
-                "steps": 64,
-                "ads_tag": 2,
-                "batch_size":40,
-                "num_adslab_samples": 16,
-            }
-        )
+    #     start = time.time()
+    #     sr = StructureReward(
+    #         **{
+    #             "llm_function": None,
+    #             "model": model,
+    #             "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
+    #             "device": "cuda",
+    #             "steps": 64,
+    #             "ads_tag": 2,
+    #             "batch_size":40,
+    #             "num_adslab_samples": 16,
+    #         }
+    #     )
 
-        print(
-            sr.create_structures_and_calculate(
-                [["Cu"], ["Zn"]],
-                ["CO2", "*CO"],
-                ["Cu", "Zn"],
-                placement_type=None,
-            )
-        )
+    #     print(
+    #         sr.create_structures_and_calculate(
+    #             [["Cu"], ["Zn"]],
+    #             ["CO2", "*CO"],
+    #             ["Cu", "Zn"],
+    #             placement_type=None,
+    #         )
+    #     )
 
-        end = time.time()
-        logging.info(end - start)
+    #     end = time.time()
+    #     logging.info(end - start)
 
-        torch.cuda.empty_cache()
+    #     torch.cuda.empty_cache()
  
 
-    for model in ["gemnet-t"]:
-        logging.info("running second...")
+    # for model in ["gemnet-t"]:
+    #     logging.info("running second...")
        
-        start = time.time()
-        sr = StructureReward(
-            **{
-                "llm_function": None,
-                "model": model,
-                "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
-                "device": "cuda",
-                "steps": 64,
-                "ads_tag": 2,
-                "batch_size":40,
-                "num_adslab_samples": 16,
-            }
-        )
+    #     start = time.time()
+    #     sr = StructureReward(
+    #         **{
+    #             "llm_function": None,
+    #             "model": model,
+    #             "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
+    #             "device": "cuda",
+    #             "steps": 64,
+    #             "ads_tag": 2,
+    #             "batch_size":40,
+    #             "num_adslab_samples": 16,
+    #         }
+    #     )
 
-        print(
-            sr.create_structures_and_calculate(
-                [["Cu"], ["Zn"]],
-                ["CO2", "*CO"],
-                ["Cu", "Zn"],
-                placement_type=None,
-            )
-        )
+    #     print(
+    #         sr.create_structures_and_calculate(
+    #             [["Cu"], ["Zn"]],
+    #             ["CO2", "*CO"],
+    #             ["Cu", "Zn"],
+    #             placement_type=None,
+    #         )
+    #     )
 
-        end = time.time()
-        logging.info(end - start)
+    #     end = time.time()
+    #     logging.info(end - start)
 
-        torch.cuda.empty_cache()
+    #     torch.cuda.empty_cache()
  
 
 
