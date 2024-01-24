@@ -458,6 +458,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         else:
             data.update(data_dict)
             self.redis_db.set(str(fname), json.dumps(data))
+        
+        with open(fname, "w") as f:
+            json.dump(data, f)
 
     def read_json(self, fname: Path):
         """Write given data dict to json file with exclusive access."""
