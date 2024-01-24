@@ -100,7 +100,7 @@ class ReasonerState:
             embeddings=data.get("embeddings", {}).copy(),
             num_queries=data.get("num_queries", 0),
             query_time=data.get("query_time", 0.0),
-            info=deepcopy(data.get("self.info", {})),
+            info=deepcopy(data.get("info", {})),
             reward=data.get("reward", None),
             root_prompt=data.get("root_prompt", None),
             debug=data.get("debug", False),
