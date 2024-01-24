@@ -32,6 +32,8 @@ from torch_geometric.data import Batch
 
 from .base_nnp import BaseAdsorptionCalculator
 
+import redis
+
 
 class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     """Class to calculate adsorption energies. Follows Open Catalyst Porject methods."""
@@ -148,6 +150,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
         self.ase_calc = None
         self.torch_calc = None
+
+        self.redis_db = redis.Redis(host='localhost', port=6379, db=1)
 
     @property
     def get_ase_calculator(self):
@@ -417,33 +421,54 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Copy the atoms in a list and return the copy."""
         return [ats.copy() for ats in atoms_list]
 
-    @staticmethod
-    def write_json(fname: Path, data_dict: dict):
+    # @staticmethod
+    # def write_json_deprecated(fname: Path, data_dict: dict):
+    #     """Write given data dict to json file with exclusive access."""
+    #     written = False
+    #     while not written:
+    #         try:
+    #             with open(str(fname) + "-lock", "x") as f:
+    #                 try:
+    #                     if fname.exists():
+    #                         with open(fname, "r") as f:
+    #                             file_data = json.load(f)
+    #                     else:
+    #                         file_data = {}
+
+    #                     data_dict.update(
+    #                         file_data
+    #                     )  # Update with runs that have finished
+    #                     with open(fname, "w") as f:
+    #                         json.dump(data_dict, f)
+
+    #                 except BaseException as err:
+    #                     Path(str(fname) + "-lock").unlink()
+    #                     raise err
+    #             Path(str(fname) + "-lock").unlink()
+    #             written = True
+    #         except FileExistsError:
+    #             pass
+
+    def write_json(self, fname: Path, data_dict: dict):
         """Write given data dict to json file with exclusive access."""
-        written = False
-        while not written:
-            try:
-                with open(str(fname) + "-lock", "x") as f:
-                    try:
-                        if fname.exists():
-                            with open(fname, "r") as f:
-                                file_data = json.load(f)
-                        else:
-                            file_data = {}
+        data = self.read_json(fname)
 
-                        data_dict.update(
-                            file_data
-                        )  # Update with runs that have finished
-                        with open(fname, "w") as f:
-                            json.dump(data_dict, f)
+        if data is None:
+            self.redis_db.set(str(fname), json.dumps(data_dict))
+        else:
+            data.update(data_dict)
+            self.redis_db.set(str(fname), json.dumps(data))
+        
+        with open(fname, "w") as f:
+            json.dump(data, f)
 
-                    except BaseException as err:
-                        Path(str(fname) + "-lock").unlink()
-                        raise err
-                Path(str(fname) + "-lock").unlink()
-                written = True
-            except FileExistsError:
-                pass
+    def read_json(self, fname: Path):
+        """Write given data dict to json file with exclusive access."""
+        data = self.redis_db.get(str(fname))
+        if data is not None:
+            return json.loads(self.redis_db.get(str(fname)))
+        else:
+            return None
 
     def prediction_path(self, adslab_name):
         """Return the adsorption path for the given adslab."""
@@ -451,19 +476,44 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         adslab_dir.mkdir(parents=True, exist_ok=True)
         return adslab_dir / "adsorption.json"
 
-    def get_prediction(self, adslab_name, idx) -> Optional[float]:
+    def get_prediction_deprecated(self, adslab_name, idx) -> Optional[float]:
         """Get the adsorption energy from adslab_name for given idx.
 
         If the calculation has not been done, returns None."""
         if self.adsorption_path(adslab_name).exists():
-            with open(
-                self.adsorption_path(adslab_name),
-                "r",
-            ) as f:
-                data = json.load(f)
+            data = self.read_json(self.adsorption_path(adslab_name))
             if idx in data.keys() and "adsorption_energy" in data[idx].keys():
                 ads_energy = data[idx]["adsorption_energy"]
                 return ads_energy
+            else:
+                return None
+        else:
+            return None
+
+    def get_prediction(self, adslab_name, idx) -> Optional[float]:
+        """Get the adsorption energy from adslab_name for given idx.
+
+        If the calculation has not been done, returns None."""
+       
+        data = self.read_json(self.adsorption_path(adslab_name))
+        print(self.adsorption_path(adslab_name))
+        print(data)
+        if data is not None and idx in data.keys() and "adsorption_energy" in data[idx].keys():
+            ads_energy = data[idx]["adsorption_energy"]
+            return ads_energy
+        else:
+            return None
+
+
+    def get_validity_deprecated(self, adslab_name, idx) -> Optional[float]:
+        """Get the adsorption energy from adslab_name for given idx.
+
+        If the calculation has not been done, returns None."""
+        if self.adsorption_path(adslab_name).exists():
+            data = self.read_json(self.adsorption_path(adslab_name))
+            if idx in data.keys() and "validity" in data[idx].keys():
+                validity = data[idx]["validity"]
+                return validity
             else:
                 return None
         else:
@@ -473,19 +523,15 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Get the adsorption energy from adslab_name for given idx.
 
         If the calculation has not been done, returns None."""
-        if self.adsorption_path(adslab_name).exists():
-            with open(
-                self.adsorption_path(adslab_name),
-                "r",
-            ) as f:
-                data = json.load(f)
-            if idx in data.keys() and "validity" in data[idx].keys():
-                validity = data[idx]["validity"]
-                return validity
-            else:
-                return None
+        data = self.read_json(self.adsorption_path(adslab_name))
+        print(self.adsorption_path(adslab_name))
+        print(data)
+        if data is not None and idx in data.keys() and "validity" in data[idx].keys():
+            validity = data[idx]["validity"]
+            return validity
         else:
             return None
+
 
     def slab_path(self, slab_name: str) -> Path:
         """Return the path to the slab file for slab_name."""
@@ -503,6 +549,12 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Get the slab configuration for the given slab_name.
 
         If the calculation has not been done, returns None."""
+        data = self.redis_db.get(str(self.slab_path(slab_name)))
+        if data is not None:
+            return pickle.loads(data)
+        else:
+            return None
+
         if self.slab_path(slab_name).exists():
             with open(self.slab_path(slab_name), "rb") as f:
                 return pickle.load(f)
@@ -534,8 +586,11 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     def save_slab(self, slab_name: str, slab: Path, slab_samples=None):
         """Save the given slab."""
         try:
+            
             with open(self.slab_path(slab_name), "xb") as f:
                 pickle.dump(slab, f)
+            self.redis_db.set(str(self.slab_path(slab_name)), pickle.dumps(slab))
+
             if slab_samples is not None:
                 with open(self.slab_samples_path(slab_name), "xb") as f:
                     pickle.dump(slab_samples, f)

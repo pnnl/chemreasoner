@@ -1,4 +1,5 @@
 """Module for reward funciton by calculation of adsorption energies in simulation."""
+import json
 import logging
 import sys
 import time
@@ -22,6 +23,8 @@ from search.state.reasoner_state import ReasonerState  # noqa: E402
 from evaluation.break_traj_files import break_trajectory  # noqa: E402
 from nnp import oc  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
+
+#import redis
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -230,6 +233,7 @@ class StructureReward(BaseReward):
             {}
         )  # dictionary to get from database names to candidates
         for i, slab_sym in enumerate(slab_syms):
+            logging.info(slab_sym)
             try:
                 if slab_sym is not None:
                     valid_slab_sym = True
@@ -381,18 +385,19 @@ class StructureReward(BaseReward):
 
         # aggregate the rewards
         rewards = []
+        adsorption_energies = {}
         for cand in candidates_list:
             if cand in reward_values.keys():
-                adsorption_energies = [[None] * len(p) for p in pathways]
+                adsorption_energies[cand] = [[None] * len(p) for p in pathways]
                 for i, path in enumerate(pathways):
 
                     for j, ads in enumerate(path):
-                        adsorption_energies[i][j] = (
+                        adsorption_energies[cand][i][j] = (
                             min(reward_values[cand][ads])
                             if len(reward_values[cand][ads]) > 0
                             else None
                         )
-                paths_without_none = [p for p in adsorption_energies if None not in p]
+                paths_without_none = [p for p in adsorption_energies[cand] if None not in p]
                 if len(paths_without_none) != 0:
                     reduce_pathways = [max(np.diff(path)) for path in paths_without_none]
                     rewards.append(
@@ -420,31 +425,20 @@ class StructureReward(BaseReward):
         fname_batch = []
         for idx, name, adslab in adslabs:
             fname = Path(f"{name}") / f"{idx}"
-            (self.adsorption_calculator.traj_dir / fname).parent.mkdir(
-                parents=True, exist_ok=True
-            )
-            if (
-                len(
-                    list(
-                        self.adsorption_calculator.traj_dir.rglob(str(fname) + "*.traj")
-                    )
-                )
-                == 0
-            ):
+            idx = str(fname.stem)
+            name = str(fname.parent)
+
+            # Get pre calculated values if they exists. Otherwise, create batch
+            ads_calc = self.adsorption_calculator.get_prediction(name, idx)
+            if ads_calc is not None:
+                valid = self.adsorption_calculator.get_validity(name, idx)
+                results.append((idx, name, ads_calc, valid))
+            else:
                 adslab_batch.append(adslab)
                 fname_batch.append(str(fname) + f"-{uuid.uuid4()}")
-            else:
-                idx = str(fname.stem)
-                name = str(fname.parent)
-
-                # Get pre calculated values if they exists. Otherwise, create batch
-                ads_calc = self.adsorption_calculator.get_prediction(name, idx)
-                if ads_calc is not None:
-                    valid = self.adsorption_calculator.get_validity(name, idx)
-                    results.append((idx, name, ads_calc, valid))
-                else:
-                    adslab_batch.append(adslab)
-                    fname_batch.append(str(fname) + f"-{uuid.uuid4()}")
+                (self.adsorption_calculator.traj_dir / fname).parent.mkdir(
+                    parents=True, exist_ok=True
+                )
 
             # dispatch the batch
             if len(adslab_batch) == self.adsorption_calculator.batch_size:
@@ -559,48 +553,80 @@ class _TestState:
 
 
 if __name__ == "__main__":
-    # traj_dir = "random"
-    # traj_dir = "heuristic"
+    pass
+    #redis_db = redis.Redis(host='localhost', port=6379, db=0)
+    # redis_db.set("/test/thing", "chemreasoner")
+    # logging.info(redis_db.get("/test/thing"))
+    # # traj_dir = "random"
+    # # traj_dir = "heuristic"
 
-    for model in ["gemnet-oc-large", "gemnet-t", "escn","eq2",]:
-        try:
-            start = time.time()
-            sr = StructureReward(
-                **{
-                    "llm_function": None,
-                    "model": model,
-                    "traj_dir": Path(f"/var/tmp/testing-gnn/{model}"),
-                    "device": "cuda",
-                    "steps": 150,
-                    "ads_tag": 2,
-                    "batch_size":32,
-                    "num_adslab_samples": 32,
-                }
-            )
+    # for model in ["gemnet-t"]:
+    #     logging.info("running first...")
 
-            print(
-                sr.create_structures_and_calculate(
-                    [["Cu"], ["Zn"], ["Cu", "Zn"]],
-                    ["CO2", "*CO", "*COOH", "*CHOH", "*OCH2CH3"],
-                    ["Cu", "Zn", "CuZn"],
-                    placement_type=None,
-                )
-            )
+    #     start = time.time()
+    #     sr = StructureReward(
+    #         **{
+    #             "llm_function": None,
+    #             "model": model,
+    #             "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
+    #             "device": "cuda",
+    #             "steps": 64,
+    #             "ads_tag": 2,
+    #             "batch_size":40,
+    #             "num_adslab_samples": 16,
+    #         }
+    #     )
 
-            end = time.time()
-            print(end - start)
+    #     print(
+    #         sr.create_structures_and_calculate(
+    #             [["Cu"], ["Zn"]],
+    #             ["CO2", "*CO"],
+    #             ["Cu", "Zn"],
+    #             placement_type=None,
+    #         )
+    #     )
 
-            torch.cuda.empty_cache()
+    #     end = time.time()
+    #     logging.info(end - start)
 
-            with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
-                f.write(str(end-start))
-        except Exception as err:
-            with open(f"/var/tmp/testing-gnn/{model}/timing.txt", "w") as f:
-                f.write(format_exc())
+    #     torch.cuda.empty_cache()
+ 
+
+    # for model in ["gemnet-t"]:
+    #     logging.info("running second...")
+       
+    #     start = time.time()
+    #     sr = StructureReward(
+    #         **{
+    #             "llm_function": None,
+    #             "model": model,
+    #             "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
+    #             "device": "cuda",
+    #             "steps": 64,
+    #             "ads_tag": 2,
+    #             "batch_size":40,
+    #             "num_adslab_samples": 16,
+    #         }
+    #     )
+
+    #     print(
+    #         sr.create_structures_and_calculate(
+    #             [["Cu"], ["Zn"]],
+    #             ["CO2", "*CO"],
+    #             ["Cu", "Zn"],
+    #             placement_type=None,
+    #         )
+    #     )
+
+    #     end = time.time()
+    #     logging.info(end - start)
+
+    #     torch.cuda.empty_cache()
+ 
 
 
-    for p in Path(f"/var/tmp/testing-gnn").rglob("*.traj"):
-        break_trajectory(p)
+    # for p in Path(f"/var/tmp/testing-gnn").rglob("*.traj"):
+    #     break_trajectory(p)
 
 
 # model weights have to placed in data/model_weights

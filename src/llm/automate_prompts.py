@@ -199,36 +199,37 @@ def get_initial_state_methanol(
             preference = -1 if possible_ads == "methanol" else 1
             ads_preference.append(preference)
 
-    if len(ads_symbols) != 0:
-        qs = ReasonerState(
-            template=template,
-            reward_template=None,
-            ads_symbols=ads_symbols,
-            ads_preferences=ads_preference,
-            catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
-            include_list=include_list,
-            num_answers=5,
-            prediction_model=prediction_model,
-            reward_model=reward_model,
-        )
     # If there are no adsorbates in the prompt...
-    else:
-        # Do the reaction
+    if len(ads_symbols) == 0:
         ads_symbols = list(set(
             [syms for syms_l in computational_pathways_methanol for syms in syms_l]
         ))
+        
         qs = ReasonerState(
             template=template,
             reward_template=None,
             ads_symbols=ads_symbols,
             ads_preferences=None,
-            pathways=computational_pathways_methanol,
+            reaction_pathways=computational_pathways_methanol,
             catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
             include_list=include_list,
             num_answers=5,
             prediction_model=prediction_model,
             reward_model=reward_model,
         )
+    else:
+        qs = ReasonerState(
+            template=template,
+            reward_template=None,
+            ads_symbols=ads_symbols,
+            catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
+            ads_preferences=ads_preference,
+            include_list=include_list,
+            num_answers=5,
+            prediction_model=prediction_model,
+            reward_model=reward_model,
+        )
+    logging.info(vars(qs))
     return qs
 
 
