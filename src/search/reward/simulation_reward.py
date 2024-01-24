@@ -428,28 +428,18 @@ class StructureReward(BaseReward):
             (self.adsorption_calculator.traj_dir / fname).parent.mkdir(
                 parents=True, exist_ok=True
             )
-            if (
-                len(
-                    list(
-                        self.adsorption_calculator.traj_dir.rglob(str(fname) + "*.traj")
-                    )
-                )
-                == 0
-            ):
+
+            idx = str(fname.stem)
+            name = str(fname.parent)
+
+            # Get pre calculated values if they exists. Otherwise, create batch
+            ads_calc = self.adsorption_calculator.get_prediction(name, idx)
+            if ads_calc is not None:
+                valid = self.adsorption_calculator.get_validity(name, idx)
+                results.append((idx, name, ads_calc, valid))
+            else:
                 adslab_batch.append(adslab)
                 fname_batch.append(str(fname) + f"-{uuid.uuid4()}")
-            else:
-                idx = str(fname.stem)
-                name = str(fname.parent)
-
-                # Get pre calculated values if they exists. Otherwise, create batch
-                ads_calc = self.adsorption_calculator.get_prediction(name, idx)
-                if ads_calc is not None:
-                    valid = self.adsorption_calculator.get_validity(name, idx)
-                    results.append((idx, name, ads_calc, valid))
-                else:
-                    adslab_batch.append(adslab)
-                    fname_batch.append(str(fname) + f"-{uuid.uuid4()}")
 
             # dispatch the batch
             if len(adslab_batch) == self.adsorption_calculator.batch_size:

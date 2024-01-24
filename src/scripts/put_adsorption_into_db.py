@@ -14,3 +14,10 @@ for p in tqdm(Path("/qfs/projects/aqe_tec4/catalysis/chemreasoner/").rglob("*/ad
         data = json.load(f)
 
     redis_db.set(str(p), json.dumps(data))
+
+for p in tqdm(Path("/qfs/projects/aqe_tec4/catalysis/chemreasoner/").rglob("*/adsorption.json")):
+    
+    with open(str(p), "r") as f:
+        data = json.load(f)
+
+    redis_db.set(str(p), json.dumps(data))
