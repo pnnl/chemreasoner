@@ -233,6 +233,7 @@ class StructureReward(BaseReward):
             {}
         )  # dictionary to get from database names to candidates
         for i, slab_sym in enumerate(slab_syms):
+            logging.info(slab_sym)
             try:
                 if slab_sym is not None:
                     valid_slab_sym = True
