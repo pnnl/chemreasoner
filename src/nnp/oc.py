@@ -451,7 +451,11 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def write_json(self, fname: Path, data_dict: dict):
         """Write given data dict to json file with exclusive access."""
+        print(data_dict)
+        print("===")
+
         data = self.read_json(fname)
+        print(data)
         if data is None:
             self.redis_db.set(str(fname), json.dumps(data_dict))
         else:
