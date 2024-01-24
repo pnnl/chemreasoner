@@ -460,6 +460,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             self.redis_db.set(str(fname), json.dumps(data_dict))
         else:
             data.update(data_dict)
+            print("++++")
+            print(data)
             self.redis_db.set(str(fname), json.dumps(data_dict))
 
     def read_json(self, fname: Path):
