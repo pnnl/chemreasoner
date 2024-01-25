@@ -117,7 +117,7 @@ class LlamaLLM:
 
 if __name__ == "__main__":
     llm = LlamaLLM(
-        "/qfs/projects/va_aprx/",
+        "meta-llama/Llama-2-13b-chat-hf",
         num_gpus=1,
     )
     llm("test1", "test2")
