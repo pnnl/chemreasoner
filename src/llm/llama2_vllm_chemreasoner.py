@@ -16,7 +16,7 @@ def init_llama(
     model_dir="meta-llama/Llama-2-13b-chat-hf", num_gpus=1, **kwargs_sampling_params
 ):
     """Use vllm's interface to load large models over multiple GPU's"""
-    # login('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')
+    login("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")
     sampling_params = SamplingParams(temperature=0.8, top_p=0.95)
     llm = LLM(
         model=model_dir,
