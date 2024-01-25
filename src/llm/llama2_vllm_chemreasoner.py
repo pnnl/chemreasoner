@@ -85,16 +85,12 @@ class LlamaLLM:
         """Run the llama generation on the given processed prompts."""
 
         answers = []
-        for i in range(0, len(processed_prompts)):
-            logging.info(f"Running prompts {i}, to {i+1}")
-            batch_prompts = [
-                self.generate_prompt(x)
-                for x in processed_prompts[i : i + batch_size]  # noqa
-            ]
-            answers = self.llm.generate(batch_prompts, sampling_params)
-            for output in answers:
-                generated_text = output.outputs[0].text
-                answers.append(generated_text)
+
+        batch_prompts = [self.generate_prompt(x) for x in processed_prompts]
+        answers = self.llm.generate(batch_prompts, sampling_params)
+        for output in answers:
+            generated_text = output.outputs[0].text
+            answers.append(generated_text)
 
     def process_prompt(self, prompt: str, system_prompt: str = None):
         """Put the prompt and system prompt together."""
