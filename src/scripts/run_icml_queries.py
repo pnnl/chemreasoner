@@ -156,6 +156,14 @@ def get_state_from_idx(idx, df: pd.DataFrame):
     return reasoner_data_loader.get_state(dataset, query, chain_of_thought=True)
 
 
+def get_llm_function(args):
+    """Get the llm function specified by args."""
+    assert isinstance(args.dotenv_path, str)
+    assert isinstance(args.llm, str)
+    llm_function = AzureOpenaiInterface(args.dotenv_path, model=args.llm)
+    return llm_function
+
+
 def get_indeces(args):
     """Get the state indeces provided in args."""
     assert isinstance(args.start_query, int) and args.start_query >= 0
@@ -172,7 +180,8 @@ if __name__ == "__main__":
     parser.add_argument("--end-query", type=int)
     parser.add_argument("--depth", type=int, default=None)
     parser.add_argument("--opt-debug", type=bool, default=False)
-    parser.add_argument("--dotenv-path", type=str, default=False)
+    parser.add_argument("--dotenv-path", type=str, default=None)
+    parser.add_argument("--llm", type=str, default=None)
 
     # Policy
     parser.add_argument("--policy", type=str, default=None)
@@ -211,12 +220,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     assert isinstance(args.depth, int) and args.depth > 0
-    assert isinstance(args.dotenv_path, str)
+    
     start = time.time()
     save_dir = Path(args.savedir)
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    llm_function = AzureOpenaiInterface(args.dotenv_path)
+    llm_function = get_llm_function(args)
 
     df = pd.read_csv(args.dataset_path)
     indeces = get_indeces(args)
