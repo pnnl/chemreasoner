@@ -20,10 +20,12 @@ def init_llama(
     """Use vllm's interface to load large models over multiple GPU's"""
     login("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")
     sampling_params = SamplingParams(temperature=0.8, top_p=0.95)
+    download_dir = Path("data", "model_weights") / model_dir
+    download_dir.mkdir(parents=True, exist_ok=True)
     llm = LLM(
         model=model_dir,
         tensor_parallel_size=num_gpus,
-        download_dir=Path("data", "model_weights") / model_dir,
+        download_dir=str(download_dir),
         tokenizer="hf-internal-testing/llama-tokenizer",
     )
     return llm, sampling_params
