@@ -28,6 +28,7 @@ async def parallel_azure_openai_chat_completion(
     client, prompt, system_prompt=None, model="gpt-4", **kwargs
 ):
     """Run chat completion calls on openai, in parallel."""
+    logging.info(model)
     messages = []
     if system_prompt is not None:
         messages.append({"role": "system", "content": system_prompt})
@@ -60,7 +61,7 @@ async def azure_openai_chat_async_evaluation(
     client, prompts, system_prompts, model="gpt-4", **kwargs
 ):
     completions = [
-        parallel_azure_openai_chat_completion(client, p, s, **kwargs)
+        parallel_azure_openai_chat_completion(client, p, s, model=model, **kwargs)
         for p, s in zip(prompts, system_prompts)
     ]
 
@@ -71,7 +72,7 @@ async def azure_openai_chat_async_evaluation(
 class AzureOpenaiInterface:
     """A class to handle comminicating with Azuer openai."""
 
-    def __init__(self, dotenv_path:str=".env", model="gpt-4"):
+    def __init__(self, dotenv_path: str = ".env", model="gpt-4"):
         """Load the client for the given dotenv path."""
         self.dotenv_path = dotenv_path
         self.model = model
