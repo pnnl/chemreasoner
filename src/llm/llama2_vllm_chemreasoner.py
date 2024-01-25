@@ -19,7 +19,7 @@ def init_llama(
 ):
     """Use vllm's interface to load large models over multiple GPU's"""
     login("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")
-    sampling_params = SamplingParams(temperature=0.8, top_p=0.95)
+    sampling_params = SamplingParams(**kwargs_sampling_params)
     download_dir = Path("data", "model_weights") / model_dir
     download_dir.mkdir(parents=True, exist_ok=True)
     llm = LLM(
