@@ -8,6 +8,7 @@ from pathlib import Path
 import networkx as nx
 import numpy as np
 
+
 def get_max_adsorption_energies(node):
     if "simulation-reward" in node["info"].keys():
         reward_values = node["info"]["simulation-reward"]["reward_values"]
@@ -23,7 +24,7 @@ def get_max_adsorption_energies(node):
             return node["node_rewards"]
     else:
         return node["node_rewards"]
-    
+
 
 parser = argparse.ArgumentParser()
 
@@ -36,15 +37,18 @@ processed_dir = Path(args.processed_dir)
 traces_dir = Path(args.traces_dir)
 max_reward = args.max_reward
 
+tree_rewards = {}
+
 for p in processed_dir.rglob("*.json"):
+    if str(p.parent) not in tree_rewards.keys():
+        tree_rewards[str(p.parent)] = []
     print(p)
 
-    # Have to filter for nodes with rewards less than a max threshold. This is because 
-    # some catalysts in have inconsistent lattic structure between ASE and materials 
-    # Project (i.e. Ba, Be, Sr). This is becomes an issue when doing weak adsorption questions 
-    # and adsorption pathways questions. Wehen finding the max node, values are filtered 
+    # Have to filter for nodes with rewards less than a max threshold. This is because
+    # some catalysts in have inconsistent lattic structure between ASE and materials
+    # Project (i.e. Ba, Be, Sr). This is becomes an issue when doing weak adsorption questions
+    # and adsorption pathways questions. Wehen finding the max node, values are filtered
     # to be lower than max_reward.
-
 
     with open(str(p), "r") as f:
         data = json.load(f)
@@ -52,11 +56,24 @@ for p in processed_dir.rglob("*.json"):
     graph = nx.readwrite.json_graph.tree_graph(data)
 
     max_idx = np.argmax(
-        [graph.nodes(data=True)[i]["node_rewards"] if get_max_adsorption_energies(graph.nodes(data=True)[i]) < max_reward else -np.inf for i in range(len(graph.nodes))]
+        [
+            graph.nodes(data=True)[i]["node_rewards"]
+            if get_max_adsorption_energies(graph.nodes(data=True)[i]) < max_reward
+            else -np.inf
+            for i in range(len(graph.nodes))
+        ]
     )
-    print([graph.nodes(data=True)[i]["node_rewards"] for i in range(len(graph.nodes))][max_idx])
-    filtered_list = [(i, get_max_adsorption_energies(graph.nodes(data=True)[i])) for i in range(len(graph.nodes)) if get_max_adsorption_energies(graph.nodes(data=True)[i]) > max_reward]
-    
+    print(
+        [graph.nodes(data=True)[i]["node_rewards"] for i in range(len(graph.nodes))][
+            max_idx
+        ]
+    )
+    filtered_list = [
+        (i, get_max_adsorption_energies(graph.nodes(data=True)[i]))
+        for i in range(len(graph.nodes))
+        if get_max_adsorption_energies(graph.nodes(data=True)[i]) > max_reward
+    ]
+
     if len(filtered_list) > 0:
         print(f"\nFiltered out nodes: {filtered_list}\n")
 
@@ -68,6 +85,11 @@ for p in processed_dir.rglob("*.json"):
     (traces_dir / p).parent.mkdir(parents=True, exist_ok=True)
     with open(traces_dir / p, "w") as f:
         json.dump(output_nodes, f, indent=4)
-    best_output_path = traces_dir / ( p.parent / (p.stem + ".best.json"))
+    best_output_path = traces_dir / (p.parent / (p.stem + ".best.json"))
     with open(best_output_path, "w") as f:
         json.dump(output_nodes[-1], f, indent=4)
+
+    tree_rewards[str(p.parent)] = output_nodes[-1]["node_rewards"]
+
+for k, v in tree_rewards.items():
+    print(f"{k}: {np.mean(v)}")
