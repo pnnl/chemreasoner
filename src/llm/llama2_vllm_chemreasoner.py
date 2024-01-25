@@ -83,8 +83,7 @@ class LlamaLLM:
         """Run the llama generation on the given processed prompts."""
 
         answers = []
-
-        batch_prompts = [self.generate_prompt(x) for x in processed_prompts]
+        batch_prompts = [self.process_prompt(x) for x in processed_prompts]
         answers = self.llm.generate(batch_prompts, sampling_params)
         for output in answers:
             generated_text = output.outputs[0].text
