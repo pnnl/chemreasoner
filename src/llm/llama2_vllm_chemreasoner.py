@@ -2,6 +2,7 @@
 import logging
 
 from pathlib import Path
+
 from vllm import LLM, SamplingParams
 from huggingface_hub import login
 
@@ -22,7 +23,7 @@ def init_llama(
     llm = LLM(
         model=model_dir,
         tensor_parallel_size=num_gpus,
-        download_dir=model_dir,
+        download_dir=Path("data", "model_weights") / model_dir,
         tokenizer="hf-internal-testing/llama-tokenizer",
     )
     return llm, sampling_params
