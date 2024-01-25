@@ -86,8 +86,10 @@ class LlamaLLM:
         batch_prompts = [self.process_prompt(x) for x in processed_prompts]
         answers = self.llm.generate(batch_prompts, sampling_params)
         for output in answers:
-            generated_text = output.outputs[0].text
-            answers.append(generated_text)
+            print(output)
+            generated_text = output
+            answers.append({"answer": generated_text})
+        return answers
 
     def process_prompt(self, prompt: str, system_prompt: str = None):
         """Put the prompt and system prompt together."""
