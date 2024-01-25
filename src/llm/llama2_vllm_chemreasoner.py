@@ -115,10 +115,13 @@ class LlamaLLM:
 
 
 if __name__ == "__main__":
-    pass
+    llm = LlamaLLM(
+        "/qfs/projects/va_aprx/",
+        num_gpus=1,
+    )
+    llm("test1", "test2")
     # run_llama(
-    #     outpath="llama_output.json",
-    #     num_gpus=2,
+    #     num_gpus=1,
     #     model_dir="/qfs/projects/va_aprx/",
     #     batch_size=4,
     # )
