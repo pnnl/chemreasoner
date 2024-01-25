@@ -3,6 +3,7 @@ import logging
 
 from pathlib import Path
 from vllm import LLM, SamplingParams
+from huggingface_hub import login
 
 
 logging.getLogger().setLevel(logging.INFO)
