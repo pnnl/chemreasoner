@@ -1,6 +1,7 @@
 """Module for reward funciton by calculation of adsorption energies in simulation."""
 import json
 import logging
+import shutil
 import sys
 import time
 import uuid
@@ -632,8 +633,18 @@ if __name__ == "__main__":
 
     #     torch.cuda.empty_cache()
 
-    for p in Path(f"methanol_results").rglob("*.traj"):
+    for p in Path("methanol_results").rglob("*.traj"):
         break_trajectory(p)
+        xyz_dir = p.parent / p.stem
+        highest_xyz = max([p for p in xyz_dir.rglob("*.xyz")])
+        adslab = p.parent.stem
+        print(adslab)
+        print(highest_xyz)
+        shutil.copy(
+            highest_xyz,
+            Path("..", "methanol_chemreasoner_results")
+            / (adslab.replace("*", "") + ".xyz"),
+        )
 
 
 # model weights have to placed in data/model_weights
