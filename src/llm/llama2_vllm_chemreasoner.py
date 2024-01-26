@@ -90,6 +90,7 @@ class LlamaLLM:
         answers = []
         batch_prompts = [self.process_prompt(x) for x in processed_prompts]
         answers = self.llm.generate(batch_prompts, sampling_params)
+        print(answers)
         for output in answers:
             generated_text = output.outputs[0].text
             answers.append({"answer": generated_text})
@@ -135,7 +136,7 @@ if __name__ == "__main__":
         "meta-llama/Llama-2-13b-chat-hf",
         num_gpus=1,
     )
-    llm("test1", "test2")
+    llm(["test1", "test2"] * 4)
     # run_llama(
     #     num_gpus=1,
     #     model_dir="/qfs/projects/va_aprx/",
