@@ -136,7 +136,7 @@ if __name__ == "__main__":
         "meta-llama/Llama-2-13b-chat-hf",
         num_gpus=1,
     )
-    llm(["test1", "test2"] * 4)
+    llm("test1")
     # run_llama(
     #     num_gpus=1,
     #     model_dir="/qfs/projects/va_aprx/",
