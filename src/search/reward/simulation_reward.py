@@ -606,18 +606,18 @@ if __name__ == "__main__":
     #     logging.info("running second...")
 
     #     start = time.time()
-    #     sr = StructureReward(
-    #         **{
-    #             "llm_function": None,
-    #             "model": model,
-    #             "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
-    #             "device": "cuda",
-    #             "steps": 64,
-    #             "ads_tag": 2,
-    #             "batch_size":40,
-    #             "num_adslab_samples": 16,
-    #         }
-    #     )
+        sr = StructureReward(
+            **{
+                "llm_function": None,
+                "model": model,
+                "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
+                "device": "cuda",
+                "steps": 64,
+                "ads_tag": 2,
+                "batch_size":40,
+                "num_adslab_samples": 16,
+            }
+        )
 
     #     print(
     #         sr.create_structures_and_calculate(

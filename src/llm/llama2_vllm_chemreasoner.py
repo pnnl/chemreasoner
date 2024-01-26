@@ -1,6 +1,7 @@
 """Functions to run llama inferences."""
 import logging
 import os
+import sys
 
 from pathlib import Path
 
@@ -11,6 +12,8 @@ from huggingface_hub import login
 logging.getLogger().setLevel(logging.INFO)
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+sys.path.append("src")
+from search.reward.simulation_reward import StructureReward
 
 # use export CUDA_VISIBLE_DEVICES if running sbatch
 
@@ -108,6 +111,26 @@ class LlamaLLM:
 
 
 if __name__ == "__main__":
+    sr = StructureReward(
+        **{
+            "llm_function": None,
+            "model": "gemnet-t",
+            "traj_dir": Path("/dev/shm/testing-gnn"),
+            "device": "cuda",
+            "steps": 2,
+            "ads_tag": 2,
+            "batch_size": 20,
+            "num_adslab_samples": 1,
+        }
+    )
+    print(
+        sr.create_structures_and_calculate(
+            [["Cu"]],
+            ["CO2"],
+            ["Cu"],
+            placement_type=None,
+        )
+    )
     llm = LlamaLLM(
         "meta-llama/Llama-2-13b-chat-hf",
         num_gpus=1,
