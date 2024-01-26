@@ -1,5 +1,6 @@
 """Functions to run llama inferences."""
 import logging
+import os
 
 from pathlib import Path
 
@@ -9,8 +10,8 @@ from huggingface_hub import login
 
 logging.getLogger().setLevel(logging.INFO)
 
-# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"] = "3,4"
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = 1
 # use export CUDA_VISIBLE_DEVICES if running sbatch
 
 
