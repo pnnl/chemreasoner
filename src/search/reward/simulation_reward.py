@@ -23,10 +23,10 @@ from llm import ase_interface  # noqa: E402
 from search.state.reasoner_state import ReasonerState  # noqa: E402
 from evaluation.break_traj_files import break_trajectory  # noqa: E402
 
-# from nnp import oc  # noqa: E402
+from nnp import oc  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
 
-# import redis
+import redis
 
 logging.getLogger().setLevel(logging.INFO)
 
