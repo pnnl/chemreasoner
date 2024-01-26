@@ -85,10 +85,8 @@ class LlamaLLM:
         answers = []
         batch_prompts = [self.process_prompt(x) for x in processed_prompts]
         answers = self.llm.generate(batch_prompts, sampling_params)
-        print(answers)
         for output in answers:
-            print(output)
-            generated_text = output
+            generated_text = output.outputs[0].text
             answers.append({"answer": generated_text})
         return answers
 
