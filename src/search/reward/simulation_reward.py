@@ -414,7 +414,7 @@ class StructureReward(BaseReward):
                     reduce_pathways = [
                         max(np.diff(path)) for path in paths_without_none
                     ]
-                    rewards.append(-min(reduce_pathways))
+                    rewards.append(min(reduce_pathways))
                 else:
                     rewards.append(self.penalty_value)
 
