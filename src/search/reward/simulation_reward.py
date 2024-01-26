@@ -24,7 +24,7 @@ from evaluation.break_traj_files import break_trajectory  # noqa: E402
 from nnp import oc  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
 
-#import redis
+# import redis
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -167,7 +167,9 @@ class StructureReward(BaseReward):
                     gnn_time,
                     name_candidate_mapping,
                 ) = self.create_structures_and_calculate(
-                    slab_syms[i], ads_list, candidates_list,
+                    slab_syms[i],
+                    ads_list,
+                    candidates_list,
                 )
                 end = time.time()
                 logging.info(f"TIMING: GNN calculations done {end-start}")
@@ -241,8 +243,16 @@ class StructureReward(BaseReward):
                     slab_ats = self.adsorption_calculator.get_slab(slab_name)
                     if slab_ats is None:
                         try:
-                            if any([s not in chemical_symbols or chemical_symbols.index(s) > 82 for s in slab_sym]):
-                                raise ase_interface.StructureGenerationError(f"Cannot create bulk with slab_syms {slab_sym}.")
+                            if any(
+                                [
+                                    s not in chemical_symbols
+                                    or chemical_symbols.index(s) > 82
+                                    for s in slab_sym
+                                ]
+                            ):
+                                raise ase_interface.StructureGenerationError(
+                                    f"Cannot create bulk with slab_syms {slab_sym}."
+                                )
                             slab_samples = [
                                 ase_interface.symbols_list_to_bulk(slab_sym)
                                 for _ in range(self.num_slab_samples)
@@ -382,7 +392,6 @@ class StructureReward(BaseReward):
                 if cand not in reward_values.keys():
                     reward_values[cand] = {ads: []}
 
-
         # aggregate the rewards
         rewards = []
         adsorption_energies = {}
@@ -390,19 +399,20 @@ class StructureReward(BaseReward):
             if cand in reward_values.keys():
                 adsorption_energies[cand] = [[None] * len(p) for p in pathways]
                 for i, path in enumerate(pathways):
-
                     for j, ads in enumerate(path):
                         adsorption_energies[cand][i][j] = (
                             min(reward_values[cand][ads])
                             if len(reward_values[cand][ads]) > 0
                             else None
                         )
-                paths_without_none = [p for p in adsorption_energies[cand] if None not in p]
+                paths_without_none = [
+                    p for p in adsorption_energies[cand] if None not in p
+                ]
                 if len(paths_without_none) != 0:
-                    reduce_pathways = [max(np.diff(path)) for path in paths_without_none]
-                    rewards.append(
-                        min(reduce_pathways)
-                    )
+                    reduce_pathways = [
+                        max(np.diff(path)) for path in paths_without_none
+                    ]
+                    rewards.append(min(reduce_pathways))
                 else:
                     rewards.append(self.penalty_value)
 
@@ -553,8 +563,7 @@ class _TestState:
 
 
 if __name__ == "__main__":
-    pass
-    #redis_db = redis.Redis(host='localhost', port=6379, db=0)
+    # redis_db = redis.Redis(host='localhost', port=6379, db=0)
     # redis_db.set("/test/thing", "chemreasoner")
     # logging.info(redis_db.get("/test/thing"))
     # # traj_dir = "random"
@@ -590,11 +599,10 @@ if __name__ == "__main__":
     #     logging.info(end - start)
 
     #     torch.cuda.empty_cache()
- 
 
     # for model in ["gemnet-t"]:
     #     logging.info("running second...")
-       
+
     #     start = time.time()
     #     sr = StructureReward(
     #         **{
@@ -622,11 +630,9 @@ if __name__ == "__main__":
     #     logging.info(end - start)
 
     #     torch.cuda.empty_cache()
- 
 
-
-    # for p in Path(f"/var/tmp/testing-gnn").rglob("*.traj"):
-    #     break_trajectory(p)
+    for p in Path(f"methanol_results").rglob("*.traj"):
+        break_trajectory(p)
 
 
 # model weights have to placed in data/model_weights

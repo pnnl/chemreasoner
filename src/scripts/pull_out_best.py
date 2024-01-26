@@ -6,7 +6,7 @@ from pathlib import Path
 
 gnn_calcs_path = "/dev/shm/chemreasoner/catalysis/"
 
-catalysts = ["CuZnAl", "CuNiZn", "CuFeZn", "NiZnAl", "FeCoZn"]
+catalysts = ["CuZnAl", "CuNiZn", "CuFeZn", "NiZnAl", "FeCoZn", "CuZn", "Pt", ""]
 adsorbates = ["CO2", "*OCHO", "*CHOH", "*OHCH3"]
 
 for cat in catalysts:
