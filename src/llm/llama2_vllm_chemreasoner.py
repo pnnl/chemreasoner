@@ -92,6 +92,7 @@ class LlamaLLM:
         answers = self.llm.generate(batch_prompts, sampling_params)
         print(answers)
         for output in answers:
+            print(list(output.keys()))
             generated_text = output.outputs[0].text
             answers.append({"answer": generated_text})
         return answers
