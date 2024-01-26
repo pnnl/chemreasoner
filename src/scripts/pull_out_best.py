@@ -4,7 +4,7 @@ import shutil
 
 from pathlib import Path
 
-gnn_calcs_path = "/qfs/projects/aqe_tec4/catalysis/chemreasoner/catalysis/"
+gnn_calcs_path = "/dev/shm/chemreasoner/catalysis/"
 
 catalysts = ["CuZnAl", "CuNiZn", "CuFeZn", "NiZnAl", "FeCoZn"]
 adsorbates = ["CO2", "*OCHO", "CHOH", "*OHCH3"]
