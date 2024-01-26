@@ -13,6 +13,7 @@ for cat in catalysts:
     for ads in adsorbates:
         adslab_string = f"{cat}_{ads}"
         adslab_path = Path(gnn_calcs_path, adslab_string)
+        print(adslab_path.exists())
         json_path = adslab_path / "adsorption.json"
         with open(json_path, "r") as f:
             data = json.load(f)
