@@ -7,7 +7,7 @@ from pathlib import Path
 gnn_calcs_path = "/dev/shm/chemreasoner/catalysis/"
 
 catalysts = ["CuZnAl", "CuNiZn", "CuFeZn", "NiZnAl", "FeCoZn"]
-adsorbates = ["CO2", "*OCHO", "CHOH", "*OHCH3"]
+adsorbates = ["CO2", "\*OCHO", "CHOH", "\*OHCH3"]
 
 for cat in catalysts:
     if cat[2] >= cat[4]:
