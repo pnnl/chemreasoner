@@ -28,7 +28,10 @@ for cat in catalysts:
 
             # print(adslab_string)
             shutil.copy(
-                traj_path, Path("/people/spru445/methanol_results") / traj_path.stem
+                traj_path,
+                Path("/people/spru445/methanol_results")
+                / traj_path.parent.stem
+                / traj_path.stem,
             )
         except Exception:
             print(f"skipping: {adslab_string}")
