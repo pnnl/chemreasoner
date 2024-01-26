@@ -11,7 +11,7 @@ from huggingface_hub import login
 logging.getLogger().setLevel(logging.INFO)
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = 1
+
 # use export CUDA_VISIBLE_DEVICES if running sbatch
 
 
@@ -19,6 +19,7 @@ def init_llama(
     model_dir="meta-llama/Llama-2-13b-chat-hf", num_gpus=1, **kwargs_sampling_params
 ):
     """Use vllm's interface to load large models over multiple GPU's"""
+    os.environ["CUDA_VISIBLE_DEVICES"] = 1
     login("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")
     sampling_params = SamplingParams(**kwargs_sampling_params)
     download_dir = Path("data", "model_weights") / model_dir
