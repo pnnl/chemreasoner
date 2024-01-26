@@ -10,6 +10,9 @@ catalysts = ["CuZnAl", "CuNiZn", "CuFeZn", "NiZnAl", "FeCoZn"]
 adsorbates = ["CO2", "*OCHO", "CHOH", "*OHCH3"]
 
 for cat in catalysts:
+    if cat[2] >= cat[4]:
+        cat = cat[1:2] + cat[4:] + cat[2:4]
+
     for ads in adsorbates:
         try:
             adslab_string = f"{cat}_{ads}"
