@@ -35,5 +35,5 @@ for cat in catalysts:
             traj_path,
             Path("/people/spru445/methanol_results")
             / traj_path.parent.stem
-            / traj_path.stem,
+            / (traj_path.stem + ".traj"),
         )
