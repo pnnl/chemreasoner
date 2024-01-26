@@ -26,6 +26,11 @@ for cat in catalysts:
         traj_path = list(adslab_path.rglob(f"{min_idx}-*.traj"))[0]
 
         # print(adslab_string)
+        (
+            Path("/people/spru445/methanol_results")
+            / traj_path.parent.stem
+            / traj_path.stem
+        ).mkdir(parents=True, exist_ok=True)
         shutil.copy(
             traj_path,
             Path("/people/spru445/methanol_results")
