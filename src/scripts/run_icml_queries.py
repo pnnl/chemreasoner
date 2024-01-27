@@ -72,7 +72,6 @@ def get_reward_function(args, state, llm_function):
     ), "invalid parameter"
 
     if args.reward_function == "simulation-reward":
-
         assert (
             isinstance(args.nnp_class, str) and args.nnp_class == "oc"
         ), "invalid parameter"
@@ -85,10 +84,14 @@ def get_reward_function(args, state, llm_function):
 
         # check nnp_kwargs
         assert (
-            isinstance(args.reward_max_attempts, int)
-            and args.reward_max_attempts > 0
+            isinstance(args.reward_max_attempts, int) and args.reward_max_attempts > 0
         ), "invalid parameter"
-        assert args.gnn_model in ["gemnet-t", "gemnet-oc", "escn", "eq2"], "invalid parameter"
+        assert args.gnn_model in [
+            "gemnet-t",
+            "gemnet-oc",
+            "escn",
+            "eq2",
+        ], "invalid parameter"
         assert isinstance(args.gnn_traj_dir, str), "invalid parameter"
         assert (
             isinstance(args.gnn_batch_size, int) and args.gnn_batch_size > 0
@@ -220,7 +223,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     assert isinstance(args.depth, int) and args.depth > 0
-    
+
     start = time.time()
     save_dir = Path(args.savedir)
     save_dir.mkdir(parents=True, exist_ok=True)
@@ -257,7 +260,8 @@ if __name__ == "__main__":
                         node_constructor=ReasonerState.from_dict,
                     )
                     assert (
-                        isinstance(args.num_keep, int) and args.num_keep == search.num_keep
+                        isinstance(args.num_keep, int)
+                        and args.num_keep == search.num_keep
                     ), "mismatch parameter"
                     assert (
                         isinstance(args.num_generate, int)
@@ -283,7 +287,7 @@ if __name__ == "__main__":
                         {"total_time": end_time - start_time, "step_times": timing_data}
                     )
                     json.dump(data, f, cls=NpEncoder)
-                
+
                 end = time.time()
                 logging.info(f"TIMING: One search iteration: {end-start}")
 

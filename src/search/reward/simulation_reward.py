@@ -1,6 +1,7 @@
 """Module for reward funciton by calculation of adsorption energies in simulation."""
 import json
 import logging
+import requests
 import shutil
 import sys
 import time
@@ -44,6 +45,7 @@ class StructureReward(BaseReward):
         num_slab_samples=16,
         num_adslab_samples=16,
         max_attempts: int = 3,
+        gnn_service_port: int = None,
         **nnp_kwargs,
     ):
         """Select the class of nnp for the reward function."""
@@ -56,6 +58,7 @@ class StructureReward(BaseReward):
         self.num_slab_samples = num_slab_samples
         self.num_adslab_samples = num_adslab_samples
         self.max_attempts = max_attempts
+        self.gnn_service_port = gnn_service_port
 
     def run_generation_prompts(
         self, slab_syms: list[list[str]], states: list[ReasonerState]
@@ -163,18 +166,40 @@ class StructureReward(BaseReward):
                 final_reward = self.penalty_value
             else:
                 start = time.time()
-                (
-                    adslabs_and_energies,
-                    gnn_calls,
-                    gnn_time,
-                    name_candidate_mapping,
-                ) = self.create_structures_and_calculate(
-                    slab_syms[i],
-                    ads_list,
-                    candidates_list,
-                )
+                if self.gnn_server_port is not None:
+                    # Go to the gnn server to get adsorption energy calculations
+                    json_args = {
+                        "slab_syms": slab_syms[i],
+                        "ads_list": ads_list,
+                        "candidates_list": candidates_list,
+                    }
+                    url = f"http://localhost:{gnn_server_port}/GemNet"
+                    response = requests.post(url, json_args)
+                    response_dict = response.json()
+                    (
+                        adslabs_and_energies,
+                        gnn_calls,
+                        gnn_time,
+                        name_candidate_mapping,
+                    ) = (
+                        response_dict["adslabs_and_energies"],
+                        response_dict["gnn_calls"],
+                        response_dict["gnn_time"],
+                        response_dict["name_candidate_mapping"],
+                    )
+                else:
+                    (
+                        adslabs_and_energies,
+                        gnn_calls,
+                        gnn_time,
+                        name_candidate_mapping,
+                    ) = self.create_structures_and_calculate(
+                        slab_syms[i],
+                        ads_list,
+                        candidates_list,
+                    )
                 end = time.time()
-                logging.info(f"TIMING: GNN calculations done {end-start}")
+                logging.info(f"TIMING: GNN calculations done {end - start}")
                 if s.ads_preferences is not None:
                     final_reward, reward_values = self.parse_adsorption_energies(
                         s,
