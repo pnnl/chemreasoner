@@ -1,7 +1,6 @@
 import argparse
 import requests
 import sys
-import time
 
 from pathlib import Path
 
@@ -44,11 +43,10 @@ def get_structure_reward(args):
         )
 
 
-# TODO - initialize the StructureReward
 struct_reward_provider = get_structure_reward(args)
 
 
-def actual_gnn_func():
+def actual_gnn_func(request):
     slab_syms = request.values.get("slab_syms")
     ads_list = request.values.get("ads_list")
     candidates_list = request.values.get("candidates_list")
@@ -71,19 +69,7 @@ def actual_gnn_func():
 
 @app.route("/GemNet", methods=["POST"])
 def GemNet():
-    #
-    # Use the get(..) semantics to extract key-value pairs
-    #
-    input = request.values.get("catalyst_id")
-
-    #
-    # Doing something random here
-    #
-    output_dict = actual_gnn_func(input)
-
-    #
-    # Convert output data structure to JSON response and return
-    #
+    output_dict = actual_gnn_func(request)
     response = jsonify(output_dict)
     return response
 
