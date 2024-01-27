@@ -253,8 +253,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             fmax=fmax,
             relax_opt=relax_opt,
             save_full_traj=True,
-            # device=trainer.device,
-            device="cuda:1",
+            device=trainer.device,
+            # device="cuda:1",
         )
         end = time.time()
         self.gnn_calls += self.steps
