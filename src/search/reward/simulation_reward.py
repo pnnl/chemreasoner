@@ -1,4 +1,4 @@
-"""Module for reward funciton by calculation of adsorption energies in simulation."""
+"""Module for reward function by calculation of adsorption energies in simulation."""
 import json
 import logging
 import requests
@@ -26,8 +26,6 @@ from evaluation.break_traj_files import break_trajectory  # noqa: E402
 
 from nnp import oc  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
-
-import redis
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -166,7 +164,7 @@ class StructureReward(BaseReward):
                 final_reward = self.penalty_value
             else:
                 start = time.time()
-                if self.gnn_server_port is not None:
+                if self.gnn_service_port is not None:
                     # Go to the gnn server to get adsorption energy calculations
                     json_args = {
                         "slab_syms": slab_syms[i],
