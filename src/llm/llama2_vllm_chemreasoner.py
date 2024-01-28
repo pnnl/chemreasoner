@@ -87,7 +87,6 @@ class LlamaLLM:
         self,
         processed_prompts: list[str],
         sampling_params: SamplingParams,
-        batch_size: int,
     ):
         """Run the llama generation on the given processed prompts."""
         answers = self.llm.generate(processed_prompts, sampling_params)
