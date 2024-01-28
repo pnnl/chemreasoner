@@ -77,7 +77,11 @@ class StructureReward(BaseReward):
             loop_counter = 0
             for i, s in enumerate(states):
                 if slab_syms[i] is None:
-                    s.process_generation(generation_results[loop_counter])
+                    try:
+                        s.process_generation(generation_results[loop_counter])
+                    except Exception:
+                        logging.info("failed to process generation answer.")
+                        pass
 
                     loop_counter += 1
             end = time.time()
