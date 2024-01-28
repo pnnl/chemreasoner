@@ -17,6 +17,7 @@ import pandas as pd
 sys.path.append("src")
 from datasets import reasoner_data_loader  # noqa:E402
 from llm.azure_open_ai_interface import AzureOpenaiInterface  # noqa:E402
+from llm.llama2_vllm_chemreasoner import LlamaLLM  # noqa:E402
 from search.policy import coherent_policy, reasoner_policy  # noqa:E402
 from search.reward import simulation_reward, llm_reward  # noqa:E402
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa:E402
@@ -163,7 +164,14 @@ def get_llm_function(args):
     """Get the llm function specified by args."""
     assert isinstance(args.dotenv_path, str)
     assert isinstance(args.llm, str)
-    llm_function = AzureOpenaiInterface(args.dotenv_path, model=args.llm)
+    if args.llm in ["gpt-4", "gpt-3.5-turbo"]:
+        llm_function = AzureOpenaiInterface(args.dotenv_path, model=args.llm)
+    elif args.llm == "llama2-13b":
+        llm_function = LlamaLLM(
+            "meta-llama/Llama-2-13b-chat-hf",
+            num_gpus=1,
+        )
+
     return llm_function
 
 

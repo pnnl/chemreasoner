@@ -27,7 +27,7 @@ def get_structure_reward(args):
         "model": "gemnet-t",
         "traj_dir": Path(args.gnn_traj_dir),
         "batch_size": 40,
-        "device": "cpu",
+        "device": "cuda",
         "ads_tag": 2,
         "fmax": 0.05,
         "steps": 64,
