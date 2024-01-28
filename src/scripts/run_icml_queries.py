@@ -171,6 +171,8 @@ def get_llm_function(args):
             "meta-llama/Llama-2-13b-chat-hf",
             num_gpus=1,
         )
+    else:
+        raise ValueError(f"Unkown LLM {args.llm}.")
 
     return llm_function
 
