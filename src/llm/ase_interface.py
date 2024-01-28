@@ -9,9 +9,9 @@ from ase import Atoms
 from ase.io import write
 import ase.build as build
 from ase.data import reference_states, atomic_numbers
-
+import ocdata
 import numpy as np
-
+from ocdata.core import Adsorbate, AdsorbateSlabConfig, Bulk, Slab
 
 with open(Path("data", "input_data", "oc", "oc_20_adsorbates.pkl"), "rb") as f:
     oc_20_ads_structures = pickle.load(f)
@@ -93,6 +93,7 @@ def generate_bulk_ads_pairs(
     while not valid:
         new_bulk = bulk.copy()
         new_ads = ads.copy()
+        new_ads.set_tags([2] * len(new_ads))
 
         # randomly select the binding location
         site_name = random.choice(list(new_bulk.info["adsorbate_info"]["sites"]))
@@ -112,9 +113,9 @@ def generate_bulk_ads_pairs(
         y_rot = random.uniform(0, 15)
 
         # Do in-plane rotations first
-        new_ads.rotate("z", z_rot)
         new_ads.rotate("x", x_rot)
         new_ads.rotate("y", y_rot)
+        new_ads.rotate("z", z_rot)
 
         # Apply adsorbate to new_bullk
         new_bulk = combine_adsorbate_slab(
@@ -124,7 +125,7 @@ def generate_bulk_ads_pairs(
             position=position,
         )
         new_bulk.center(vacuum=13.0, axis=2)
-        ads_mask = np.argwhere(new_bulk.get_tags() == 0)
+        ads_mask = np.argwhere(new_bulk.get_tags() == 2)
         if "translation" in new_ads.info.keys():
             pos = new_bulk.get_positions()
             pos[ads_mask] += new_ads.info["translation"]
@@ -138,6 +139,57 @@ def generate_bulk_ads_pairs(
         else:
             num_tries += 1
     return new_bulk
+
+
+def generate_bulk_ads_pairs_heuristic(
+    bulk: Atoms, ads: str, mode: str = "heuristic", num_sites: int = 100
+) -> Union[Atoms, list[Atoms]]:
+    bulk = Bulk(bulk_atoms=bulk)
+    # bulk = Bulk(bulk_atoms=slab_ats)
+    slabs = Slab(bulk=bulk, slab_atoms=bulk.atoms)
+    # specific_millers might have to be changed based on the type of the crystal (cubic, etc)
+    # slabs = Slab.from_bulk_get_specific_millers(bulk = bulk, specific_millers=(0,0,1))
+    if isinstance(slabs, list):
+        slabs = [s for s in slabs if s.shift == 0.0]  # selecting the slabs with shift=0
+    elif isinstance(slabs, ocdata.core.slab.Slab):
+        print("slab type is ocdata.core.slab.Slab")
+        slabs = [slabs]
+
+    binding_molecules = ads.info.get("binding_sites", np.array([0]))
+    adsorbate = Adsorbate(ads, adsorbate_binding_indices=list(binding_molecules))
+    heuristic_adslabs = []
+    for slab in slabs:
+        h_slabs = AdsorbateSlabConfig(slab, adsorbate, mode=mode, num_sites=num_sites)
+        heuristic_adslabs.extend(h_slabs.atoms_list)
+
+    if num_sites < len(heuristic_adslabs):
+        adslabs = [heuristic_adslabs[i] for i in range(num_sites)]
+
+    elif num_sites == len(heuristic_adslabs):
+        adslabs = heuristic_adslabs
+
+    elif num_sites > len(heuristic_adslabs):
+        num_random_slabs = (num_sites - len(heuristic_adslabs)) // len(slabs)
+
+        random_adslabs = []
+        for slab in slabs:
+            r_slabs = AdsorbateSlabConfig(
+                slab,
+                adsorbate,
+                mode="random_site_heuristic_placement",
+                num_sites=num_random_slabs,
+            )
+            random_adslabs.extend(r_slabs.atoms_list)
+
+        adslabs = heuristic_adslabs + random_adslabs
+
+    # num_random_slabs = num_sites - len(heuristic_adslabs.atoms_list)
+    # print("number of random slabs: ", num_random_slabs)
+    # random_adslabs = AdsorbateSlabConfig(slab, adsorbate, mode="random_site_heuristic_placement", num_sites = num_random_slabs)
+    # adslabs = [*heuristic_adslabs.atoms_list, *random_adslabs.atoms_list]
+    # adslabs = heuristic_adslabs.atoms_list
+
+    return adslabs
 
 
 def combine_adsorbate_slab(slab: Atoms, ads: Atoms, height=3, position=None) -> Atoms:
@@ -199,7 +251,7 @@ def convert_alloy(bulk, other_symbols=Union[str, list[str]]):
             "bcc",
             "hcp",
         ]:
-            raise StructureGenerationError(f"Invalide alloy element {other_symbol}.")
+            raise StructureGenerationError(f"Invalid alloy element {other_symbol}.")
 
     bulk = bulk.copy()
 
@@ -245,7 +297,6 @@ def llm_answer_to_symbols(
         )
     else:
         syms = [typical_syms[ans] for ans in answer]
-        print(syms)
         return syms
     answer_list_parsed = [None] * len(answer)
     for line in answer_parsed.split("\n"):
@@ -282,6 +333,16 @@ def llm_answer_to_symbols_prompt(answer: list[str]):
     return prompt
 
 
+def ase_to_oc_tag(tag: int) -> int:
+    """Returns the proper oc tag given the ase tag."""
+    if tag == 0:
+        return 2
+    if tag == 1:
+        return 1
+    else:
+        return 0
+
+
 def symbols_list_to_bulk(symbols_list):
     """Return a bulk from a list of symbols that constructs it."""
     try:
@@ -303,6 +364,7 @@ def symbols_list_to_bulk(symbols_list):
             f"Incorrect number of symbols given ({len(symbols_list)}).",
         )
     bulk.info.update({"bulk_syms": symbols_list})
+    bulk.set_tags([ase_to_oc_tag(t) for t in bulk.get_tags()])
     return bulk
 
 
@@ -334,8 +396,6 @@ def ads_symbols_to_structure(syms: str):
     else:
         ats = build.molecule(syms)
     ats.info.update({"syms": syms})
-    print(syms.lower())
-    print(ats)
     return ats
 
 
@@ -392,3 +452,5 @@ if __name__ == "__main__":
     # print(adslab)
     # print(adslab.get_tags())
     # print(adslab.get_atomic_numbers())
+
+    print(ads_symbols_to_structure("*CH2*O"))

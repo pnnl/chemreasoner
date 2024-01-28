@@ -32,6 +32,8 @@ from torch_geometric.data import Batch
 
 from .base_nnp import BaseAdsorptionCalculator
 
+import redis
+
 
 class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     """Class to calculate adsorption energies. Follows Open Catalyst Porject methods."""
@@ -53,8 +55,11 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self,
         model: str,
         traj_dir: Path,
-        batch_size=40,
-        device="cuda:0",
+        batch_size=64,
+        device="cpu",
+        ads_tag=0,
+        fmax=0.005,
+        steps=150,
         adsorbed_structure_checker=None,
     ):
         """Create object from model class (gemnet or equiformer).
@@ -64,10 +69,16 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.gnn_calls = 0
         self.gnn_time = 0
         self.device = device
+        # self.device = "cpu"
         self.batch_size = batch_size
+        self.fmax = fmax
+        self.steps = steps
         self.model = model
-        if self.model == "gemnet":
+        # self.model_weights_paths  = Path("/Users/pana982/models/chemreasoner")
+        self.ads_tag = ads_tag  # gihan
+        if self.model == "gemnet-t":
             self.model_path = self.model_weights_paths / "gemnet_t_direct_h512_all.pt"
+            # print('model path', self.model_path)
             if not self.model_path.exists():
                 print("Downloading weights for gemnet...")
                 wget.download(
@@ -78,7 +89,33 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 print("Done!")
             self.config_path = self.model_configs_paths / "gemnet" / "gemnet-dT.yml"
 
-        elif self.model == "equiformer":
+        elif self.model == "gemnet-oc-large":
+            self.model_path = self.model_weights_paths / "gemnet_oc_large_s2ef_all_md.pt"
+            # print('model path', self.model_path)
+            if not self.model_path.exists():
+                print("Downloading weights for gemnet...")
+                wget.download(
+                    "https://dl.fbaipublicfiles.com/opencatalystproject/models/"
+                    "2022_07/s2ef/gemnet_oc_large_s2ef_all_md.pt",
+                    out=str(self.model_weights_paths),
+                )
+                print("Done!")
+            self.config_path = self.model_configs_paths / "gemnet" / "gemnet-oc-large.yml"
+
+        elif self.model == "escn":
+            self.model_path = self.model_weights_paths / "escn_l6_m3_lay20_all_md_s2ef.pt"
+            # print('model path', self.model_path)
+            if not self.model_path.exists():
+                print("Downloading weights for gemnet...")
+                wget.download(
+                    "https://dl.fbaipublicfiles.com/opencatalystproject/models/"
+                    "2023_03/s2ef/escn_l6_m3_lay20_all_md_s2ef.pt",
+                    out=str(self.model_weights_paths),
+                )
+                print("Done!")
+            self.config_path = self.model_configs_paths / "escn" / "eSCN-L6-M3-Lay20-All-MD.yml"
+
+        elif self.model == "eq2":
             self.model_path = self.model_weights_paths / "eq2_153M_ec4_allmd.pt"
             if not self.model_path.exists():
                 print("Downloading weights for equiformer...")
@@ -114,6 +151,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.ase_calc = None
         self.torch_calc = None
 
+        self.redis_db = redis.Redis(host='localhost', port=6379, db=1)
+
     @property
     def get_ase_calculator(self):
         """Return an ase calculator for self.
@@ -146,18 +185,20 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         atoms: Atoms,
         device=None,
         fname=None,
-        fmax=0.005,
-        steps=100,
+        fmax=None,
+        steps=None,
         **bfgs_kwargs,
     ):
         """Relax the postitions of the given atoms.
 
         Setting device overrides self.device
         """
+        fmax = fmax if fmax is not None else self.fmax
+        steps = steps if steps is not None else self.steps
         atoms = atoms.copy()
         self.prepare_atoms(atoms)
 
-        atoms.set_calculator(self.get_ase_calculator)
+        atoms.calc = self.get_ase_calculator
         opt = BFGS(
             atoms, trajectory=self.traj_dir / fname if fname is not None else None
         )
@@ -170,16 +211,20 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         atoms: list[Atoms],
         atoms_names,
         device=None,
-        fmax=0.005,
-        steps=100,
+        fmax=None,
+        steps=None,
         **bfgs_kwargs,
     ):
         """Relax the postitions of the given atoms. Setting device overrides self."""
         atoms = self.copy_atoms_list(atoms)
+        fmax = fmax if fmax is not None else self.fmax
+        steps = steps if steps is not None else self.steps
         # Set up calculation for oc
         self.prepare_atoms_list(atoms)
         # convert to torch geometric batch
-        batch = Batch.from_data_list(self.ats_to_graphs.convert_all(atoms))
+        batch = Batch.from_data_list(
+            self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
+        )
         batch.sid = atoms_names
         batch = batch.to(device if device is not None else self.device)
 
@@ -188,7 +233,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         try:
             relax_opt = self.config["task"]["relax_opt"]
         except KeyError:
-            relax_opt = {"memory": 100}  # only need to set memory and traj_dir
+            relax_opt = {"memory": steps}  # only need to set memory and traj_dir
 
         relax_opt["traj_dir"] = self.traj_dir
         # assume 100 steps every time
@@ -203,7 +248,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             device=trainer.device,
         )
         end = time.time()
-        self.gnn_calls += 100
+        self.gnn_calls += self.steps
         self.gnn_time += end - start
 
         final_atoms = batch_to_atoms(final_batch)
@@ -226,14 +271,17 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             bulk_ats = Atoms()
             e_ref = 0
             for i, t in enumerate(ats.get_tags()):
-                if t == 0:  # part of the adsorbate
+                if t == self.ads_tag:  # part of the adsorbate
                     e_ref += self.ads_references[ats.get_atomic_numbers()[i]]
                 else:  # part of the bulk
                     bulk_ats.append(ats[i])
             ads_e.append(e_ref)
             bulk_atoms.append(bulk_ats.copy())
         # convert to torch geometric batch
-        batch = Batch.from_data_list(self.ats_to_graphs.convert_all(bulk_atoms))
+        batch = Batch.from_data_list(
+            self.ats_to_graphs.convert_all(bulk_atoms, disable_tqdm=True)
+        )
+        # device='cpu'
         batch = batch.to(device if device is not None else self.device)
 
         calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
@@ -357,7 +405,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     def prepare_atoms(atoms: Atoms, constraints: bool = True) -> None:
         """Prepare an atoms object for simulation."""
         if constraints:
-            cons = FixAtoms(indices=[atom.index for atom in atoms if (atom.tag > 1)])
+            cons = FixAtoms(indices=[atom.index for atom in atoms if (atom.tag == 0)])
             atoms.set_constraint(cons)
         atoms.center(vacuum=13.0, axis=2)
         atoms.set_pbc(True)
@@ -373,33 +421,54 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Copy the atoms in a list and return the copy."""
         return [ats.copy() for ats in atoms_list]
 
-    @staticmethod
-    def write_json(fname: Path, data_dict: dict):
+    # @staticmethod
+    # def write_json_deprecated(fname: Path, data_dict: dict):
+    #     """Write given data dict to json file with exclusive access."""
+    #     written = False
+    #     while not written:
+    #         try:
+    #             with open(str(fname) + "-lock", "x") as f:
+    #                 try:
+    #                     if fname.exists():
+    #                         with open(fname, "r") as f:
+    #                             file_data = json.load(f)
+    #                     else:
+    #                         file_data = {}
+
+    #                     data_dict.update(
+    #                         file_data
+    #                     )  # Update with runs that have finished
+    #                     with open(fname, "w") as f:
+    #                         json.dump(data_dict, f)
+
+    #                 except BaseException as err:
+    #                     Path(str(fname) + "-lock").unlink()
+    #                     raise err
+    #             Path(str(fname) + "-lock").unlink()
+    #             written = True
+    #         except FileExistsError:
+    #             pass
+
+    def write_json(self, fname: Path, data_dict: dict):
         """Write given data dict to json file with exclusive access."""
-        written = False
-        while not written:
-            try:
-                with open(str(fname) + "-lock", "x") as f:
-                    try:
-                        if fname.exists():
-                            with open(fname, "r") as f:
-                                file_data = json.load(f)
-                        else:
-                            file_data = {}
+        data = self.read_json(fname)
 
-                        data_dict.update(
-                            file_data
-                        )  # Update with runs that have finished
-                        with open(fname, "w") as f:
-                            json.dump(data_dict, f)
+        if data is None:
+            self.redis_db.set(str(fname), json.dumps(data_dict))
+        else:
+            data.update(data_dict)
+            self.redis_db.set(str(fname), json.dumps(data))
+        
+        with open(fname, "w") as f:
+            json.dump(data, f)
 
-                    except BaseException as err:
-                        Path(str(fname) + "-lock").unlink()
-                        raise err
-                Path(str(fname) + "-lock").unlink()
-                written = True
-            except FileExistsError:
-                pass
+    def read_json(self, fname: Path):
+        """Write given data dict to json file with exclusive access."""
+        data = self.redis_db.get(str(fname))
+        if data is not None:
+            return json.loads(self.redis_db.get(str(fname)))
+        else:
+            return None
 
     def prediction_path(self, adslab_name):
         """Return the adsorption path for the given adslab."""
@@ -407,19 +476,44 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         adslab_dir.mkdir(parents=True, exist_ok=True)
         return adslab_dir / "adsorption.json"
 
-    def get_prediction(self, adslab_name, idx) -> Optional[float]:
+    def get_prediction_deprecated(self, adslab_name, idx) -> Optional[float]:
         """Get the adsorption energy from adslab_name for given idx.
 
         If the calculation has not been done, returns None."""
         if self.adsorption_path(adslab_name).exists():
-            with open(
-                self.adsorption_path(adslab_name),
-                "r",
-            ) as f:
-                data = json.load(f)
+            data = self.read_json(self.adsorption_path(adslab_name))
             if idx in data.keys() and "adsorption_energy" in data[idx].keys():
                 ads_energy = data[idx]["adsorption_energy"]
                 return ads_energy
+            else:
+                return None
+        else:
+            return None
+
+    def get_prediction(self, adslab_name, idx) -> Optional[float]:
+        """Get the adsorption energy from adslab_name for given idx.
+
+        If the calculation has not been done, returns None."""
+       
+        data = self.read_json(self.adsorption_path(adslab_name))
+        print(self.adsorption_path(adslab_name))
+        print(data)
+        if data is not None and idx in data.keys() and "adsorption_energy" in data[idx].keys():
+            ads_energy = data[idx]["adsorption_energy"]
+            return ads_energy
+        else:
+            return None
+
+
+    def get_validity_deprecated(self, adslab_name, idx) -> Optional[float]:
+        """Get the adsorption energy from adslab_name for given idx.
+
+        If the calculation has not been done, returns None."""
+        if self.adsorption_path(adslab_name).exists():
+            data = self.read_json(self.adsorption_path(adslab_name))
+            if idx in data.keys() and "validity" in data[idx].keys():
+                validity = data[idx]["validity"]
+                return validity
             else:
                 return None
         else:
@@ -429,19 +523,15 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Get the adsorption energy from adslab_name for given idx.
 
         If the calculation has not been done, returns None."""
-        if self.adsorption_path(adslab_name).exists():
-            with open(
-                self.adsorption_path(adslab_name),
-                "r",
-            ) as f:
-                data = json.load(f)
-            if idx in data.keys() and "validity" in data[idx].keys():
-                validity = data[idx]["validity"]
-                return validity
-            else:
-                return None
+        data = self.read_json(self.adsorption_path(adslab_name))
+        print(self.adsorption_path(adslab_name))
+        print(data)
+        if data is not None and idx in data.keys() and "validity" in data[idx].keys():
+            validity = data[idx]["validity"]
+            return validity
         else:
             return None
+
 
     def slab_path(self, slab_name: str) -> Path:
         """Return the path to the slab file for slab_name."""
@@ -459,6 +549,12 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Get the slab configuration for the given slab_name.
 
         If the calculation has not been done, returns None."""
+        data = self.redis_db.get(str(self.slab_path(slab_name)))
+        if data is not None:
+            return pickle.loads(data)
+        else:
+            return None
+
         if self.slab_path(slab_name).exists():
             with open(self.slab_path(slab_name), "rb") as f:
                 return pickle.load(f)
@@ -469,7 +565,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Choose the minimum slab from a given set of slabs."""
         atoms = self.copy_atoms_list(slab_samples)
         self.prepare_atoms_list(atoms)
-        batch = Batch.from_data_list(self.ats_to_graphs.convert_all(atoms))
+        batch = Batch.from_data_list(
+            self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
+        )
         batch = batch.to(self.device)
 
         calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
@@ -488,8 +586,11 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     def save_slab(self, slab_name: str, slab: Path, slab_samples=None):
         """Save the given slab."""
         try:
+            
             with open(self.slab_path(slab_name), "xb") as f:
                 pickle.dump(slab, f)
+            self.redis_db.set(str(self.slab_path(slab_name)), pickle.dumps(slab))
+
             if slab_samples is not None:
                 with open(self.slab_samples_path(slab_name), "xb") as f:
                     pickle.dump(slab_samples, f)
@@ -507,7 +608,7 @@ class AdsorbedStructureChecker:
     Uses convention created by Open Catalysis:
     https://github.com/Open-Catalyst-Project/ocp/blob/main/DATASET.md
 
-    "0 - no anomaly
+    0 - no anomaly
     1 - adsorbate dissociation
     2 - adsorbate desorption
     3 - surface reconstruction [not implemented in this code]
@@ -523,7 +624,8 @@ class AdsorbedStructureChecker:
 
     def __call__(self, ats: Atoms):
         """Check the given structure for errors."""
-        if not self.check_adsorption(ats):
+        return 0
+        if not self.measure_dissociation(ats):
             return self.adsorbate_dissociation_code
         elif not self.check_adsorption(ats):
             return self.desorption_code
@@ -560,8 +662,8 @@ class AdsorbedStructureChecker:
     @staticmethod
     def check_connectivity(ats: Atoms):
         """Check the connectivity matrix of the given atoms."""
-        conn_matrix = build_neighbor_list(ats).get_connectivity_matrix()
-        return all(conn_matrix, all)
+        conn_matrix = build_neighbor_list(ats).get_connectivity_matrix(sparse=False)
+        return np.all(conn_matrix)
 
 
 def order_of_magnitude(number):
