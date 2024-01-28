@@ -125,6 +125,7 @@ def get_reward_function(args, state, llm_function):
             num_slab_samples=args.num_slab_samples,
             num_adslab_samples=args.num_adslab_samples,
             max_attempts=args.reward_max_attempts,
+            gnn_service_port=args.gnn_port,
             **nnp_kwargs,
         )
 
@@ -223,6 +224,7 @@ if __name__ == "__main__":
     parser.add_argument("--gnn-ads-tag", type=int, default=None)
     parser.add_argument("--gnn-fmax", type=float, default=None)
     parser.add_argument("--gnn-steps", type=int, default=None)
+    parser.add_argument("--gnn-port", type=int, default=None)
 
     parser.add_argument("--search-method", type=str, default=None)
     parser.add_argument("--num-keep", type=int, default=None)
