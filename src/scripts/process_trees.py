@@ -55,201 +55,73 @@ def _clean_json(data: dict):
 
 
 if __name__ == "__main__":
-    for i in range(145):
-        fname = Path(f"icml/gpt-4_coherent-priors_beam-search/search_tree_{i}.json")
-        if Path(fname).exists():
-            with open(
-                fname,
-                "r",
-            ) as f:
-                data = json.load(f)
-            # print(len(data["node_rewards"]))
+    for p in Path("icml_runs").rglob("*"):
+        if p.is_dir():
+            for i in range(145):
+                fname = p / f"search_tree_{i}.json"
 
-            for i in range(len(data["nodes"])):
-                for j in range(len(data["nodes"][i])):
-                    reasoner_state = ReasonerState.from_dict(data["nodes"][i][j])
-                    data["nodes"][i][j].update(
-                        {
-                            "generation_prompt": reasoner_state.generation_prompt,
-                            "generation_system_prompt": reasoner_state.generation_system_prompt,
-                        }
-                    )
-            for i in range(len(data["generated_nodes"])):
-                for j in range(len(data["generated_nodes"][i])):
-                    reasoner_state = ReasonerState.from_dict(
-                        data["generated_nodes"][i][j]
-                    )
-                    data["generated_nodes"][i][j].update(
-                        {
-                            "generation_prompt": reasoner_state.generation_prompt,
-                            "generation_system_prompt": reasoner_state.generation_system_prompt,
-                        }
-                    )
+                if Path(fname).exists():
+                    with open(
+                        fname,
+                        "r",
+                    ) as f:
+                        data = json.load(f)
+                    # print(len(data["node_rewards"]))
 
-            T = bfs_to_nx(data)
+                    for i in range(len(data["nodes"])):
+                        for j in range(len(data["nodes"][i])):
+                            reasoner_state = ReasonerState.from_dict(
+                                data["nodes"][i][j]
+                            )
+                            data["nodes"][i][j].update(
+                                {
+                                    "generation_prompt": reasoner_state.generation_prompt,
+                                    "generation_system_prompt": reasoner_state.generation_system_prompt,
+                                }
+                            )
+                    for i in range(len(data["generated_nodes"])):
+                        for j in range(len(data["generated_nodes"][i])):
+                            reasoner_state = ReasonerState.from_dict(
+                                data["generated_nodes"][i][j]
+                            )
+                            data["generated_nodes"][i][j].update(
+                                {
+                                    "generation_prompt": reasoner_state.generation_prompt,
+                                    "generation_system_prompt": reasoner_state.generation_system_prompt,
+                                }
+                            )
 
-            DT = nx.DiGraph()
-            DT.add_nodes_from(T.nodes(data=True))
-            DT.add_edges_from(T.edges(data=True))
+                    T = bfs_to_nx(data)
 
-            j_graph = nx.json_graph.tree_data(DT, root=0)
-            # print(list(j_graph["children"][0].keys()))
-            j_graph = _clean_json(j_graph)
-            # print(list(j_graph["children"][0].keys()))
+                    DT = nx.DiGraph()
+                    DT.add_nodes_from(T.nodes(data=True))
+                    DT.add_edges_from(T.edges(data=True))
 
-            flattened_node_rewards = [
-                r for r_list in data["node_rewards"] for r in r_list
-            ]
+                    j_graph = nx.json_graph.tree_data(DT, root=0)
+                    # print(list(j_graph["children"][0].keys()))
+                    j_graph = _clean_json(j_graph)
+                    # print(list(j_graph["children"][0].keys()))
 
-            if len(data["node_rewards"]) == 6 and not np.allclose(
-                flattened_node_rewards, -10
-            ):
-                Path("icml_processed", "gpt-4_coherent-priors_beam-search").mkdir(
-                    parents=True, exist_ok=True
-                )
-                with open(
-                    Path("icml_processed", "gpt-4_coherent-priors_beam-search")
-                    / (fname.stem + ".json"),
-                    "w",
-                ) as f:
-                    json.dump(j_graph, f)
-            else:
-                print(
-                    f"Skipping {fname}. Tree depth: {len(data['node_rewards'])}, allclose: {np.allclose(flattened_node_rewards, -10)}"
-                )
-        else:
-            print(f"Skipping {fname}. Doesn't exist.")
+                    flattened_node_rewards = [
+                        r for r_list in data["node_rewards"] for r in r_list
+                    ]
 
-    for i in range(145):
-        fname = Path(f"icml/gpt-4_no-priors_beam-search/search_tree_{i}.json")
-        if Path(fname).exists():
-            with open(
-                fname,
-                "r",
-            ) as f:
-                data = json.load(f)
-            # print(len(data["node_rewards"]))
+                    if len(data["node_rewards"]) == 6 and not np.allclose(
+                        flattened_node_rewards, -10
+                    ):
+                        (Path("icml_processed") / p.stem).mkdir(
+                            parents=True, exist_ok=True
+                        )
+                        with open(
+                            Path("icml_processed") / p.stem / (fname.stem + ".json"),
+                            "w",
+                        ) as f:
+                            json.dump(j_graph, f)
+                    else:
+                        print(
+                            f"Skipping {fname}. Tree depth: {len(data['node_rewards'])}, allclose: {np.allclose(flattened_node_rewards, -10)}"
+                        )
+                else:
+                    print(f"Skipping {fname}. Doesn't exist.")
 
-            for i in range(len(data["nodes"])):
-                for j in range(len(data["nodes"][i])):
-                    reasoner_state = ReasonerState.from_dict(data["nodes"][i][j])
-                    data["nodes"][i][j].update(
-                        {
-                            "generation_prompt": reasoner_state.generation_prompt,
-                            "generation_system_prompt": reasoner_state.generation_system_prompt,
-                        }
-                    )
-            for i in range(len(data["generated_nodes"])):
-                for j in range(len(data["generated_nodes"][i])):
-                    reasoner_state = ReasonerState.from_dict(
-                        data["generated_nodes"][i][j]
-                    )
-                    data["generated_nodes"][i][j].update(
-                        {
-                            "generation_prompt": reasoner_state.generation_prompt,
-                            "generation_system_prompt": reasoner_state.generation_system_prompt,
-                        }
-                    )
-
-            T = bfs_to_nx(data)
-
-            DT = nx.DiGraph()
-            DT.add_nodes_from(T.nodes(data=True))
-            DT.add_edges_from(T.edges(data=True))
-
-            j_graph = nx.json_graph.tree_data(DT, root=0)
-            # print(list(j_graph["children"][0].keys()))
-            j_graph = _clean_json(j_graph)
-            # print(list(j_graph["children"][0].keys()))
-
-            flattened_node_rewards = [
-                r for r_list in data["node_rewards"] for r in r_list
-            ]
-
-            if len(data["node_rewards"]) == 6 and not np.allclose(
-                flattened_node_rewards, -10
-            ):
-                Path("icml_processed", "gpt-4_no-priors_beam-search").mkdir(
-                    parents=True, exist_ok=True
-                )
-                with open(
-                    Path("icml_processed", "gpt-4_no-priors_beam-search")
-                    / (fname.stem + ".json"),
-                    "w",
-                ) as f:
-                    json.dump(j_graph, f)
-            else:
-                print(
-                    f"Skipping {fname}. Tree depth: {len(data['node_rewards'])}, allclose: {np.allclose(flattened_node_rewards, -10)}"
-                )
-
-        else:
-            print(f"Skipping {fname}. Doesn't exist.")
-
-    for i in range(145):
-        fname = Path(
-            f"icml/gpt-35-turbo_coherent-priors_beam-search/search_tree_{i}.json"
-        )
-        if Path(fname).exists():
-            with open(
-                fname,
-                "r",
-            ) as f:
-                data = json.load(f)
-            # print(len(data["node_rewards"]))
-
-            for i in range(len(data["nodes"])):
-                for j in range(len(data["nodes"][i])):
-                    reasoner_state = ReasonerState.from_dict(data["nodes"][i][j])
-                    data["nodes"][i][j].update(
-                        {
-                            "generation_prompt": reasoner_state.generation_prompt,
-                            "generation_system_prompt": reasoner_state.generation_system_prompt,
-                        }
-                    )
-            for i in range(len(data["generated_nodes"])):
-                for j in range(len(data["generated_nodes"][i])):
-                    reasoner_state = ReasonerState.from_dict(
-                        data["generated_nodes"][i][j]
-                    )
-                    data["generated_nodes"][i][j].update(
-                        {
-                            "generation_prompt": reasoner_state.generation_prompt,
-                            "generation_system_prompt": reasoner_state.generation_system_prompt,
-                        }
-                    )
-
-            T = bfs_to_nx(data)
-
-            DT = nx.DiGraph()
-            DT.add_nodes_from(T.nodes(data=True))
-            DT.add_edges_from(T.edges(data=True))
-
-            j_graph = nx.json_graph.tree_data(DT, root=0)
-            # print(list(j_graph["children"][0].keys()))
-            j_graph = _clean_json(j_graph)
-            # print(list(j_graph["children"][0].keys()))
-
-            flattened_node_rewards = [
-                r for r_list in data["node_rewards"] for r in r_list
-            ]
-
-            if len(data["node_rewards"]) == 6 and not np.allclose(
-                flattened_node_rewards, -10
-            ):
-                Path(
-                    "icml_processed", "gpt-35-turbo_coherent-priors_beam-search"
-                ).mkdir(parents=True, exist_ok=True)
-                with open(
-                    Path("icml_processed", "gpt-35-turbo_coherent-priors_beam-search")
-                    / (fname.stem + ".json"),
-                    "w",
-                ) as f:
-                    json.dump(j_graph, f)
-            else:
-                print(
-                    f"Skipping {fname}. Tree depth: {len(data['node_rewards'])}, allclose: {np.allclose(flattened_node_rewards, -10)}"
-                )
-
-        else:
-            print(f"Skipping {fname}. Doesn't exist.")
+    f
