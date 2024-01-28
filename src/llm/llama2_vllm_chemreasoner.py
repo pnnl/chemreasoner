@@ -52,6 +52,7 @@ class LlamaLLM:
         # Apply default sampling params
         sampling_args["temperature"] = sampling_args.get("temperature", 0.8)
         sampling_args["top_p"] = sampling_args.get("top_p", 0.95)
+        sampling_args["max_tokens"] = sampling_args.get("max_tokens", 4096)
 
         self.model_dir = model_dir
         self.num_gpus = num_gpus
