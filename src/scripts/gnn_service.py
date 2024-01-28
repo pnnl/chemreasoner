@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 parser = argparse.ArgumentParser()
 # Reward function
-parser.add_argument("--port", required=True, help="Specify server port")
+parser.add_argument("--gnn-port", required=True, help="Specify server port")
 parser.add_argument("--gnn-traj-dir", type=str, default=None)
 
 args = parser.parse_args()
@@ -76,4 +76,4 @@ def GemNet():
 
 if __name__ == "__main__":
     print("creating flask server")
-    app.run(host="0.0.0.0", port=int(args.port))
+    app.run(host="0.0.0.0", port=int(args.gnn_port))
