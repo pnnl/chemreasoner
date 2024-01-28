@@ -168,26 +168,19 @@ class StructureReward(BaseReward):
                 final_reward = self.penalty_value
             else:
                 start = time.time()
+                print(self.gnn_service_port)
                 if self.gnn_service_port is not None:
                     # Go to the gnn server to get adsorption energy calculations
-                    json_args = {
-                        "slab_syms": slab_syms[i],
-                        "ads_list": ads_list,
-                        "candidates_list": candidates_list,
-                    }
-                    url = f"http://localhost:{gnn_server_port}/GemNet"
-                    response = requests.post(url, json_args)
-                    response_dict = response.json()
+
                     (
                         adslabs_and_energies,
                         gnn_calls,
                         gnn_time,
                         name_candidate_mapping,
-                    ) = (
-                        response_dict["adslabs_and_energies"],
-                        response_dict["gnn_calls"],
-                        response_dict["gnn_time"],
-                        response_dict["name_candidate_mapping"],
+                    ) = self.call_gnn_server(
+                        slab_syms[i],
+                        ads_list,
+                        candidates_list,
                     )
                 else:
                     (
@@ -247,6 +240,28 @@ class StructureReward(BaseReward):
                 )
 
         return rewards
+
+    def call_gnn_server(
+        self,
+        slab_syms,
+        ads_list,
+        candidates_list,
+    ):
+        """create_function to call gnn_server."""
+        json_args = {
+            "slab_syms": slab_syms,
+            "ads_list": ads_list,
+            "candidates_list": candidates_list,
+        }
+        url = f"http://localhost:{self.gnn_service_port}/GemNet"
+        response = requests.post(url, json=json_args)
+        response_dict = response.json()
+        return (
+            response_dict["adslabs_and_energies"],
+            response_dict["gnn_calls"],
+            response_dict["gnn_time"],
+            response_dict["name_candidate_mapping"],
+        )
 
     def create_structures_and_calculate(
         self,
@@ -325,6 +340,7 @@ class StructureReward(BaseReward):
                         else:
                             raise ValueError(f"Unkown placement type {placement_type}.")
             except Exception as err:
+                raise err
                 logging.warning(
                     f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
                 )
@@ -602,27 +618,27 @@ if __name__ == "__main__":
     #     logging.info("running first...")
 
     #     start = time.time()
-    #     sr = StructureReward(
-    #         **{
-    #             "llm_function": None,
-    #             "model": model,
-    #             "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
-    #             "device": "cuda",
-    #             "steps": 64,
-    #             "ads_tag": 2,
-    #             "batch_size":40,
-    #             "num_adslab_samples": 16,
-    #         }
-    #     )
+    sr = StructureReward(
+        **{
+            "llm_function": None,
+            "model": "gemnet-t",
+            "traj_dir": Path("testing-gnn/gemnet"),
+            "device": "cpu",
+            "steps": 10,
+            "ads_tag": 2,
+            "batch_size": 40,
+            "num_adslab_samples": 2,
+            "gnn_service_port": 1234,
+        }
+    )
 
-    #     print(
-    #         sr.create_structures_and_calculate(
-    #             [["Cu"], ["Zn"]],
-    #             ["CO2", "*CO"],
-    #             ["Cu", "Zn"],
-    #             placement_type=None,
-    #         )
-    #     )
+    print(
+        sr.call_gnn_server(
+            [["Cu"], ["Pt"], ["Cu", "Pt"]],
+            ["CO2"],
+            ["Cu", "Pt", "CuPt"],
+        )
+    )
 
     #     end = time.time()
     #     logging.info(end - start)
@@ -660,18 +676,18 @@ if __name__ == "__main__":
 
     #     torch.cuda.empty_cache()
 
-    for p in Path("methanol_results").rglob("*.traj"):
-        break_trajectory(p)
-        xyz_dir = p.parent / p.stem
-        highest_xyz = max([p for p in xyz_dir.rglob("*.xyz")])
-        adslab = p.parent.stem
-        print(adslab)
-        print(highest_xyz)
-        shutil.copy(
-            highest_xyz,
-            Path("..", "methanol_chemreasoner_results")
-            / (adslab.replace("*", "") + ".xyz"),
-        )
+    # for p in Path("methanol_results").rglob("*.traj"):
+    #     break_trajectory(p)
+    #     xyz_dir = p.parent / p.stem
+    #     highest_xyz = max([p for p in xyz_dir.rglob("*.xyz")])
+    #     adslab = p.parent.stem
+    #     print(adslab)
+    #     print(highest_xyz)
+    #     shutil.copy(
+    #         highest_xyz,
+    #         Path("..", "methanol_chemreasoner_results")
+    #         / (adslab.replace("*", "") + ".xyz"),
+    #     )
 
 
 # model weights have to placed in data/model_weights

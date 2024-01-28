@@ -21,35 +21,35 @@ args = parser.parse_args()
 
 def get_structure_reward(args):
     """Argument parser parse arguments."""
-    if args.reward_function == "simulation-reward":
-        assert isinstance(args.gnn_traj_dir, str), "invalid parameter"
-        nnp_kwargs = {
-            "model": "gemnet-t",
-            "traj_dir": Path(args.gnn_traj_dir),
-            "batch_size": 40,
-            "device": "cuda",
-            "ads_tag": 2,
-            "fmax": 0.05,
-            "steps": 64,
-        }
-        return simulation_reward.StructureReward(
-            llm_function=None,
-            penalty_value=-10,
-            nnp_class="oc",
-            num_slab_samples=16,
-            num_adslab_samples=16,
-            max_attempts=3,
-            **nnp_kwargs,
-        )
+
+    assert isinstance(args.gnn_traj_dir, str), "invalid parameter"
+    nnp_kwargs = {
+        "model": "gemnet-t",
+        "traj_dir": Path(args.gnn_traj_dir),
+        "batch_size": 40,
+        "device": "cpu",
+        "ads_tag": 2,
+        "fmax": 0.05,
+        "steps": 64,
+    }
+    return simulation_reward.StructureReward(
+        llm_function=None,
+        penalty_value=-10,
+        nnp_class="oc",
+        num_slab_samples=16,
+        num_adslab_samples=16,
+        max_attempts=3,
+        **nnp_kwargs,
+    )
 
 
 struct_reward_provider = get_structure_reward(args)
 
 
 def actual_gnn_func(request):
-    slab_syms = request.values.get("slab_syms")
-    ads_list = request.values.get("ads_list")
-    candidates_list = request.values.get("candidates_list")
+    slab_syms = request.json.get("slab_syms")
+    ads_list = request.json.get("ads_list")
+    candidates_list = request.json.get("candidates_list")
     (
         adslabs_and_energies,
         gnn_calls,
@@ -75,4 +75,5 @@ def GemNet():
 
 
 if __name__ == "__main__":
+    print("creating flask server")
     app.run(host="0.0.0.0", port=int(args.port))

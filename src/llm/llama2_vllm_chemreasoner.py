@@ -39,7 +39,9 @@ def init_llama(
 class LlamaLLM:
     """A class to handle initializing llama."""
 
-    default_system_prompt = ""
+    default_system_prompt = (
+        "You are an AI assistant that helps people find information."
+    )
 
     def __init__(
         self,
@@ -62,22 +64,24 @@ class LlamaLLM:
         self,
         prompts: list[str],
         system_prompts: list[str] = None,
-        batch_size: int = None,
-        sampling_args: dict = None,
+        **sampling_kwargs,
     ):
         """Generate responses for the given prompts."""
-        if sampling_args is None:
+        if sampling_kwargs == {}:
             sampling_params = self.sampling_params
         else:
-            sampling_args["temperature"] = sampling_args.get("temperature", 0.8)
-            sampling_args["top_p"] = sampling_args.get("top_p", 0.95)
-            sampling_params = SamplingParams(sampling_args)
+            sampling_kwargs["temperature"] = sampling_kwargs.get("temperature", 0.7)
+            sampling_kwargs["top_p"] = sampling_kwargs.get("top_p", 0.95)
+            sampling_params = SamplingParams(**sampling_kwargs)
+
+        if system_prompts is None:
+            system_prompts = [None] * len(prompts)
 
         processed_prompts = [
             self.process_prompt(p, s) for p, s in zip(prompts, system_prompts)
         ]
 
-        return self.run_llama(processed_prompts, sampling_params, batch_size)
+        return self.run_llama(processed_prompts, sampling_params)
 
     def run_llama(
         self,
@@ -90,10 +94,8 @@ class LlamaLLM:
         answers = []
         batch_prompts = [self.process_prompt(x) for x in processed_prompts]
         answers = self.llm.generate(batch_prompts, sampling_params)
-        print(answers)
         processed_answers = []
         for output in answers:
-            print(list(output.keys()))
             generated_text = output.outputs[0].text
             processed_answers.append({"answer": generated_text})
         return processed_answers
