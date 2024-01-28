@@ -203,6 +203,7 @@ if __name__ == "__main__":
     parser.add_argument("--nnp-class", type=str, default=None)
     parser.add_argument("--num-slab-samples", type=int, default=None)
     parser.add_argument("--num-adslab-samples", type=int, default=None)
+    parser.add_argument("--gnn-service-port", type=int, default=None)
 
     # nnp_kwargs
     parser.add_argument("--gnn-model", type=str, default=None)
