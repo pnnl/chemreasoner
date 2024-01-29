@@ -633,7 +633,7 @@ if __name__ == "__main__":
     )
 
     print(
-        sr.call_gnn_server(
+        sr.create_structures_and_calculate(
             [["Cu"], ["Pt"], ["Cu", "Pt"]],
             ["CO2"],
             ["Cu", "Pt", "CuPt"],
