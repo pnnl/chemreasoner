@@ -203,7 +203,7 @@ class ReasonerState:
             usage = None
         else:
             self.answer = results["answer"]
-            usage = results["usage"]
+            usage = results.get("usage", None)
 
         if "generation" not in self.info.keys():
             self.info["generation"] = [
@@ -274,7 +274,7 @@ class ReasonerState:
                 usage = None
             else:
                 ans = results[i]["answer"]
-                usage = results[i]["usage"]
+                usage = results[i].get("usage", None)
             ans = results[i]["answer"]
             # store the answer
             self.info["llm-reward"]["attempted_prompts"][-1]["answer"].append(ans)
@@ -352,7 +352,7 @@ class ReasonerState:
             usage = None
         else:
             answer = result["answer"]
-            usage = result["usage"]
+            usage = result["usage"].get("usage", None)
 
         answer_list_parsed = [None] * len(self.candidates)
         for line in answer.split("\n"):
@@ -480,7 +480,7 @@ class ReasonerState:
             usage = None
         else:
             prior_answer = results["answer"]
-            usage = results["usage"]
+            usage = results["usage"].get("usage", None)
 
         action_lists = {}
         for line in prior_answer.split("{")[-1].split("\n"):
