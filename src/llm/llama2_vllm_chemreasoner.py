@@ -94,7 +94,7 @@ class LlamaLLM:
         processed_answers = []
         for output in answers:
             generated_text = output.outputs[0].text
-            processed_answers.append({"answer": generated_text})
+            processed_answers.append({"answer": generated_text, "usage": None})
         return processed_answers
 
     def process_prompt(self, prompt: str, system_prompt: str = None):
