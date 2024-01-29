@@ -115,7 +115,7 @@ class StructureReward(BaseReward):
                         prompts.pop()
         if len(prompts) > 0:
             answers = self.llm_function(
-                prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
+                prompts, system_prompts, **{"temperature": 0.01, "top_p": 0.01}
             )
 
             for i, p in enumerate(prompts):
