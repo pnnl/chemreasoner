@@ -44,6 +44,7 @@ class StructureReward(BaseReward):
         num_adslab_samples=16,
         max_attempts: int = 3,
         gnn_service_port: int = None,
+        flip_negative: bool = False,
         **nnp_kwargs,
     ):
         """Select the class of nnp for the reward function."""
@@ -57,6 +58,7 @@ class StructureReward(BaseReward):
         self.num_adslab_samples = num_adslab_samples
         self.max_attempts = max_attempts
         self.gnn_service_port = gnn_service_port
+        self.minus = -1 if flip_negative else 1
 
     def run_generation_prompts(
         self, slab_syms: list[list[str]], states: list[ReasonerState]
@@ -457,7 +459,7 @@ class StructureReward(BaseReward):
                     reduce_pathways = [
                         max(np.diff(path)) for path in paths_without_none
                     ]
-                    rewards.append(min(reduce_pathways))
+                    rewards.append(self.minus * min(reduce_pathways))
                 else:
                     rewards.append(self.penalty_value)
 
