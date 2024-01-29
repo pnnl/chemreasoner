@@ -119,6 +119,7 @@ class StructureReward(BaseReward):
             answers = self.llm_function(
                 prompts, system_prompts, **{"temperature": 0.01, "top_p": 0.01}
             )
+            logging.info(answers)
 
             for i, p in enumerate(prompts):
                 state_idx = prompts_idx[i]
