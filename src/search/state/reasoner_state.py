@@ -352,7 +352,7 @@ class ReasonerState:
             usage = None
         else:
             answer = result["answer"]
-            usage = result["usage"].get("usage", None)
+            usage = result.get("usage", None)
 
         answer_list_parsed = [None] * len(self.candidates)
         for line in answer.split("\n"):
