@@ -628,7 +628,7 @@ if __name__ == "__main__":
             "ads_tag": 2,
             "batch_size": 40,
             "num_adslab_samples": 2,
-            "gnn_service_port": 1234,
+            "gnn_service_port": None,
         }
     )
 
