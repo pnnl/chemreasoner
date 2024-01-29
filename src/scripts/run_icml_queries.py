@@ -126,6 +126,7 @@ def get_reward_function(args, state, llm_function):
             num_adslab_samples=args.num_adslab_samples,
             max_attempts=args.reward_max_attempts,
             gnn_service_port=args.gnn_port,
+            flip_negative=args.flip_negative,
             **nnp_kwargs,
         )
 
@@ -215,7 +216,7 @@ if __name__ == "__main__":
     parser.add_argument("--num-slab-samples", type=int, default=None)
     parser.add_argument("--num-adslab-samples", type=int, default=None)
     parser.add_argument("--gnn-service-port", type=int, default=None)
-    parser.add_argument("--flip-negative", type=bool, action="store_true")
+    parser.add_argument("--flip-negative", action="store_true")
 
     # nnp_kwargs
     parser.add_argument("--gnn-model", type=str, default=None)
