@@ -634,9 +634,9 @@ if __name__ == "__main__":
 
     print(
         sr.create_structures_and_calculate(
-            [["Cu"], ["Pt"], ["Cu", "Pt"]],
+            [["Zr"], ["Pt"], ["Cu", "Pt"]],
             ["CO2"],
-            ["Cu", "Pt", "CuPt"],
+            ["Zr", "Pt", "CuPt"],
         )
     )
 
