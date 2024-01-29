@@ -72,6 +72,7 @@ class LlamaLLM:
         else:
             sampling_kwargs["temperature"] = sampling_kwargs.get("temperature", 0.7)
             sampling_kwargs["top_p"] = sampling_kwargs.get("top_p", 0.95)
+            sampling_kwargs["max_tokens"] = sampling_kwargs.get("max_tokens", 4096)
             sampling_params = SamplingParams(**sampling_kwargs)
 
         if system_prompts is None:
