@@ -51,7 +51,6 @@ for p in results_files:
                 rewards.append(results[sample][query]["reward"])
 
         if len(rewards) > 0:
-            print(rewards)
             if dataset in max_rewards:
                 max_rewards[dataset].append(max(rewards))
             else:
@@ -59,4 +58,4 @@ for p in results_files:
 
     print(p.stem)
     for dataset in max_rewards.keys():
-        print(f"{dataset}: {max_rewards[dataset]}")
+        print(f"{dataset}: {np.mean(max_rewards[dataset])}")
