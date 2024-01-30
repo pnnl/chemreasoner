@@ -53,5 +53,5 @@ for p in results_files:
                 max_rewards[p.stem][dataset] = [max_rewards]
 
     print(p.stem)
-    for dataset in max_rewards[p.stem].keys9):
+    for dataset in max_rewards[p.stem].keys():
         print(f"{dataset}: {max_rewards[p.stem][dataset]}")
