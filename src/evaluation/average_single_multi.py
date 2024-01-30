@@ -42,8 +42,8 @@ for p in results_files:
         dataset = df["dataset"][query]
         idx = str(query).zfill(3)
         rewards = []
-        for sample in results[p.stem]:
-            if query in results[p.stem][sample]:
+        for sample in results[p.stem.replace("_rewards.json", "")]:
+            if query in results[p.stem.replace("_rewards.json", "")][sample]:
                 rewards.append(
                     results[p.stem.replace("_rewards.json", "")][sample][query][
                         "reward"
