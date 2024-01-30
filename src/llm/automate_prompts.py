@@ -80,7 +80,7 @@ def get_initial_state_open_catalyst(
         template=template,
         reward_template=None,
         ads_symbols=[adsorbate],
-        catalyst_label =catalyst_type.replace("{", "").replace("}", ""),
+        catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
         ads_preferences=[1],
         num_answers=5,
         prediction_model=prediction_model,
@@ -111,7 +111,7 @@ def get_initial_state_bio_fuels(
         ads_symbols=[adsorbate],
         ads_preferences=[1],
         num_answers=5,
-        catalyst_label = catalyst_type.replace("{", "").replace("}", ""),
+        catalyst_label=catalyst_type.replace("{", "").replace("}", ""),
         include_list=[property_name],
         prediction_model=prediction_model,
         reward_model=reward_model,
@@ -201,10 +201,10 @@ def get_initial_state_methanol(
 
     # If there are no adsorbates in the prompt...
     if len(ads_symbols) == 0:
-        ads_symbols = list(set(
-            [syms for syms_l in computational_pathways_methanol for syms in syms_l]
-        ))
-        
+        ads_symbols = list(
+            set([syms for syms_l in computational_pathways_methanol for syms in syms_l])
+        )
+
         qs = ReasonerState(
             template=template,
             reward_template=None,
@@ -229,7 +229,6 @@ def get_initial_state_methanol(
             prediction_model=prediction_model,
             reward_model=reward_model,
         )
-    logging.info(vars(qs))
     return qs
 
 
@@ -259,17 +258,16 @@ def get_initial_state_ethanol(
     ads_preference = []
     for possible_ads in ["ethanol", "CO2", "H2"]:
         if possible_ads in question.replace("CO2 to ethanol conversion reaction", ""):
-            logging.info(possible_ads)
             ads_symbols.append(molecule_conversions[possible_ads])
             preference = -1 if possible_ads == "ethanol" else 1
             ads_preference.append(preference)
 
     # If there are no adsorbates in the prompt...
     if len(ads_symbols) == 0:
-        ads_symbols = list(set(
-            [syms for syms_l in computational_pathways_ethanol for syms in syms_l]
-        ))
-        
+        ads_symbols = list(
+            set([syms for syms_l in computational_pathways_ethanol for syms in syms_l])
+        )
+
         qs = ReasonerState(
             template=template,
             reward_template=None,
@@ -294,7 +292,6 @@ def get_initial_state_ethanol(
             prediction_model=prediction_model,
             reward_model=reward_model,
         )
-    logging.info(vars(qs))
     return qs
 
 

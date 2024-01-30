@@ -17,6 +17,7 @@ import pandas as pd
 sys.path.append("src")
 from datasets import reasoner_data_loader  # noqa:E402
 from llm.azure_open_ai_interface import AzureOpenaiInterface  # noqa:E402
+from llm.llama2_vllm_chemreasoner import LlamaLLM  # noqa:E402
 from search.policy import coherent_policy, reasoner_policy  # noqa:E402
 from search.reward import simulation_reward, llm_reward  # noqa:E402
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa:E402
@@ -72,7 +73,6 @@ def get_reward_function(args, state, llm_function):
     ), "invalid parameter"
 
     if args.reward_function == "simulation-reward":
-
         assert (
             isinstance(args.nnp_class, str) and args.nnp_class == "oc"
         ), "invalid parameter"
@@ -85,10 +85,14 @@ def get_reward_function(args, state, llm_function):
 
         # check nnp_kwargs
         assert (
-            isinstance(args.reward_max_attempts, int)
-            and args.reward_max_attempts > 0
+            isinstance(args.reward_max_attempts, int) and args.reward_max_attempts > 0
         ), "invalid parameter"
-        assert args.gnn_model in ["gemnet-t", "gemnet-oc", "escn", "eq2"], "invalid parameter"
+        assert args.gnn_model in [
+            "gemnet-t",
+            "gemnet-oc",
+            "escn",
+            "eq2",
+        ], "invalid parameter"
         assert isinstance(args.gnn_traj_dir, str), "invalid parameter"
         assert (
             isinstance(args.gnn_batch_size, int) and args.gnn_batch_size > 0
@@ -121,6 +125,8 @@ def get_reward_function(args, state, llm_function):
             num_slab_samples=args.num_slab_samples,
             num_adslab_samples=args.num_adslab_samples,
             max_attempts=args.reward_max_attempts,
+            gnn_service_port=args.gnn_port,
+            flip_negative=args.flip_negative,
             **nnp_kwargs,
         )
 
@@ -156,6 +162,23 @@ def get_state_from_idx(idx, df: pd.DataFrame):
     return reasoner_data_loader.get_state(dataset, query, chain_of_thought=True)
 
 
+def get_llm_function(args):
+    """Get the llm function specified by args."""
+    assert isinstance(args.dotenv_path, str)
+    assert isinstance(args.llm, str)
+    if args.llm in ["gpt-4", "gpt-3.5-turbo"]:
+        llm_function = AzureOpenaiInterface(args.dotenv_path, model=args.llm)
+    elif args.llm == "llama2-13b":
+        llm_function = LlamaLLM(
+            "meta-llama/Llama-2-13b-chat-hf",
+            num_gpus=1,
+        )
+    else:
+        raise ValueError(f"Unkown LLM {args.llm}.")
+
+    return llm_function
+
+
 def get_indeces(args):
     """Get the state indeces provided in args."""
     assert isinstance(args.start_query, int) and args.start_query >= 0
@@ -172,7 +195,8 @@ if __name__ == "__main__":
     parser.add_argument("--end-query", type=int)
     parser.add_argument("--depth", type=int, default=None)
     parser.add_argument("--opt-debug", type=bool, default=False)
-    parser.add_argument("--dotenv-path", type=str, default=False)
+    parser.add_argument("--dotenv-path", type=str, default=None)
+    parser.add_argument("--llm", type=str, default=None)
 
     # Policy
     parser.add_argument("--policy", type=str, default=None)
@@ -191,6 +215,8 @@ if __name__ == "__main__":
     parser.add_argument("--nnp-class", type=str, default=None)
     parser.add_argument("--num-slab-samples", type=int, default=None)
     parser.add_argument("--num-adslab-samples", type=int, default=None)
+    parser.add_argument("--gnn-service-port", type=int, default=None)
+    parser.add_argument("--flip-negative", action="store_true")
 
     # nnp_kwargs
     parser.add_argument("--gnn-model", type=str, default=None)
@@ -200,6 +226,7 @@ if __name__ == "__main__":
     parser.add_argument("--gnn-ads-tag", type=int, default=None)
     parser.add_argument("--gnn-fmax", type=float, default=None)
     parser.add_argument("--gnn-steps", type=int, default=None)
+    parser.add_argument("--gnn-port", type=int, default=None)
 
     parser.add_argument("--search-method", type=str, default=None)
     parser.add_argument("--num-keep", type=int, default=None)
@@ -211,12 +238,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     assert isinstance(args.depth, int) and args.depth > 0
-    assert isinstance(args.dotenv_path, str)
+
     start = time.time()
     save_dir = Path(args.savedir)
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    llm_function = AzureOpenaiInterface(args.dotenv_path)
+    llm_function = get_llm_function(args)
 
     df = pd.read_csv(args.dataset_path)
     indeces = get_indeces(args)
@@ -248,7 +275,8 @@ if __name__ == "__main__":
                         node_constructor=ReasonerState.from_dict,
                     )
                     assert (
-                        isinstance(args.num_keep, int) and args.num_keep == search.num_keep
+                        isinstance(args.num_keep, int)
+                        and args.num_keep == search.num_keep
                     ), "mismatch parameter"
                     assert (
                         isinstance(args.num_generate, int)
@@ -274,7 +302,7 @@ if __name__ == "__main__":
                         {"total_time": end_time - start_time, "step_times": timing_data}
                     )
                     json.dump(data, f, cls=NpEncoder)
-                
+
                 end = time.time()
                 logging.info(f"TIMING: One search iteration: {end-start}")
 

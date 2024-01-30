@@ -90,7 +90,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             self.config_path = self.model_configs_paths / "gemnet" / "gemnet-dT.yml"
 
         elif self.model == "gemnet-oc-large":
-            self.model_path = self.model_weights_paths / "gemnet_oc_large_s2ef_all_md.pt"
+            self.model_path = (
+                self.model_weights_paths / "gemnet_oc_large_s2ef_all_md.pt"
+            )
             # print('model path', self.model_path)
             if not self.model_path.exists():
                 print("Downloading weights for gemnet...")
@@ -100,10 +102,14 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                     out=str(self.model_weights_paths),
                 )
                 print("Done!")
-            self.config_path = self.model_configs_paths / "gemnet" / "gemnet-oc-large.yml"
+            self.config_path = (
+                self.model_configs_paths / "gemnet" / "gemnet-oc-large.yml"
+            )
 
         elif self.model == "escn":
-            self.model_path = self.model_weights_paths / "escn_l6_m3_lay20_all_md_s2ef.pt"
+            self.model_path = (
+                self.model_weights_paths / "escn_l6_m3_lay20_all_md_s2ef.pt"
+            )
             # print('model path', self.model_path)
             if not self.model_path.exists():
                 print("Downloading weights for gemnet...")
@@ -113,7 +119,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                     out=str(self.model_weights_paths),
                 )
                 print("Done!")
-            self.config_path = self.model_configs_paths / "escn" / "eSCN-L6-M3-Lay20-All-MD.yml"
+            self.config_path = (
+                self.model_configs_paths / "escn" / "eSCN-L6-M3-Lay20-All-MD.yml"
+            )
 
         elif self.model == "eq2":
             self.model_path = self.model_weights_paths / "eq2_153M_ec4_allmd.pt"
@@ -151,7 +159,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.ase_calc = None
         self.torch_calc = None
 
-        self.redis_db = redis.Redis(host='localhost', port=6379, db=1)
+        self.redis_db = redis.Redis(host="localhost", port=6379, db=1)
 
     @property
     def get_ase_calculator(self):
@@ -246,6 +254,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             relax_opt=relax_opt,
             save_full_traj=True,
             device=trainer.device,
+            # device="cuda:1",
         )
         end = time.time()
         self.gnn_calls += self.steps
@@ -458,7 +467,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         else:
             data.update(data_dict)
             self.redis_db.set(str(fname), json.dumps(data))
-        
+
         with open(fname, "w") as f:
             json.dump(data, f)
 
@@ -494,16 +503,19 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Get the adsorption energy from adslab_name for given idx.
 
         If the calculation has not been done, returns None."""
-       
+
         data = self.read_json(self.adsorption_path(adslab_name))
         print(self.adsorption_path(adslab_name))
         print(data)
-        if data is not None and idx in data.keys() and "adsorption_energy" in data[idx].keys():
+        if (
+            data is not None
+            and idx in data.keys()
+            and "adsorption_energy" in data[idx].keys()
+        ):
             ads_energy = data[idx]["adsorption_energy"]
             return ads_energy
         else:
             return None
-
 
     def get_validity_deprecated(self, adslab_name, idx) -> Optional[float]:
         """Get the adsorption energy from adslab_name for given idx.
@@ -531,7 +543,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             return validity
         else:
             return None
-
 
     def slab_path(self, slab_name: str) -> Path:
         """Return the path to the slab file for slab_name."""
@@ -586,7 +597,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     def save_slab(self, slab_name: str, slab: Path, slab_samples=None):
         """Save the given slab."""
         try:
-            
             with open(self.slab_path(slab_name), "xb") as f:
                 pickle.dump(slab, f)
             self.redis_db.set(str(self.slab_path(slab_name)), pickle.dumps(slab))

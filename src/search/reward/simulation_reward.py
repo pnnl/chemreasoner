@@ -1,6 +1,8 @@
-"""Module for reward funciton by calculation of adsorption energies in simulation."""
+"""Module for reward function by calculation of adsorption energies in simulation."""
 import json
 import logging
+import requests
+import shutil
 import sys
 import time
 import uuid
@@ -21,10 +23,9 @@ sys.path.append("src")
 from llm import ase_interface  # noqa: E402
 from search.state.reasoner_state import ReasonerState  # noqa: E402
 from evaluation.break_traj_files import break_trajectory  # noqa: E402
+
 from nnp import oc  # noqa: E402
 from search.reward.base_reward import BaseReward  # noqa: E402
-
-#import redis
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -42,6 +43,8 @@ class StructureReward(BaseReward):
         num_slab_samples=16,
         num_adslab_samples=16,
         max_attempts: int = 3,
+        gnn_service_port: int = None,
+        flip_negative: bool = False,
         **nnp_kwargs,
     ):
         """Select the class of nnp for the reward function."""
@@ -54,6 +57,8 @@ class StructureReward(BaseReward):
         self.num_slab_samples = num_slab_samples
         self.num_adslab_samples = num_adslab_samples
         self.max_attempts = max_attempts
+        self.gnn_service_port = gnn_service_port
+        self.minus = -1 if flip_negative else 1
 
     def run_generation_prompts(
         self, slab_syms: list[list[str]], states: list[ReasonerState]
@@ -74,7 +79,11 @@ class StructureReward(BaseReward):
             loop_counter = 0
             for i, s in enumerate(states):
                 if slab_syms[i] is None:
-                    s.process_generation(generation_results[loop_counter])
+                    try:
+                        s.process_generation(generation_results[loop_counter])
+                    except Exception:
+                        logging.info("failed to process generation answer.")
+                        pass
 
                     loop_counter += 1
             end = time.time()
@@ -108,8 +117,9 @@ class StructureReward(BaseReward):
                         prompts.pop()
         if len(prompts) > 0:
             answers = self.llm_function(
-                prompts, system_prompts, **{"temperature": 0.0, "top_p": 0}
+                prompts, system_prompts, **{"temperature": 0.01, "top_p": 0.01}
             )
+            logging.info(answers)
 
             for i, p in enumerate(prompts):
                 state_idx = prompts_idx[i]
@@ -161,16 +171,33 @@ class StructureReward(BaseReward):
                 final_reward = self.penalty_value
             else:
                 start = time.time()
-                (
-                    adslabs_and_energies,
-                    gnn_calls,
-                    gnn_time,
-                    name_candidate_mapping,
-                ) = self.create_structures_and_calculate(
-                    slab_syms[i], ads_list, candidates_list,
-                )
+                print(self.gnn_service_port)
+                if self.gnn_service_port is not None:
+                    # Go to the gnn server to get adsorption energy calculations
+
+                    (
+                        adslabs_and_energies,
+                        gnn_calls,
+                        gnn_time,
+                        name_candidate_mapping,
+                    ) = self.call_gnn_server(
+                        slab_syms[i],
+                        ads_list,
+                        candidates_list,
+                    )
+                else:
+                    (
+                        adslabs_and_energies,
+                        gnn_calls,
+                        gnn_time,
+                        name_candidate_mapping,
+                    ) = self.create_structures_and_calculate(
+                        slab_syms[i],
+                        ads_list,
+                        candidates_list,
+                    )
                 end = time.time()
-                logging.info(f"TIMING: GNN calculations done {end-start}")
+                logging.info(f"TIMING: GNN calculations done {end - start}")
                 if s.ads_preferences is not None:
                     final_reward, reward_values = self.parse_adsorption_energies(
                         s,
@@ -217,6 +244,28 @@ class StructureReward(BaseReward):
 
         return rewards
 
+    def call_gnn_server(
+        self,
+        slab_syms,
+        ads_list,
+        candidates_list,
+    ):
+        """create_function to call gnn_server."""
+        json_args = {
+            "slab_syms": slab_syms,
+            "ads_list": ads_list,
+            "candidates_list": candidates_list,
+        }
+        url = f"http://localhost:{self.gnn_service_port}/GemNet"
+        response = requests.post(url, json=json_args)
+        response_dict = response.json()
+        return (
+            response_dict["adslabs_and_energies"],
+            response_dict["gnn_calls"],
+            response_dict["gnn_time"],
+            response_dict["name_candidate_mapping"],
+        )
+
     def create_structures_and_calculate(
         self,
         slab_syms,
@@ -241,8 +290,16 @@ class StructureReward(BaseReward):
                     slab_ats = self.adsorption_calculator.get_slab(slab_name)
                     if slab_ats is None:
                         try:
-                            if any([s not in chemical_symbols or chemical_symbols.index(s) > 82 for s in slab_sym]):
-                                raise ase_interface.StructureGenerationError(f"Cannot create bulk with slab_syms {slab_sym}.")
+                            if any(
+                                [
+                                    s not in chemical_symbols
+                                    or chemical_symbols.index(s) > 82
+                                    for s in slab_sym
+                                ]
+                            ):
+                                raise ase_interface.StructureGenerationError(
+                                    f"Cannot create bulk with slab_syms {slab_sym}."
+                                )
                             slab_samples = [
                                 ase_interface.symbols_list_to_bulk(slab_sym)
                                 for _ in range(self.num_slab_samples)
@@ -286,6 +343,7 @@ class StructureReward(BaseReward):
                         else:
                             raise ValueError(f"Unkown placement type {placement_type}.")
             except Exception as err:
+                raise err
                 logging.warning(
                     f"ERROR:Simulation reward failed for slab syms {slab_syms}. Moving on to the next node."
                 )
@@ -382,7 +440,6 @@ class StructureReward(BaseReward):
                 if cand not in reward_values.keys():
                     reward_values[cand] = {ads: []}
 
-
         # aggregate the rewards
         rewards = []
         adsorption_energies = {}
@@ -390,19 +447,20 @@ class StructureReward(BaseReward):
             if cand in reward_values.keys():
                 adsorption_energies[cand] = [[None] * len(p) for p in pathways]
                 for i, path in enumerate(pathways):
-
                     for j, ads in enumerate(path):
                         adsorption_energies[cand][i][j] = (
                             min(reward_values[cand][ads])
                             if len(reward_values[cand][ads]) > 0
                             else None
                         )
-                paths_without_none = [p for p in adsorption_energies[cand] if None not in p]
+                paths_without_none = [
+                    p for p in adsorption_energies[cand] if None not in p
+                ]
                 if len(paths_without_none) != 0:
-                    reduce_pathways = [max(np.diff(path)) for path in paths_without_none]
-                    rewards.append(
-                        min(reduce_pathways)
-                    )
+                    reduce_pathways = [
+                        max(np.diff(path)) for path in paths_without_none
+                    ]
+                    rewards.append(self.minus * min(reduce_pathways))
                 else:
                     rewards.append(self.penalty_value)
 
@@ -553,8 +611,7 @@ class _TestState:
 
 
 if __name__ == "__main__":
-    pass
-    #redis_db = redis.Redis(host='localhost', port=6379, db=0)
+    # redis_db = redis.Redis(host='localhost', port=6379, db=0)
     # redis_db.set("/test/thing", "chemreasoner")
     # logging.info(redis_db.get("/test/thing"))
     # # traj_dir = "random"
@@ -564,50 +621,49 @@ if __name__ == "__main__":
     #     logging.info("running first...")
 
     #     start = time.time()
-    #     sr = StructureReward(
-    #         **{
-    #             "llm_function": None,
-    #             "model": model,
-    #             "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
-    #             "device": "cuda",
-    #             "steps": 64,
-    #             "ads_tag": 2,
-    #             "batch_size":40,
-    #             "num_adslab_samples": 16,
-    #         }
-    #     )
+    sr = StructureReward(
+        **{
+            "llm_function": None,
+            "model": "gemnet-t",
+            "traj_dir": Path("testing-gnn/gemnet"),
+            "device": "cpu",
+            "steps": 10,
+            "ads_tag": 2,
+            "batch_size": 40,
+            "num_adslab_samples": 2,
+            "gnn_service_port": None,
+        }
+    )
 
-    #     print(
-    #         sr.create_structures_and_calculate(
-    #             [["Cu"], ["Zn"]],
-    #             ["CO2", "*CO"],
-    #             ["Cu", "Zn"],
-    #             placement_type=None,
-    #         )
-    #     )
+    print(
+        sr.create_structures_and_calculate(
+            [["Zr"], ["Pt"], ["Cu", "Pt"]],
+            ["CO2"],
+            ["Zr", "Pt", "CuPt"],
+        )
+    )
 
     #     end = time.time()
     #     logging.info(end - start)
 
     #     torch.cuda.empty_cache()
- 
 
     # for model in ["gemnet-t"]:
     #     logging.info("running second...")
-       
+
     #     start = time.time()
-    #     sr = StructureReward(
-    #         **{
-    #             "llm_function": None,
-    #             "model": model,
-    #             "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
-    #             "device": "cuda",
-    #             "steps": 64,
-    #             "ads_tag": 2,
-    #             "batch_size":40,
-    #             "num_adslab_samples": 16,
-    #         }
-    #     )
+    # sr = StructureReward(
+    #     **{
+    #         "llm_function": None,
+    #         "model": model,
+    #         "traj_dir": Path(f"/dev/shm/testing-gnn/{model}"),
+    #         "device": "cuda",
+    #         "steps": 64,
+    #         "ads_tag": 2,
+    #         "batch_size":40,
+    #         "num_adslab_samples": 16,
+    #     }
+    # )
 
     #     print(
     #         sr.create_structures_and_calculate(
@@ -622,11 +678,19 @@ if __name__ == "__main__":
     #     logging.info(end - start)
 
     #     torch.cuda.empty_cache()
- 
 
-
-    # for p in Path(f"/var/tmp/testing-gnn").rglob("*.traj"):
+    # for p in Path("methanol_results").rglob("*.traj"):
     #     break_trajectory(p)
+    #     xyz_dir = p.parent / p.stem
+    #     highest_xyz = max([p for p in xyz_dir.rglob("*.xyz")])
+    #     adslab = p.parent.stem
+    #     print(adslab)
+    #     print(highest_xyz)
+    #     shutil.copy(
+    #         highest_xyz,
+    #         Path("..", "methanol_chemreasoner_results")
+    #         / (adslab.replace("*", "") + ".xyz"),
+    #     )
 
 
 # model weights have to placed in data/model_weights

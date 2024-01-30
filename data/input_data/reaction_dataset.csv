@@ -1,0 +1,13 @@
+dataset,query,idx
+CO2ToEthanol,Generate a list of top-5 {metallic catalysts} that exhibit high activity for the CO2 to ethanol conversion reaction.,127
+CO2ToEthanol,Generate a list of top-5 {metallic catalysts} that[ are cheap and] exhibit high activity for the CO2 to ethanol conversion reaction.,130
+CO2ToEthanol,Generate a list of top-5 {metallic catalysts} that perform the CO2 to ethanol conversion reaction at lower temperature (<200 C).,131
+CO2ToEthanol,Generate a list of top-5 {metallic catalysts} that[ are cheap and] perform the CO2 to ethanol conversion reaction at lower temperature (<200 C).,132
+CO2ToEthanol,Generate a list of top-5 {bimetallic catalysts} that exhibit high activity for the CO2 to ethanol conversion reaction.,133
+CO2ToEthanol,Generate a list of top-5 {bimetallic catalysts (combination of noble metal and base metal)} that exhibit high activity for the CO2 to ethanol conversion reaction.,134
+CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that exhibit high activity for the CO2 to methanol conversion reaction.,137
+CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that[ are cheap and] exhibit high activity for the CO2 to methanol conversion reaction.,140
+CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that perform the CO2 to methanol conversion reaction at lower temperature (<200 C).,141
+CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that[ are cheap and] perform the CO2 to methanol conversion reaction at lower temperature (<200 C).,142
+CO2ToMethanol,Generate a list of top-5 {bimetallic catalysts} that exhibit high activity for the CO2 to methanol conversion reaction.,143
+CO2ToMethanol,Generate a list of top-5 {bimetallic catalysts (combination of noble metal and base metal)} that exhibit high activity for the CO2 to methanol conversion reaction.,144
