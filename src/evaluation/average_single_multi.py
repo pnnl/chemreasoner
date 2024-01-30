@@ -38,9 +38,10 @@ for p in results_files:
     with open(p, "r") as f:
         results = json.load(f)
     best_rewards = []
-    for query in range(145):
-        dataset = df["dataset"][query]
-        idx = str(query).zfill(3)
+    for i, row in df.iterrows():
+        dataset = row["dataset"]
+        query = row["query"]
+        idx = i
         rewards = []
         for sample in results.keys():
             if idx in results[sample]:
