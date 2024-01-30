@@ -39,7 +39,7 @@ for p in results_files:
         results = json.load(f)
     best_rewards = []
     for query in range(145):
-        dataset = df[query]
+        dataset = df["dataset"][query]
         idx = str(query).zfill(3)
         rewards = []
         for sample in results[p.stem]:
