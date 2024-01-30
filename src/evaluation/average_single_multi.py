@@ -34,7 +34,7 @@ df = pd.read_csv("data/input_data/dataset.csv")
 
 max_rewards = {}
 for p in results_files:
-    max_rewards[p.stem] = {}
+    max_rewards = {}
     with open(p, "r") as f:
         results = json.load(f)
     best_rewards = []
@@ -52,11 +52,11 @@ for p in results_files:
 
         if len(rewards) > 0:
             print(dataset)
-            if dataset in max_rewards[p.stem]:
-                max_rewards[p.stem][dataset].append(max(rewards))
+            if dataset in max_rewards:
+                max_rewards[dataset].append(max(rewards))
             else:
-                max_rewards[p.stem][dataset] = [max_rewards]
+                max_rewards[dataset] = [max_rewards]
 
     print(p.stem)
-    for dataset in max_rewards[p.stem].keys():
-        print(f"{dataset}: {max_rewards[p.stem][dataset]}")
+    for dataset in max_rewards.keys():
+        print(f"{dataset}: {max_rewards[dataset]}")
