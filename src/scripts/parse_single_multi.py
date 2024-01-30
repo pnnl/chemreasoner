@@ -20,7 +20,7 @@ def get_structure_reward():
     """Argument parser parse arguments."""
     nnp_kwargs = {
         "model": "gemnet-t",
-        "traj_dir": Path("/dev/shm/chemreasoner"),
+        "traj_dir": Path("/dev/shm/chemreasoner/catalysis"),
         "batch_size": 40,
         "device": "cuda",
         "ads_tag": 2,
