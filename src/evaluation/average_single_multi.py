@@ -48,10 +48,10 @@ for p in results_files:
             # print(results[sample])
             # print(results[sample][query])
             if len(results[sample]) > 0 and query in results[sample]:
-                print(list(results[sample][query]["reward"]))
                 rewards.append(results[sample][query]["reward"])
 
         if len(rewards) > 0:
+            pritn(dataset)
             if dataset in max_rewards[p.stem]:
                 max_rewards[p.stem][dataset].append(max(rewards))
             else:
