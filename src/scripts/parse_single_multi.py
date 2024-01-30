@@ -5,6 +5,7 @@ import sys
 
 from copy import deepcopy
 from pathlib import Path
+from tqdm import tqdm
 
 import pandas as pd
 
@@ -31,9 +32,9 @@ for p in results_files:
     results[p.stem] = {}
     with open(p, "r") as f:
         data = json.load(f)
-    for sample in sorted(data.keys()):
+    for sample in tqdm(sorted(data.keys())):
         results[sample] = {}
-        for query, syms in sorted(data[sample].items(), key=lambda x: x[0]):
+        for query, syms in tqdm(sorted(data[sample].items(), key=lambda x: x[0])):
             processed_syms = [s.replace("-", "").replace("/", "") for s in syms]
             processed_syms = [re.findall("[A-Z][^A-Z]*", s) for s in processed_syms]
             if not all(
