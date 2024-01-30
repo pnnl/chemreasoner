@@ -55,7 +55,7 @@ for p in results_files:
             if dataset in max_rewards:
                 max_rewards[dataset].append(max(rewards))
             else:
-                max_rewards[dataset] = [max_rewards]
+                max_rewards[dataset] = [max(rewards)]
 
     print(p.stem)
     for dataset in max_rewards.keys():
