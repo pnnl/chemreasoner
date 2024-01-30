@@ -43,8 +43,8 @@ for p in results_files:
         idx = str(query).zfill(3)
         rewards = []
         for sample in results.keys():
-            if query in results[sample]:
-                rewards.append(results[sample][query]["reward"])
+            if idx in results[sample]:
+                rewards.append(results[sample][idx]["reward"])
 
         if len(rewards) > 0:
             if dataset in max_rewards[p.stem]:
@@ -53,5 +53,5 @@ for p in results_files:
                 max_rewards[p.stem][dataset] = [max_rewards]
 
     print(p.stem)
-    for dataset in max_rewards[p.stem]:
+    for dataset in max_rewards[p.stem].keys9):
         print(f"{dataset}: {max_rewards[p.stem][dataset]}")
