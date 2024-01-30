@@ -44,7 +44,11 @@ for p in results_files:
         rewards = []
         for sample in results[p.stem]:
             if query in results[p.stem][sample]:
-                rewards.append(results[p.stem][sample][query]["reward"])
+                rewards.append(
+                    results[p.stem.replace("_rewards.json", "")][sample][query][
+                        "reward"
+                    ]
+                )
 
         if len(rewards) > 0:
             if dataset in max_rewards[p.stem]:
