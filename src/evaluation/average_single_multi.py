@@ -39,6 +39,7 @@ for p in results_files:
         results = json.load(f)
     best_rewards = []
     for i, row in df.iterrows():
+        print(i, row)
         dataset = row["dataset"]
         query = row["query"]
         idx = i
