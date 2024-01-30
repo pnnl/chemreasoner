@@ -20,10 +20,10 @@ _category_mapper = {
 
 
 results_files = [
-    Path("single_shot_results") / "single_shot_results4.json",
-    Path("single_shot_results") / "single_shot_results35.json",
-    Path("multi_shot_results") / "multi_shot_results35.json",
-    Path("multi_shot_results") / "multi_shot_results4.json",
+    Path("single_shot_results") / "single_shot_results4_rewards.json",
+    Path("single_shot_results") / "single_shot_results35_rewards.json",
+    Path("multi_shot_results") / "multi_shot_results35_rewards.json",
+    Path("multi_shot_results") / "multi_shot_results4_rewards.json",
 ]
 
 df = pd.read_csv(Path("data", "input_data", "dataset.csv"))
@@ -42,19 +42,10 @@ for p in results_files:
         dataset = df["dataset"][query]
         idx = str(query).zfill(3)
         rewards = []
-        for sample in results[
-            p.stem.replace("_rewards4", "").replace("_rewards35", "")
-        ]:
-            if (
-                query
-                in results[p.stem.replace("_rewards4", "").replace("_rewards35", "")][
-                    sample
-                ]
-            ):
+        for sample in results[p.stem.replace("_rewards", "")]:
+            if query in results[p.stem.replace("_rewards", "")][sample]:
                 rewards.append(
-                    results[p.stem.replace("_rewards4", "").replace("_rewards35", "")][
-                        sample
-                    ][query]["reward"]
+                    results[p.stem.replace("_rewards", "")][sample][query]["reward"]
                 )
 
         if len(rewards) > 0:
