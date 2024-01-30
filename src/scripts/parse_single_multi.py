@@ -15,6 +15,29 @@ sys.path.append("src")
 from datasets import reasoner_data_loader  # noqa:E402
 from search.reward import simulation_reward  # noqa:E402
 
+
+def get_structure_reward():
+    """Argument parser parse arguments."""
+    nnp_kwargs = {
+        "model": "gemnet-t",
+        "traj_dir": Path("/dev/shm/chemreasoner"),
+        "batch_size": 40,
+        "device": "cuda",
+        "ads_tag": 2,
+        "fmax": 0.05,
+        "steps": 64,
+    }
+    return simulation_reward.StructureReward(
+        llm_function=None,
+        penalty_value=-10,
+        nnp_class="oc",
+        num_slab_samples=16,
+        num_adslab_samples=16,
+        max_attempts=3,
+        **nnp_kwargs,
+    )
+
+
 results_files = [
     Path("single_shot_results") / "single_shot_results4.json",
     Path("single_shot_results") / "single_shot_results35.json",
@@ -26,7 +49,7 @@ df = pd.read_csv(Path("data", "input_data", "dataset.csv"))
 
 results = {}
 
-sr = simulation_reward.StructureReward()
+sr = get_structure_reward()
 
 for p in results_files:
     results[p.stem] = {}
