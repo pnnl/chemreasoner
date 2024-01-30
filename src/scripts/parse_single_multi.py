@@ -58,73 +58,78 @@ for p in results_files:
     for sample in tqdm(sorted(data.keys())):
         results[sample] = {}
         for query, syms in tqdm(sorted(data[sample].items(), key=lambda x: x[0])):
-            processed_syms = [s.replace("-", "").replace("/", "") for s in syms]
-            processed_syms = [re.findall("[A-Z][^A-Z]*", s) for s in processed_syms]
-            if not all(
-                [s in chemical_symbols for s_list in processed_syms for s in s_list]
-            ):
-                print([s for s_list in processed_syms for s in s_list])
+            try:
+                processed_syms = [s.replace("-", "").replace("/", "") for s in syms]
+                processed_syms = [re.findall("[A-Z][^A-Z]*", s) for s in processed_syms]
+                if not all(
+                    [s in chemical_symbols for s_list in processed_syms for s in s_list]
+                ):
+                    print([s for s_list in processed_syms for s in s_list])
 
-            dataset = df.iloc[int(query)]["dataset"]
-            query = df.iloc[int(query)]["query"]
-            state = reasoner_data_loader.get_state(
-                dataset, query, chain_of_thought=True
-            )
-
-            (
-                adslabs_and_energies,
-                gnn_calls,
-                gnn_time,
-                name_candidate_mapping,
-            ) = sr.create_structures_and_calculate(
-                processed_syms,
-                state.ads_symbols,
-                ["".join(s_list) for s_list in processed_syms],
-            )
-
-            if state.ads_preferences is not None:
-                final_reward, reward_values = sr.parse_adsorption_energies(
-                    state,
-                    adslabs_and_energies,
-                    name_candidate_mapping,
-                    ["".join(s_list) for s_list in processed_syms],
-                    state.ads_preferences,
+                dataset = df.iloc[int(query)]["dataset"]
+                query = df.iloc[int(query)]["query"]
+                state = reasoner_data_loader.get_state(
+                    dataset, query, chain_of_thought=True
                 )
-            else:
+
                 (
-                    final_reward,
-                    reward_values,
-                    adsorption_energies,
-                ) = sr.parse_adsorption_pathways(
                     adslabs_and_energies,
+                    gnn_calls,
+                    gnn_time,
                     name_candidate_mapping,
+                ) = sr.create_structures_and_calculate(
+                    processed_syms,
+                    state.ads_symbols,
                     ["".join(s_list) for s_list in processed_syms],
-                    state.reaction_pathways,
                 )
 
-            if "simulation-reward" in state.info.keys():
-                state.info["simulation-reward"].update(
-                    {
+                if state.ads_preferences is not None:
+                    final_reward, reward_values = sr.parse_adsorption_energies(
+                        state,
+                        adslabs_and_energies,
+                        name_candidate_mapping,
+                        ["".join(s_list) for s_list in processed_syms],
+                        state.ads_preferences,
+                    )
+                else:
+                    (
+                        final_reward,
+                        reward_values,
+                        adsorption_energies,
+                    ) = sr.parse_adsorption_pathways(
+                        adslabs_and_energies,
+                        name_candidate_mapping,
+                        ["".join(s_list) for s_list in processed_syms],
+                        state.reaction_pathways,
+                    )
+
+                if "simulation-reward" in state.info.keys():
+                    state.info["simulation-reward"].update(
+                        {
+                            "slab_syms": processed_syms,
+                            "value": final_reward,
+                            "reward_values": deepcopy(reward_values),
+                            "gnn_calls": gnn_calls,
+                            "gnn_time": gnn_time,
+                        }
+                    )
+                else:
+                    state.info["simulation-reward"] = {
                         "slab_syms": processed_syms,
                         "value": final_reward,
                         "reward_values": deepcopy(reward_values),
                         "gnn_calls": gnn_calls,
                         "gnn_time": gnn_time,
                     }
-                )
-            else:
-                state.info["simulation-reward"] = {
-                    "slab_syms": processed_syms,
-                    "value": final_reward,
-                    "reward_values": deepcopy(reward_values),
-                    "gnn_calls": gnn_calls,
-                    "gnn_time": gnn_time,
+                if state.ads_preferences is None:
+                    state.info["simulation-reward"].update(
+                        {"intermediate_energies": adsorption_energies}
+                    )
+                results[sample][query] = {
+                    "reward": final_reward,
+                    "tmp_state": vars(state),
                 }
-            if state.ads_preferences is None:
-                state.info["simulation-reward"].update(
-                    {"intermediate_energies": adsorption_energies}
-                )
-            results[sample][query] = {"reward": final_reward, "tmp_state": vars(state)}
-
+            except Exception as err:
+                print(err)
     with open(p.parent / (p.stem + "_rewards.json"), "r") as f:
         data = json.load(f)
