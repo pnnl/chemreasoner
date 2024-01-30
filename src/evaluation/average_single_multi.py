@@ -46,7 +46,7 @@ for p in results_files:
         rewards = []
         for sample in results.keys():
             print(results[sample])
-            print(results[sample][query])
+            # print(results[sample][query])
             if len(results[sample]) > 0 and query in results[sample][query]:
                 rewards.append(results[sample][idx]["reward"])
 
