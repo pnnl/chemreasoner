@@ -81,6 +81,7 @@ for p in processed_dir.rglob("*.json"):
     output_nodes = []
     if len(list(sp)) != 0:
         print(list(sp))
+        print(len(list(sp)))
         for node in list(sp)[0]:
             output_nodes.append(graph.nodes(data=True)[node])
 
