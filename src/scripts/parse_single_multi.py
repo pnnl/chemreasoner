@@ -133,7 +133,7 @@ for p in results_files:
             except Exception as err:
                 print(err)
     with open(p.parent / (p.stem + "_rewards.json"), "w") as f:
-        json.dump(data, f)
+        json.dump(results, f)
 
 
 results = {}
@@ -221,4 +221,4 @@ for p in results_files:
             except Exception as err:
                 print(err)
     with open(p.parent / (p.stem + "_negative_rewards.json"), "w") as f:
-        json.dump(data, f)
+        json.dump(results, f)

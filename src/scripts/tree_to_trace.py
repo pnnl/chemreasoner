@@ -77,19 +77,28 @@ for p in processed_dir.rglob("*.json"):
     if len(filtered_list) > 0:
         print(f"\nFiltered out nodes: {filtered_list}\n")
 
-    sp = nx.all_simple_paths(graph, 0, max_idx)
+    sp = list(nx.all_simple_paths(graph, 0, max_idx))
+    # sp =[[1,2,3,4]]
+    print(sp)
     output_nodes = []
-    for node in list(sp)[0]:
-        output_nodes.append(graph.nodes(data=True)[node])
+    if len(sp) != 0:
+        print(sp)
+        print(len(sp))
+        for node in sp[0]:
+            output_nodes.append(graph.nodes(data=True)[node])
 
     (traces_dir / p).parent.mkdir(parents=True, exist_ok=True)
     with open(traces_dir / p, "w") as f:
         json.dump(output_nodes, f, indent=4)
     best_output_path = traces_dir / (p.parent / (p.stem + ".best.json"))
-    with open(best_output_path, "w") as f:
-        json.dump(output_nodes[-1], f, indent=4)
+    if len(output_nodes) > 0:
+        with open(best_output_path, "w") as f:
+            json.dump(output_nodes[-1], f, indent=4)
 
-    tree_rewards[str(p.parent)] = output_nodes[-1]["node_rewards"]
+    if len(output_nodes) > 0:
+        tree_rewards[str(p.parent)] = output_nodes[-1]["node_rewards"]
+    else:
+        tree_rewards[str(p.parent)] = np.nan
 
 for k, v in tree_rewards.items():
     print(f"{k}: {np.mean(v)}")

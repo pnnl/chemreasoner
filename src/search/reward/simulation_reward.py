@@ -392,6 +392,8 @@ class StructureReward(BaseReward):
         rewards = []
         for cand in candidates_list:
             if cand in reward_values.keys():
+                print(cand, ads)
+                print((reward_values[cand][ads]))
                 rewards.append(
                     sum(
                         [
@@ -625,8 +627,8 @@ if __name__ == "__main__":
         **{
             "llm_function": None,
             "model": "gemnet-t",
-            "traj_dir": Path("testing-gnn/gemnet"),
-            "device": "cpu",
+            "traj_dir": Path("/dev/shm/chemreasoner/catalysis"),
+            "device": "cuda",
             "steps": 10,
             "ads_tag": 2,
             "batch_size": 40,
@@ -635,13 +637,56 @@ if __name__ == "__main__":
         }
     )
 
-    print(
-        sr.create_structures_and_calculate(
-            [["Zr"], ["Pt"], ["Cu", "Pt"]],
-            ["CO2"],
-            ["Zr", "Pt", "CuPt"],
-        )
+    (
+        adslabs_and_energies,
+        gnn_calls,
+        gnn_time,
+        name_candidate_mapping,
+    ) = sr.create_structures_and_calculate(
+        [["Cu", "Al", "Zn"]],
+        ["CO2", "*CHOH", "*OCHO", "*OHCH3"],
+        ["CuAlZn"],
     )
+
+    name_candidate_mapping = {"CuAlZn": "CuAlZn"}
+
+    reward_values = {}
+    for idx, name, energy, valid_structure in adslabs_and_energies:
+        cand = "CuAlZn"
+        ads = name.split("_")[-1]
+        if valid_structure == 0 or (ads[1] == 2 and True):
+            if cand in reward_values.keys():
+                if ads in reward_values.keys():
+                    reward_values[cand][ads] += [(energy)]
+                else:
+                    reward_values[cand][ads] = [(energy)]
+            else:
+                reward_values[cand] = {ads: [(energy)]}
+        else:
+            if cand not in reward_values.keys():
+                reward_values[cand] = {ads: []}
+
+    # aggregate the rewards
+    rewards = []
+    for cand in ["CuAlZn"]:
+        if cand in reward_values.keys():
+            print(cand, ads)
+            print((reward_values[cand][ads]))
+            rewards.append(
+                sum(
+                    [
+                        -((min(reward_values[cand][ads])) * 1)
+                        if len(reward_values[cand][ads]) > 0
+                        else -10
+                        for i, ads in enumerate(reward_values[cand].keys())
+                    ]
+                )
+            )
+        else:  # Handle default here TODO: determine some logic/pentaly for this
+            print(cand)
+            rewards.append(-10)
+
+    final_reward = np.mean(rewards)
 
     #     end = time.time()
     #     logging.info(end - start)

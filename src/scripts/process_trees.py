@@ -123,5 +123,3 @@ if __name__ == "__main__":
                         )
                 else:
                     print(f"Skipping {fname}. Doesn't exist.")
-
-    f
