@@ -77,12 +77,14 @@ for p in processed_dir.rglob("*.json"):
     if len(filtered_list) > 0:
         print(f"\nFiltered out nodes: {filtered_list}\n")
 
-    sp = nx.all_simple_paths(graph, 0, max_idx)
+    sp = list(nx.all_simple_paths(graph, 0, max_idx))
+    # sp =[[1,2,3,4]]
+    print(sp)
     output_nodes = []
-    if len(list(sp)) != 0:
-        print(list(sp))
-        print(len(list(sp)))
-        for node in list(sp)[0]:
+    if len(sp) != 0:
+        print(sp)
+        print(len(sp))
+        for node in sp[0]:
             output_nodes.append(graph.nodes(data=True)[node])
 
     (traces_dir / p).parent.mkdir(parents=True, exist_ok=True)
