@@ -640,7 +640,7 @@ if __name__ == "__main__":
     print(
         sr.create_structures_and_calculate(
             [["Cu", "Al", "Zn"], ["Pt"]],
-            ["CO2", "*CH*OH", "*OCHO", "*OHCH3"],
+            ["CO2", "*CHOH", "*OCHO", "*OHCH3"],
             ["CuAlZn"],
         )
     )
