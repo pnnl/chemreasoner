@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from ase.io import Trajectory
 
-paths = [p for p in tqdm(Path("/dev/shm/chemreasoner/cataylsis").rglob("*/*.traj"))]
+paths = [p for p in tqdm(Path("/dev/shm/chemreasoner/catalysis").rglob("*/*.traj"))]
 choices = []
 counter = 0
 while len(choices) < 40:
