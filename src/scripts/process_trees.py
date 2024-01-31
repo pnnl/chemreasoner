@@ -122,5 +122,4 @@ if __name__ == "__main__":
                             f"Skipping {fname}. Tree depth: {len(data['node_rewards'])}, allclose: {np.allclose(flattened_node_rewards, -10)}"
                         )
                 else:
-                    if "negative" in str(fname):
-                        print(f"Skipping {fname}. Doesn't exist.")
+                    print(f"Skipping {fname}. Doesn't exist.")
