@@ -20,10 +20,10 @@ _category_mapper = {
 
 
 results_files = [
-    Path("single_shot_results") / "single_shot_results4_rewards.json",
-    Path("single_shot_results") / "single_shot_results35_rewards.json",
-    Path("multi_shot_results") / "multi_shot_results35_rewards.json",
-    Path("multi_shot_results") / "multi_shot_results4_rewards.json",
+    Path("single_shot_results") / "single_shot_results4_negative_rewards.json",
+    Path("single_shot_results") / "single_shot_results35_negative_rewards.json",
+    Path("multi_shot_results") / "multi_shot_results35_negative_rewards.json",
+    Path("multi_shot_results") / "multi_shot_results4_negative_rewards.json",
 ]
 
 df = pd.read_csv(Path("data", "input_data", "dataset.csv"))
