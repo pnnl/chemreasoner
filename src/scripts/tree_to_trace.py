@@ -95,7 +95,10 @@ for p in processed_dir.rglob("*.json"):
         with open(best_output_path, "w") as f:
             json.dump(output_nodes[-1], f, indent=4)
 
-    tree_rewards[str(p.parent)] = output_nodes[-1]["node_rewards"]
+    if len(output_nodes) > 0:
+        tree_rewards[str(p.parent)] = output_nodes[-1]["node_rewards"]
+    else:
+        tree_rewards[str(p.parent)] = np.nan
 
 for k, v in tree_rewards.items():
     print(f"{k}: {np.mean(v)}")
