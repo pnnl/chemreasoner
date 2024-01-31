@@ -91,8 +91,9 @@ for p in processed_dir.rglob("*.json"):
     with open(traces_dir / p, "w") as f:
         json.dump(output_nodes, f, indent=4)
     best_output_path = traces_dir / (p.parent / (p.stem + ".best.json"))
-    with open(best_output_path, "w") as f:
-        json.dump(output_nodes[-1], f, indent=4)
+    if len(output_nodes) > 0:
+        with open(best_output_path, "w") as f:
+            json.dump(output_nodes[-1], f, indent=4)
 
     tree_rewards[str(p.parent)] = output_nodes[-1]["node_rewards"]
 
