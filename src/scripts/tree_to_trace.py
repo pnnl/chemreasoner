@@ -80,6 +80,7 @@ for p in processed_dir.rglob("*.json"):
     sp = nx.all_simple_paths(graph, 0, max_idx)
     output_nodes = []
     if len(list(sp)) != 0:
+        print(list(sp))
         for node in list(sp)[0]:
             output_nodes.append(graph.nodes(data=True)[node])
 
