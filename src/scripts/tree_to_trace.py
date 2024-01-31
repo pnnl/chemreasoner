@@ -79,8 +79,9 @@ for p in processed_dir.rglob("*.json"):
 
     sp = nx.all_simple_paths(graph, 0, max_idx)
     output_nodes = []
-    for node in list(sp)[0]:
-        output_nodes.append(graph.nodes(data=True)[node])
+    if len(list(sp) > 0):
+        for node in list(sp)[0]:
+            output_nodes.append(graph.nodes(data=True)[node])
 
     (traces_dir / p).parent.mkdir(parents=True, exist_ok=True)
     with open(traces_dir / p, "w") as f:
