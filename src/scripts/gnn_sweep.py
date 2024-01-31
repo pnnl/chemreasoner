@@ -16,6 +16,7 @@ while len(choices) < 40:
     choice = random.choice(paths)
     if choice not in choices:
         ats = Trajectory(str(choice))[-1]
+        print(ats.get_potential_energy())
         if ats.get_potential_energy() < 10:
             print(choice)
             choices.append(str(choice))
