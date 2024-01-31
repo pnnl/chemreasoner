@@ -627,7 +627,7 @@ if __name__ == "__main__":
         **{
             "llm_function": None,
             "model": "gemnet-t",
-            "traj_dir": Path("/dev/shm/testing-gnn/gemnet"),
+            "traj_dir": Path("/dev/shm/chemreasoner/catalysis"),
             "device": "cuda",
             "steps": 10,
             "ads_tag": 2,
