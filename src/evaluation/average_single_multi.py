@@ -40,7 +40,7 @@ for p in results_files:
     best_rewards = []
     for i, row in df.iterrows():
         # print(i, row)
-        dataset = row["dataset"]
+        dataset = _category_mapper[row["dataset"]]
         query = row["query"]
         idx = i
         rewards = []
