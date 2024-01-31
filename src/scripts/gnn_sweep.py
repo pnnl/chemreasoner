@@ -2,7 +2,7 @@
 import random
 
 from pathlib import Path
-from tqdmm import tqdm
+from tqdm import tqdm
 
 from ase.io import Trajectory
 
