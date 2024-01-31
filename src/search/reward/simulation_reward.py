@@ -392,6 +392,8 @@ class StructureReward(BaseReward):
         rewards = []
         for cand in candidates_list:
             if cand in reward_values.keys():
+                print(cand, ads)
+                print((reward_values[cand][ads]))
                 rewards.append(
                     sum(
                         [
@@ -625,8 +627,8 @@ if __name__ == "__main__":
         **{
             "llm_function": None,
             "model": "gemnet-t",
-            "traj_dir": Path("testing-gnn/gemnet"),
-            "device": "cpu",
+            "traj_dir": Path("/dev/shm/testing-gnn/gemnet"),
+            "device": "cuda",
             "steps": 10,
             "ads_tag": 2,
             "batch_size": 40,
@@ -637,9 +639,9 @@ if __name__ == "__main__":
 
     print(
         sr.create_structures_and_calculate(
-            [["Zr"], ["Pt"], ["Cu", "Pt"]],
-            ["CO2"],
-            ["Zr", "Pt", "CuPt"],
+            [["Cu", "Al", "Zn"], ["Pt"]],
+            ["CO2", "*CH*OH", "*OCHO", "*OHCH3"],
+            ["CuAlZn"],
         )
     )
 
