@@ -37,7 +37,7 @@ for xyz in sorted(data_path.rglob("*.xyz")):
     batch.append(ats)
     if len(batch) == batch_size:
         print("=== Running Batch ===")
-        calc.batched_relax_atoms(ats, fnames)
+        calc.batched_relax_atoms(batch, fnames)
         batch = []
         fnames = []
 
