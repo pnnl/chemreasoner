@@ -10,13 +10,13 @@ import pandas as pd
 sys.path.append("src")
 from nnp.oc import OCAdsorptionCalculator  # noqa:E402
 
-data_path = Path("src/nnp/adslabs")
+data_path = Path("src/nnp/adslabs_CO")
 
 calc = OCAdsorptionCalculator(
     **{
         "model": "gemnet-t",
         "traj_dir": data_path,
-        "batch_size": 32,
+        "batch_size": 20,
         "device": "cuda",
         "ads_tag": 2,
         "fmax": 0.05,

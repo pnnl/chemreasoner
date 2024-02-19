@@ -1,4 +1,5 @@
 """Module for reward function by calculation of adsorption energies in simulation."""
+
 import json
 import logging
 import requests
@@ -20,7 +21,7 @@ from ase.data import chemical_symbols
 
 
 sys.path.append("src")
-from llm import ase_interface  # noqa: E402
+# from llm import ase_interface  # noqa: E402
 from search.state.reasoner_state import ReasonerState  # noqa: E402
 from evaluation.break_traj_files import break_trajectory  # noqa: E402
 
@@ -397,12 +398,14 @@ class StructureReward(BaseReward):
                 rewards.append(
                     sum(
                         [
-                            -(
-                                (min(reward_values[cand][ads]))
-                                * state.get_ads_preferences(ads)
+                            (
+                                -(
+                                    (min(reward_values[cand][ads]))
+                                    * state.get_ads_preferences(ads)
+                                )
+                                if len(reward_values[cand][ads]) > 0
+                                else self.penalty_value
                             )
-                            if len(reward_values[cand][ads]) > 0
-                            else self.penalty_value
                             for i, ads in enumerate(reward_values[cand].keys())
                         ]
                     )
@@ -724,7 +727,7 @@ if __name__ == "__main__":
 
     #     torch.cuda.empty_cache()
 
-    for p in Path("cuzn_methanol_examples").rglob("*.traj"):
+    for p in Path("src", "nnp", "adslabs_CH3").rglob("*.traj.traj"):
         break_trajectory(p)
         # xyz_dir = p.parent / p.stem
         # highest_xyz = max([p for p in xyz_dir.rglob("*.xyz")])
