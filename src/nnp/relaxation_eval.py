@@ -24,17 +24,21 @@ calc = OCAdsorptionCalculator(
     }
 )
 
-batch_size = 40
+batch_size = 20
 batch = []
 fnames = []
 evals = []
 for xyz in sorted(data_path.rglob("*.xyz")):
     print(xyz)
     traj_path = str(xyz).replace(str(data_path), "")[1:]
-    fnames.append(traj_path.replace(".xyz", ".traj"))
-    print(data_path / traj_path)
-    ats = read(str(xyz))
-    batch.append(ats)
+    if not data_path / (traj_path.replace(".xyz", ".traj") + ".traj").exists():
+        fnames.append(traj_path.replace(".xyz", ".traj"))
+        print(data_path / traj_path)
+        ats = read(str(xyz))
+        batch.append(ats)
+    else:
+        p = str(data_path / (traj_path.replace(".xyz", ".traj") + ".traj").exists())
+        print(f"Skipping {p}.")
     if len(batch) == batch_size:
         print("=== Running Batch ===")
         calc.batched_relax_atoms(batch, fnames)
