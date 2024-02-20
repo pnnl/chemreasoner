@@ -10,7 +10,7 @@ import pandas as pd
 sys.path.append("src")
 from nnp.oc import OCAdsorptionCalculator  # noqa:E402
 
-data_path = Path("src/nnp/adslabs_CO")
+data_path = Path("src/nnp/adslabs_CO2")
 
 calc = OCAdsorptionCalculator(
     **{
