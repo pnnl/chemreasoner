@@ -1,6 +1,9 @@
 """Evaluate relaxed adsorption eneries for the given xyz files."""
 
+import logging
 import sys
+import time
+
 
 from pathlib import Path
 
@@ -9,6 +12,8 @@ import pandas as pd
 
 sys.path.append("src")
 from nnp.oc import OCAdsorptionCalculator  # noqa:E402
+
+logging.getLogger().setLevel(logging.INFO)
 
 data_path = Path("src/nnp/adslabs_CO2")
 
@@ -24,7 +29,7 @@ calc = OCAdsorptionCalculator(
     }
 )
 
-batch_size = 10
+batch_size = 20
 batch = []
 fnames = []
 evals = []
@@ -45,7 +50,10 @@ for xyz in sorted(data_path.rglob("*.xyz")):
 
     if len(batch) == batch_size:
         print("=== Running Batch ===")
+        start = time.time()
         calc.batched_relax_atoms(batch, fnames)
+        end = time.time()
+        logging.info(start - end)
         batch = []
         fnames = []
 
