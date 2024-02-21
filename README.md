@@ -2,6 +2,7 @@
 ![image](https://github.com/pnnl/chemreasoner/assets/7649924/ccae35c9-876e-4865-8e46-0b229167d522)
 
 ## News/Presentations/Publications
+* New pre-print: "Heuristic Search over a Large Language Model's Knowledge Space using Quantum-Chemical Feedback" [arXiv](https://arxiv.org/abs/2402.10980)
 * We will have two presentations at upcoming American Chemical Society Spring 2024 National Meeting!
     * Sprueill H.W., C. Edwards, M.V. Olarte, U. Sanyal, H. Ji, and S. Choudhury. "Integrating generative AI with computational chemistry for catalyst design in biofuel/bioproduct applications." American Chemical Society Spring 2024 National Meeting, New Orleans, Louisiana (oral presentation).
     * Sprueill H.W., C. Edwards, M.V. Olarte, U. Sanyal, K. Agarwal, H. Ji, and S. Choudhury. 03/18/2024. "Extreme-Scale Heterogeneous Inference with Large Language Models and Atomistic Graph Neural Networks for Catalyst Discovery." American Chemical Society Spring 2024 National Meeting, New Orleans, Louisiana (poster). 
@@ -13,7 +14,7 @@
 Citation
 ------
 
-Please cite the following (paper)[https://arxiv.org/abs/2310.14420] if you use this code in your work.
+Please cite the following papers [https://arxiv.org/abs/2310.14420] [https://arxiv.org/abs/2402.10980] if you find our work useful.
 
 ```bibtex
 @inproceedings{sprueill2023MCR,
@@ -22,10 +23,13 @@ Please cite the following (paper)[https://arxiv.org/abs/2310.14420] if you use t
   booktitle={In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP2023) Findings},
   year={2023}
 }
+@article{sprueill2024chemreasoner,
+  title={CHEMREASONER: Heuristic Search over a Large Language Model's Knowledge Space using Quantum-Chemical Feedback},
+  author={Sprueill, Henry W and Edwards, Carl and Agarwal, Khushbu and Olarte, Mariefel V and Sanyal, Udishnu and Johnston, Conrad and Liu, Hongbin and Ji, Heng and Choudhury, Sutanay},
+  journal={arXiv preprint arXiv:2402.10980},
+  year={2024}
+}
 ```
-## Installation
-Pre-print and details coming soon!
-
 ### Contact
 
 [Sutanay Choudhury](https://www.linkedin.com/in/sutanay/)
