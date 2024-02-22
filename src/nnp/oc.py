@@ -267,7 +267,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         for d in data_list:
             d.pbc = d.pbc[None, :]
         # convert to torch geometric batch
-        batch = Batch.from_data_list()
+        batch = Batch.from_data_list(data_list)
         print(data_list[0].pbc)
         print(batch)
         print(type(data_list[0]))
