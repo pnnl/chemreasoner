@@ -471,8 +471,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         if constraints:
             cons = FixAtoms(indices=[atom.index for atom in atoms if (atom.tag == 0)])
             atoms.set_constraint(cons)
-        atoms.center(vacuum=13.0, axis=2)
-        atoms.set_pbc(True)
+        # atoms.center(vacuum=13.0, axis=2)
+        # atoms.set_pbc(True)
 
     @staticmethod
     def prepare_atoms_list(atoms_list: Atoms, constraints: bool = True) -> None:
