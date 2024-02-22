@@ -262,7 +262,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         steps = steps if steps is not None else self.steps
         # Set up calculation for oc
         self.prepare_atoms_list(atoms)
-        print(atoms[0].get_pbc())
         data_list = self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
         for i, d in enumerate(data_list):
             d.pbc = d.pbc[None, :]
