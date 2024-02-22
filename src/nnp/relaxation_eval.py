@@ -59,6 +59,6 @@ for xyz in sorted(data_path.rglob("*.xyz")):
 
 if len(batch) > 0:
     print("=== Running Final Batch ===")
-    calc.batched_relax_atoms(ats, fnames)
+    calc.batched_relax_atoms(batch, fnames)
 
 print(evals)
