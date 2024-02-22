@@ -15,7 +15,7 @@ from nnp.oc import OCAdsorptionCalculator  # noqa:E402
 
 logging.getLogger().setLevel(logging.INFO)
 
-data_path = Path("src/nnp/adslabs_CO2")
+data_path = Path("src/nnp/adslabs_CO2_test")
 
 calc = OCAdsorptionCalculator(
     **{
@@ -25,11 +25,11 @@ calc = OCAdsorptionCalculator(
         "device": "cuda",
         "ads_tag": 2,
         "fmax": 0.05,
-        "steps": 300,
+        "steps": 3,
     }
 )
 
-batch_size = 100
+batch_size = 300
 batch = []
 fnames = []
 evals = []
