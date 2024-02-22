@@ -336,6 +336,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         batch = Batch.from_data_list(
             self.ats_to_graphs.convert_all(bulk_atoms, disable_tqdm=True)
         )
+        print(self.ats_to_graphs.convert_all(bulk_atoms, disable_tqdm=True)[0].pbc)
         # device='cpu'
         batch = batch.to(device if device is not None else self.device)
 
