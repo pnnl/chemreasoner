@@ -78,12 +78,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         # self.model_weights_paths  = Path("/Users/pana982/models/chemreasoner")
         self.ads_tag = ads_tag  # gihan
         if self.model == "gemnet-t":
-            self.model_path = (
-                self.model_weights_paths
-                / "s2ef"
-                / "all"
-                / "gemnet_t_direct_h512_all.pt"
-            )
+            self.model_path = self.model_weights_paths / "gemnet_t_direct_h512_all.pt"
             # print('model path', self.model_path)
             if not self.model_path.exists():
                 print("Downloading weights for gemnet...")
