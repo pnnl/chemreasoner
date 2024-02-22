@@ -264,8 +264,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.prepare_atoms_list(atoms)
         print(atoms[0].get_pbc())
         data_list = self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
-        for d in data_list:
+        for i, d in enumerate(data_list):
             d.pbc = d.pbc[None, :]
+            d.sid = atoms_names[i]
         # convert to torch geometric batch
         batch = Batch.from_data_list(data_list)
         print(data_list[0].pbc)
@@ -280,7 +281,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 if k not in data_dict.keys():
                     print(i, k)
         print(key_counts)
-        batch.sid = atoms_names
         batch = batch.to(device if device is not None else self.device)
 
         trainer = self.get_torch_model
