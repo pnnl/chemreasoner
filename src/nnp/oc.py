@@ -266,7 +266,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         batch = Batch.from_data_list(
             self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
         )
-        print(self.ats_to_graphs.convert_all(atoms, disable_tqdm=True))
+        print(type(self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)[0]))
         batch.sid = atoms_names
         batch = batch.to(device if device is not None else self.device)
 
