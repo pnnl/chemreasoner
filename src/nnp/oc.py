@@ -269,18 +269,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             d.sid = atoms_names[i]
         # convert to torch geometric batch
         batch = Batch.from_data_list(data_list)
-        print(data_list[0].pbc)
-        print(batch)
-        print(type(data_list[0]))
-        key_counts = {}
-        for i, data in enumerate(reversed(data_list)):
-            data_dict = data.to_dict()
-            for k, v in data_dict.items():
-                key_counts[k] = 1 if k not in key_counts.keys() else key_counts[k] + 1
-            for k in key_counts.keys():
-                if k not in data_dict.keys():
-                    print(i, k)
-        print(key_counts)
         batch = batch.to(device if device is not None else self.device)
 
         trainer = self.get_torch_model
@@ -294,7 +282,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         # assume 100 steps every time
         start = time.time()
         final_batch = ml_relax(
-            batch=[batch],  # ml_relax always uses batch[0]
+            batch=batch,  # ml_relax always uses batch[0]
             model=trainer,
             steps=steps,
             fmax=fmax,
