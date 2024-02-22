@@ -727,7 +727,8 @@ if __name__ == "__main__":
 
     #     torch.cuda.empty_cache()
 
-    for p in Path("src", "nnp", "adslabs_CH3").rglob("*.traj.traj"):
+    for p in Path("src", "nnp", "adslabs_CO").rglob("*.traj.traj"):
+        print(p)
         break_trajectory(p)
         # xyz_dir = p.parent / p.stem
         # highest_xyz = max([p for p in xyz_dir.rglob("*.xyz")])

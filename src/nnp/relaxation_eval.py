@@ -21,7 +21,7 @@ calc = OCAdsorptionCalculator(
     **{
         "model": "gemnet-t",
         "traj_dir": data_path,
-        "batch_size": 10,
+        "batch_size": 100,
         "device": "cuda",
         "ads_tag": 2,
         "fmax": 0.05,
@@ -29,7 +29,7 @@ calc = OCAdsorptionCalculator(
     }
 )
 
-batch_size = 20
+batch_size = 100
 batch = []
 fnames = []
 evals = []

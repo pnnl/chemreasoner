@@ -2,6 +2,7 @@
 
 Must intsall the sub-module ocpmodels included in ext/ocp.
 """
+
 import json
 import pickle
 import time
@@ -40,7 +41,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     model_weights_paths = Path("data", "model_weights")
     model_weights_paths.mkdir(parents=True, exist_ok=True)
-    model_configs_paths = Path("ext", "ocp", "configs", "s2ef", "all")
+    model_configs_paths = Path("ext", "ocp", "configs")
 
     # (8/18/2023) reference values from:
     # https://arxiv.org/abs/2010.09990
@@ -77,7 +78,12 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         # self.model_weights_paths  = Path("/Users/pana982/models/chemreasoner")
         self.ads_tag = ads_tag  # gihan
         if self.model == "gemnet-t":
-            self.model_path = self.model_weights_paths / "gemnet_t_direct_h512_all.pt"
+            self.model_path = (
+                self.model_weights_paths
+                / "s2ef"
+                / "all"
+                / "gemnet_t_direct_h512_all.pt"
+            )
             # print('model path', self.model_path)
             if not self.model_path.exists():
                 print("Downloading weights for gemnet...")
@@ -87,7 +93,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                     out=str(self.model_weights_paths),
                 )
                 print("Done!")
-            self.config_path = self.model_configs_paths / "gemnet" / "gemnet-dT.yml"
+            self.config_path = (
+                self.model_configs_paths / "s2ef" / "all" / "gemnet" / "gemnet-dT.yml"
+            )
 
         elif self.model == "gemnet-oc-large":
             self.model_path = (
@@ -103,7 +111,30 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 )
                 print("Done!")
             self.config_path = (
-                self.model_configs_paths / "gemnet" / "gemnet-oc-large.yml"
+                self.model_configs_paths
+                / "s2ef"
+                / "all"
+                / "gemnet"
+                / "gemnet-oc-large.yml"
+            )
+
+        elif self.model == "gemnet-oc-22":
+            self.model_path = self.model_weights_paths / "gnoc_oc22_oc20_all_s2ef.pt"
+            # print('model path', self.model_path)
+            if not self.model_path.exists():
+                print("Downloading weights for gemnet...")
+                wget.download(
+                    "https://dl.fbaipublicfiles.com/opencatalystproject/models/"
+                    "2023_05/oc22/s2ef/gnoc_oc22_oc20_all_s2ef.pt",
+                    out=str(self.model_weights_paths),
+                )
+                print("Done!")
+            self.config_path = (
+                self.model_configs_paths
+                / "oc22"
+                / "s2ef"
+                / "gemnet-oc"
+                / "gemnet_oc_oc20_oc22_degen_edges.yml"
             )
 
         elif self.model == "escn":
@@ -120,7 +151,11 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 )
                 print("Done!")
             self.config_path = (
-                self.model_configs_paths / "escn" / "eSCN-L6-M3-Lay20-All-MD.yml"
+                self.model_configs_paths
+                / "s2ef"
+                / "all"
+                / "escn"
+                / "eSCN-L6-M3-Lay20-All-MD.yml"
             )
 
         elif self.model == "eq2":
@@ -135,6 +170,8 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 print("Done!")
             self.config_path = (
                 self.model_configs_paths
+                / "s2ef"
+                / "all"
                 / "equiformer_v2"
                 / "equiformer_v2_N@20_L@6_M@3_153M.yml"
             )
@@ -172,6 +209,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             self.ase_calc = OCPCalculator(
                 config_yml=str(self.config_path),
                 checkpoint_path=str(self.model_path),
+                trainer="forces",
                 cpu=self.device == "cpu",
             )
         return self.ase_calc
@@ -356,6 +394,15 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
         return adslab_e
 
+    def static_eval(self, atoms: list[Atoms]):
+        """Evaluate the static energies and forces of the given atoms."""
+        batch = Batch.from_data_list(
+            self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
+        )
+        calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
+        # reset the tags, they got lost in conversion to Torch
+        return batch_to_atoms(calculated_batch)
+
     def _batched_static_eval(self, batch):
         """Run static energy/force calculation on batch."""
         self.gnn_calls += 1
@@ -391,6 +438,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 result_batch = method(batch, **kwargs)
                 evaluated_batches.append(result_batch)
             except RuntimeError as err:
+                raise err
                 e = err
                 oom = True
                 torch.cuda.empty_cache()
@@ -402,7 +450,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 if len(data_list) == 1:
                     raise assert_is_instance(e, RuntimeError)
                 print(
-                    f"Failed to relax batch with size: {len(data_list)}, splitting into two..."  # noqa
+                    f"Failed to calculate batch with size: {len(data_list)}, splitting into two..."  # noqa
                 )
                 mid = len(data_list) // 2
                 batches.appendleft(data_list_collater(data_list[:mid]))
@@ -613,7 +661,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
 
 class AdsorbedStructureChecker:
-    """A class to check whether an adsorbed structure is correct or not.
+    """A class to check whether an adsorbed structure is correct or not."
 
     Uses convention created by Open Catalysis:
     https://github.com/Open-Catalyst-Project/ocp/blob/main/DATASET.md
