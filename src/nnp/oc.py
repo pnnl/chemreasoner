@@ -268,7 +268,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         )
         print(type(self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)[0]))
         key_counts = {}
-        for data in self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)[0]:
+        for data in self.ats_to_graphs.convert_all(atoms, disable_tqdm=True):
             data_dict = data.to_dict()
             for k, v in data_dict.items():
                 key_counts = 0 if k not in key_counts.keys() else key_counts[k] + 1
