@@ -271,7 +271,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         for data in self.ats_to_graphs.convert_all(atoms, disable_tqdm=True):
             data_dict = data.to_dict()
             for k, v in data_dict.items():
-                key_counts = 0 if k not in key_counts.keys() else key_counts[k] + 1
+                key_counts[k] = 0 if k not in key_counts.keys() else key_counts[k] + 1
         print(key_counts)
         batch.sid = atoms_names
         batch = batch.to(device if device is not None else self.device)
