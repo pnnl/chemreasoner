@@ -36,11 +36,11 @@ evals = []
 for xyz in sorted(data_path.rglob("*.xyz")):
     print(xyz)
     traj_path = str(xyz).replace(str(data_path), "")[1:]
-    p = data_path / (traj_path.replace(".xyz", ".traj") + ".traj")
+    p = data_path / (traj_path.replace(".xyz", "") + ".traj")
 
     if not p.exists():
         # Append data to batch
-        fnames.append(traj_path.replace(".xyz", ".traj"))
+        fnames.append(traj_path.replace(".xyz", ""))
         print(data_path / traj_path)
         ats = read(str(xyz))
         batch.append(ats)
