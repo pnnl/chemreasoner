@@ -273,7 +273,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         ):
             data_dict = data.to_dict()
             for k, v in data_dict.items():
-                key_counts[k] = 0 if k not in key_counts.keys() else key_counts[k] + 1
+                key_counts[k] = 1 if k not in key_counts.keys() else key_counts[k] + 1
             for k in key_counts.keys():
                 if k not in data_dict.keys():
                     print(i, k)
