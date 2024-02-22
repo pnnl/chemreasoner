@@ -268,6 +268,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
         )
         print(self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)[0].pbc)
+        print(batch)
         print(type(self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)[0]))
         key_counts = {}
         for i, data in enumerate(
