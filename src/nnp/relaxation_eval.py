@@ -53,7 +53,7 @@ for xyz in sorted(data_path.rglob("*.xyz")):
         start = time.time()
         calc.batched_relax_atoms(batch, fnames)
         end = time.time()
-        logging.info(start - end)
+        logging.info(end - start)
         batch = []
         fnames = []
 

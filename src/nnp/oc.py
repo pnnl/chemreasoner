@@ -391,11 +391,12 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
         return adslab_e
 
-    def static_eval(self, atoms: list[Atoms]):
+    def static_eval(self, atoms: list[Atoms], device: str = None):
         """Evaluate the static energies and forces of the given atoms."""
         batch = Batch.from_data_list(
             self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
         )
+        batch = batch.to(device if device is not None else self.device)
         calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
         # reset the tags, they got lost in conversion to Torch
         return batch_to_atoms(calculated_batch)
