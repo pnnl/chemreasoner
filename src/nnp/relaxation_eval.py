@@ -29,7 +29,7 @@ calc = OCAdsorptionCalculator(
     }
 )
 
-batch_size = 300
+batch_size = 32
 batch = []
 fnames = []
 evals = []
