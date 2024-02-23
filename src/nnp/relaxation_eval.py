@@ -15,17 +15,17 @@ from nnp.oc import OCAdsorptionCalculator  # noqa:E402
 
 logging.getLogger().setLevel(logging.INFO)
 
-data_path = Path("src/nnp/adslabs_CO2_test")
+data_path = Path("src/nnp/methanol_chemreasoner_results")
 
 calc = OCAdsorptionCalculator(
     **{
         "model": "gemnet-t",
         "traj_dir": data_path,
-        "batch_size": 200,
+        "batch_size": 32,
         "device": "cuda",
         "ads_tag": 2,
         "fmax": 0.05,
-        "steps": 300,
+        "steps": 64,
     }
 )
 
