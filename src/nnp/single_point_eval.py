@@ -86,7 +86,8 @@ for model in ["gemnet-t"]:  # :["gemnet-oc-22", "gemnet-oc-large", "gemnet-t"]:
     if len(batch) > 0:
         evaled_ats = calc.static_eval(batch.copy())
         start = time.time()
-        evaled_ats = calc.static_eval(batch)
+        for i in range(10):
+            evaled_ats = calc.static_eval(batch.copy())
         end = time.time()
         energies = [ats.get_potential_energy() for ats in evaled_ats]
         data = {
@@ -98,7 +99,7 @@ for model in ["gemnet-t"]:  # :["gemnet-oc-22", "gemnet-oc-large", "gemnet-t"]:
         }
         results = pd.concat([results, pd.DataFrame(data)])
 
-        logging.info(end - start)
+        logging.info((end - start) / 10)
 
     # results.to_csv(f"{model}_gnn_single_point.csv")
 # data_path = Path("src/nnp/oc_eval_set")
