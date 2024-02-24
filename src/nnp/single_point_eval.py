@@ -84,6 +84,7 @@ for model in ["gemnet-t"]:  # :["gemnet-oc-22", "gemnet-oc-large", "gemnet-t"]:
             logging.info(end - start)
 
     if len(batch) > 0:
+        evaled_ats = calc.static_eval(batch.copy())
         start = time.time()
         evaled_ats = calc.static_eval(batch)
         end = time.time()
