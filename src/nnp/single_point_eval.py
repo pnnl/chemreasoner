@@ -32,7 +32,7 @@ class OCReferenceCalculator:
 
 
 for model in ["gemnet-t"]:  # :["gemnet-oc-22", "gemnet-oc-large", "gemnet-t"]:
-
+    total_time = 0
     data_path = Path("src/nnp/methanol_chemreasoner_results")
 
     calc = OCAdsorptionCalculator(
@@ -63,9 +63,11 @@ for model in ["gemnet-t"]:  # :["gemnet-oc-22", "gemnet-oc-large", "gemnet-t"]:
         ads_elements.append(np.unique(ats.numbers[ats.get_tags() == 2]).tolist())
         batch.append(ats)
         if len(batch) == 1:
+            evaled_ats = calc.static_eval(batch)
             start = time.time()
             evaled_ats = calc.static_eval(batch)
             end = time.time()
+            total_time += end - start
             logging.info((end - start) / 1)
             energies = [ats.get_potential_energy() for ats in evaled_ats]
             data = {
@@ -90,6 +92,7 @@ for model in ["gemnet-t"]:  # :["gemnet-oc-22", "gemnet-oc-large", "gemnet-t"]:
         for i in range(1):
             evaled_ats = calc.static_eval(batch.copy())
         end = time.time()
+        total_time += end - start
         energies = [ats.get_potential_energy() for ats in evaled_ats]
         data = {
             "file": fnames,
@@ -101,8 +104,8 @@ for model in ["gemnet-t"]:  # :["gemnet-oc-22", "gemnet-oc-large", "gemnet-t"]:
         results = pd.concat([results, pd.DataFrame(data)])
 
         logging.info((end - start) / 1)
-
-    # results.to_csv(f"{model}_gnn_single_point.csv")
+logging.info(f"Total time: {total_time}.")
+# results.to_csv(f"{model}_gnn_single_point.csv")
 # data_path = Path("src/nnp/oc_eval_set")
 
 # for xyz in data_path.rglob("*.xyz"):
