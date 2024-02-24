@@ -62,10 +62,11 @@ for model in ["gemnet-t"]:  # :["gemnet-oc-22", "gemnet-oc-large", "gemnet-t"]:
         bulk_elements.append(np.unique(ats.numbers[ats.get_tags() < 2]).tolist())
         ads_elements.append(np.unique(ats.numbers[ats.get_tags() == 2]).tolist())
         batch.append(ats)
-        if len(batch) == batch_size:
+        if len(batch) == 1:
             start = time.time()
             evaled_ats = calc.static_eval(batch)
             end = time.time()
+            logging.info((end - start) / 1)
             energies = [ats.get_potential_energy() for ats in evaled_ats]
             data = {
                 "file": fnames,
