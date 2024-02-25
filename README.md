@@ -2,6 +2,7 @@
 ![image](https://github.com/pnnl/chemreasoner/assets/7649924/ccae35c9-876e-4865-8e46-0b229167d522)
 
 ## News/Presentations/Publications
+* Presentation at [MLCommons Science Working Group][https://sutanay.github.io/publications/ChemReasoner-SciMLCommons.pdf]
 * New pre-print: "Heuristic Search over a Large Language Model's Knowledge Space using Quantum-Chemical Feedback" [arXiv](https://arxiv.org/abs/2402.10980)
 * We will have two presentations at upcoming American Chemical Society Spring 2024 National Meeting!
     * Sprueill H.W., C. Edwards, M.V. Olarte, U. Sanyal, H. Ji, and S. Choudhury. "Integrating generative AI with computational chemistry for catalyst design in biofuel/bioproduct applications." American Chemical Society Spring 2024 National Meeting, New Orleans, Louisiana (oral presentation).
