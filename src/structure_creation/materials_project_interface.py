@@ -10,6 +10,7 @@ from multiprocessing import Pool
 from pathlib import Path
 from typing import Union
 
+import numpy as np
 import pandas as pd
 
 import mp_api
@@ -42,7 +43,7 @@ def mp_docs_from_symbols(syms: list[str]) -> list:
     with MPRester(MP_API_KEY) as mpr:
         time2 = time.time()
         print(f"Time to start client: {time2 - time1}.")
-        docs = mpr.summary.search(elements=syms)
+        docs = mpr.materials.summary.search(elements=syms)
         time3 = time.time()
         print(f"Time to get structures: {time3 - time2}.")
     docs = [d for d in docs if all([str(elem) in syms for elem in d.elements])]
@@ -57,29 +58,37 @@ def ocp_bulks_from_mp_ids(mp_ids: list) -> list[Union[Bulk, None]]:
     oc_bulks = []
     for mp_id in mp_ids:
         if any(_bulk_df["src_id"] == mp_id):
-            oc_bulks.append(Bulk(bulk_src_id_from_db=mp_id, bulk_db=_bulk_db))
-            oc_bulks[-1].atoms.info.update({"src_id": mp_id})
+            b = Bulk(bulk_src_id_from_db=mp_id, bulk_db=_bulk_db)
+            b.atoms.info.update({"src_id": mp_id})
+            oc_bulks.append(b)
         else:
             oc_bulks.append(None)
     return oc_bulks
 
 
-def ocp_bulk_from_symbols(syms: list[str]) -> list[Bulk]:
+def ocp_bulks_from_symbols(syms: list[str]) -> list[Bulk]:
     """Get the ocp bulk from the given list of symbols."""
     docs = mp_docs_from_symbols(syms)
-    ocp_bulks = ocp_bulks_from_mp_ids([d.material_id for d in docs])
-    return [b for b in ocp_bulks if b is not None]
+    return [
+        b for b in ocp_bulks_from_mp_ids([d.material_id for d in docs]) if b is not None
+    ]
 
 
 def create_adslab_config(adslab_pair: list[Slab, Adsorbate]) -> Atoms:
     """Return the list of adslabs for the given sla, which the given adsorbate."""
-
-    return AdsorbateSlabConfig(
+    atoms_list = AdsorbateSlabConfig(
         adslab_pair[0],
         adsorbate=adslab_pair[1],
         num_augmentations_per_site=1,
         mode="heuristic",
     ).atoms_list
+    for ats in atoms_list:
+        if "bulk_wyckoff" in ats.arrays.keys():
+            ats.arrays["bulk_wyckoff"] = np.array(
+                [val if val != "" else "N/A" for val in ats.arrays["bulk_wyckoff"]]
+            )
+
+    return atoms_list
 
 
 def get_all_adslabs(
@@ -129,7 +138,7 @@ def ocp_adslabs_from_symbols(
         adsorbate_binding_indices=adsorbate_binding_indices,
     )
 
-    bulks = ocp_bulk_from_symbols(syms)
+    bulks = ocp_bulks_from_symbols(syms)
     print(len(bulks))
     structure_list = []
     for b in bulks:
@@ -150,7 +159,7 @@ def ocp_adslabs_from_mp_ids(
         adsorbate_binding_indices=adsorbate_binding_indices,
     )
 
-    bulks = ocp_bulk_from_symbols(mp_ids)
+    bulks = ocp_bulks_from_mp_ids(mp_ids)
     print(len(bulks))
     structure_list = []
     for b in bulks:
@@ -179,14 +188,15 @@ if __name__ == "__main__":
         ads_ats = ads_symbols_to_structure(ads)
         ads_obj = Adsorbate(
             adsorbate_atoms=ads_ats,
-            adsorbate_binding_indices=adsorbate_binding_indices[ads_ats],
+            adsorbate_binding_indices=adsorbate_binding_indices[ads],
         )
-        for syms in [["Cu", "Zn"], ["Zn"], ["Cu"], ["Cu", "Zn", "O"]]:
-            savedir = Path(f"{ads}_{''.join(syms)}").mkdir(parents=True, exist_ok=True)
-            adslabs = ocp_adslabs_from_mp_id(syms, ads_obj)
-            for b_id in len(adslabs):
-                for s_id in len(adslabs[b_id]):
-                    for a_id in len(adslabs[b_id][s_id]):
+        for syms in [["Cu", "Zn"], ["Zn", "O"], ["Cu"], ["Cu", "Zn", "O"]]:
+            savedir = Path(f"{ads}_{''.join(syms)}")
+            savedir.mkdir(parents=True, exist_ok=True)
+            adslabs = ocp_adslabs_from_mp_ids(["mp-30"], ads_obj)
+            for b_id in range(len(adslabs)):
+                for s_id in range(len(adslabs[b_id])):
+                    for a_id in range(len(adslabs[b_id][s_id])):
                         print(adslabs[b_id][s_id][a_id].info)
-                        path = adslabs / f"bulk_{b_id}_slab_{s_id}_ads_{a_id}.xyz"
+                        path = savedir / f"bulk_{b_id}_slab_{s_id}_ads_{a_id}.xyz"
                         write(str(path), adslabs[b_id][s_id][a_id])
