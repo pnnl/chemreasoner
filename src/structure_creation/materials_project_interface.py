@@ -193,7 +193,7 @@ if __name__ == "__main__":
         for syms in [["Cu", "Zn"], ["Zn", "O"], ["Cu"], ["Cu", "Zn", "O"]]:
             savedir = Path(f"{ads}_{''.join(syms)}")
             savedir.mkdir(parents=True, exist_ok=True)
-            adslabs = ocp_adslabs_from_mp_ids(["mp-30"], ads_obj)
+            adslabs = ocp_adslabs_from_symbols(syms, ads_obj)
             for b_id in range(len(adslabs)):
                 for s_id in range(len(adslabs[b_id])):
                     for a_id in range(len(adslabs[b_id][s_id])):
