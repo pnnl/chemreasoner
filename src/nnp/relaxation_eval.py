@@ -33,7 +33,7 @@ batch_size = 75
 batch = []
 fnames = []
 evals = []
-for xyz in sorted(data_path.rglob("*.xyz")):
+for xyz in data_path.rglob("*.xyz"):
     print(xyz)
     traj_path = str(xyz).replace(str(data_path), "")[1:]
     p = data_path / (traj_path.replace(".xyz", "") + ".traj")
