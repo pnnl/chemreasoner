@@ -124,8 +124,7 @@ def get_all_adslabs(
     """Get all the adslabs for the given bulk."""
     slabs = bulk.get_slabs()
     adslab_pairs = [[s, ads_obj] for s in slabs]
-    pool = Pool(num_threads)
-    return pool.map(create_adslab_config, adslab_pairs)
+    return [create_adslab_config(p) for p in adslab_pairs]
 
 
 def prepare_ocp_adsorbate(
@@ -211,34 +210,67 @@ def save_adslabs(
         write(str(save_dir / fname), ats)
 
 
-if __name__ == "__main__":
+def _sample_adslabs(ads):
     adsorbate_binding_indices = {"CO2": [2], "*CO": [0], "*OCHO": [0]}
     adsorbate_times = {}
-    for ads in ["CO2", "*CO", "*OCHO"]:
-        ads_ats = ads_symbols_to_structure(ads)
-        ads_obj = Adsorbate(
-            adsorbate_atoms=ads_ats,
-            adsorbate_binding_indices=adsorbate_binding_indices[ads],
-        )
-        materials = [
-            "mp-30",
-            "mp-1017539",
-            "mp-1046785",
-            # "mp-1047156",
-            # "mp-1351757",
-        ]
-        start = time.time()
-        adslabs = ocp_adslabs_from_mp_ids(materials, ads_obj)
-        for b_id in range(len(adslabs)):
-            savedir = Path(f"{ads}_{materials[b_id]}")
-            for s_id in range(len(adslabs[b_id])):
-                for a_id in range(len(adslabs[b_id][s_id])):
-                    savedir.mkdir(parents=True, exist_ok=True)
-                    # print(adslabs[b_id][s_id][a_id].info)
-                    path = (
-                        savedir / f"bulk_{materials[b_id]}_slab_{s_id}_ads_{a_id}.xyz"
-                    )
-                    write(str(path), adslabs[b_id][s_id][a_id])
-        end = time.time()
-        adsorbate_times[ads] = end - start
+    ads_ats = ads_symbols_to_structure(ads)
+    ads_obj = Adsorbate(
+        adsorbate_atoms=ads_ats,
+        adsorbate_binding_indices=adsorbate_binding_indices[ads],
+    )
+    materials = [
+        "mp-30",
+        "mp-1017539",
+        "mp-1046785",
+        # "mp-1047156",
+        # "mp-1351757",
+    ]
+    start = time.time()
+    adslabs = ocp_adslabs_from_mp_ids(materials, ads_obj)
+    for b_id in range(len(adslabs)):
+        savedir = Path(f"{ads}_{materials[b_id]}")
+        for s_id in range(len(adslabs[b_id])):
+            for a_id in range(len(adslabs[b_id][s_id])):
+                savedir.mkdir(parents=True, exist_ok=True)
+                # print(adslabs[b_id][s_id][a_id].info)
+                path = savedir / f"bulk_{materials[b_id]}_slab_{s_id}_ads_{a_id}.xyz"
+                write(str(path), adslabs[b_id][s_id][a_id])
+    end = time.time()
+    return end - start
+
+
+if __name__ == "__main__":
+    # adsorbate_binding_indices = {"CO2": [2], "*CO": [0], "*OCHO": [0]}
+    adsorbate_times = {}
+    pool = Pool(3)
+    print(["CO2", "*CO", "*OCHO"])
+    print(pool.map(_sample_adslabs, ["CO2", "*CO", "*OCHO"]))
+
+    # for ads in ["CO2", "*CO", "*OCHO"]:
+    #     ads_ats = ads_symbols_to_structure(ads)
+    #     ads_obj = Adsorbate(
+    #         adsorbate_atoms=ads_ats,
+    #         adsorbate_binding_indices=adsorbate_binding_indices[ads],
+    #     )
+    #     materials = [
+    #         "mp-30",
+    #         "mp-1017539",
+    #         "mp-1046785",
+    #         # "mp-1047156",
+    #         # "mp-1351757",
+    #     ]
+    #     start = time.time()
+    #     adslabs = ocp_adslabs_from_mp_ids(materials, ads_obj)
+    #     for b_id in range(len(adslabs)):
+    #         savedir = Path(f"{ads}_{materials[b_id]}")
+    #         for s_id in range(len(adslabs[b_id])):
+    #             for a_id in range(len(adslabs[b_id][s_id])):
+    #                 savedir.mkdir(parents=True, exist_ok=True)
+    #                 # print(adslabs[b_id][s_id][a_id].info)
+    #                 path = (
+    #                     savedir / f"bulk_{materials[b_id]}_slab_{s_id}_ads_{a_id}.xyz"
+    #                 )
+    #                 write(str(path), adslabs[b_id][s_id][a_id])
+    #     end = time.time()
+    #     adsorbate_times[ads] = end - start
     print(adsorbate_times)
