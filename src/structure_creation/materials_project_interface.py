@@ -119,11 +119,10 @@ def create_adslab_config(adslab_pair: list[Slab, Adsorbate]) -> Atoms:
 def get_all_adslabs(
     bulk: Bulk,
     adsorbate: Adsorbate,
-    num_threads: int = 8,
 ):
     """Get all the adslabs for the given bulk."""
     slabs = bulk.get_slabs()
-    adslab_pairs = [[s, ads_obj] for s in slabs]
+    adslab_pairs = [[s, adsorbate] for s in slabs]
     return [create_adslab_config(p) for p in adslab_pairs]
 
 
@@ -154,7 +153,6 @@ def ocp_adslabs_from_symbols(
     syms: list[str],
     adsorbate: Union[Adsorbate, Atoms],
     adsorbate_binding_indices: list[int] = None,
-    num_threads: int = 8,
 ):
     """Return all possible adslabes for bulkds specified by syms adsorbate."""
     ads_obj = prepare_ocp_adsorbate(
@@ -166,7 +164,7 @@ def ocp_adslabs_from_symbols(
     print(len(bulks))
     structure_list = []
     for b in bulks:
-        structure_list.append(get_all_adslabs(b, ads_obj, num_threads))
+        structure_list.append(get_all_adslabs(b, ads_obj))
 
     return structure_list
 
@@ -175,7 +173,6 @@ def ocp_adslabs_from_mp_ids(
     mp_ids: list[str],
     adsorbate: Union[Adsorbate, Atoms],
     adsorbate_binding_indices: list[int] = None,
-    num_threads: int = 8,
 ):
     """Return all possible adslabes for bulkds specified by syms adsorbate."""
     ads_obj = prepare_ocp_adsorbate(
@@ -186,7 +183,7 @@ def ocp_adslabs_from_mp_ids(
     structure_list = []
     for i, b in enumerate(bulks):
         if b is not None:
-            structure_list.append(get_all_adslabs(b, ads_obj, num_threads))
+            structure_list.append(get_all_adslabs(b, ads_obj))
         else:
             logging.warning(
                 f"Skipping bulk {mp_ids[i]} since it was "
@@ -212,7 +209,6 @@ def save_adslabs(
 
 def _sample_adslabs(ads):
     adsorbate_binding_indices = {"CO2": [2], "*CO": [0], "*OCHO": [0]}
-    adsorbate_times = {}
     ads_ats = ads_symbols_to_structure(ads)
     ads_obj = Adsorbate(
         adsorbate_atoms=ads_ats,
@@ -228,7 +224,7 @@ def _sample_adslabs(ads):
     start = time.time()
     adslabs = ocp_adslabs_from_mp_ids(materials, ads_obj)
     for b_id in range(len(adslabs)):
-        savedir = Path(f"{ads}_{materials[b_id]}")
+        savedir = Path("3_1_24_relaxations", f"{ads}_{materials[b_id]}")
         for s_id in range(len(adslabs[b_id])):
             for a_id in range(len(adslabs[b_id][s_id])):
                 savedir.mkdir(parents=True, exist_ok=True)

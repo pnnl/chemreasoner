@@ -15,13 +15,13 @@ from nnp.oc import OCAdsorptionCalculator  # noqa:E402
 
 logging.getLogger().setLevel(logging.INFO)
 
-data_path = Path("src/nnp/methanol_chemreasoner_results")
+data_path = Path("src/nnp/3_1_24_relaxations")
 
 calc = OCAdsorptionCalculator(
     **{
-        "model": "gemnet-t",
+        "model": "gemnet-oc-22",
         "traj_dir": data_path,
-        "batch_size": 32,
+        "batch_size": 75,
         "device": "cuda",
         "ads_tag": 2,
         "fmax": 0.05,
@@ -29,7 +29,7 @@ calc = OCAdsorptionCalculator(
     }
 )
 
-batch_size = 32
+batch_size = 75
 batch = []
 fnames = []
 evals = []
@@ -49,16 +49,20 @@ for xyz in sorted(data_path.rglob("*.xyz")):
         print(f"Skipping {str(p)}.")
 
     if len(batch) == batch_size:
-        print("=== Running Batch ===")
+        logging.info("=== Running Batch ===")
         start = time.time()
         calc.batched_relax_atoms(batch, fnames)
         end = time.time()
-        logging.info(end - start)
+        logging.info(f"TIMING: One batch {end - start}.")
         batch = []
         fnames = []
 
 if len(batch) > 0:
-    print("=== Running Final Batch ===")
+    logging.info("=== Running Final Batch ===")
     calc.batched_relax_atoms(batch, fnames)
+    start = time.time()
+    calc.batched_relax_atoms(batch, fnames)
+    end = time.time()
+    logging.info(f"TIMING: One batch {end - start}.")
 
 print(evals)
