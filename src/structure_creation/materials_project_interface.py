@@ -19,6 +19,7 @@ from ase import Atoms
 from ase.data import chemical_symbols
 from ase.io import write
 from pymatgen.ext.matproj import MPRester
+from pymatgen.io.ase import AseAtomsAdaptor
 
 from ocdata.core import Adsorbate, AdsorbateSlabConfig, Bulk, Slab
 
@@ -50,19 +51,43 @@ def mp_docs_from_symbols(syms: list[str]) -> list:
     return docs
 
 
+def retrive_materials_project_structures(mp_ids: list[str]) -> list:
+    time1 = time.time()
+    with MPRester(MP_API_KEY) as mpr:
+        time2 = time.time()
+        print(f"Time to start client: {time2 - time1}.")
+        docs = mpr.materials.summary.search(material_ids=mp_ids)
+        print(docs)
+        time3 = time.time()
+        print(f"Time to get structures: {time3 - time2}.")
+
+    return docs
+
+
 def ocp_bulks_from_mp_ids(mp_ids: list) -> list[Union[Bulk, None]]:
     """Return a list of ocp Bulk objects from list of materials project docs.
 
     Unfound bulks are returned in the list as "None".
     """
     oc_bulks = []
-    for mp_id in mp_ids:
+    leftover_mp_ids = []
+    idxs = []
+    for i, mp_id in enumerate(mp_ids):
         if any(_bulk_df["src_id"] == mp_id):
             b = Bulk(bulk_src_id_from_db=mp_id, bulk_db=_bulk_db)
             b.atoms.info.update({"src_id": mp_id})
             oc_bulks.append(b)
         else:
+            leftover_mp_ids.append(mp_id)
+            idxs.append(i)
             oc_bulks.append(None)
+
+    # Go back and fill in locally missing entries
+    if len(leftover_mp_ids) > 0:
+        docs = retrive_materials_project_structures(leftover_mp_ids)
+        for i, doc in zip(idxs, docs):
+            oc_bulks[i] = Bulk(bulk_atoms=AseAtomsAdaptor().get_atoms(doc.structure))
+
     return oc_bulks
 
 
@@ -158,12 +183,16 @@ def ocp_adslabs_from_mp_ids(
         adsorbate=adsorbate,
         adsorbate_binding_indices=adsorbate_binding_indices,
     )
-
     bulks = ocp_bulks_from_mp_ids(mp_ids)
-    print(len(bulks))
     structure_list = []
-    for b in bulks:
-        structure_list.append(get_all_adslabs(b, ads_obj, num_threads))
+    for i, b in enumerate(bulks):
+        if b is not None:
+            structure_list.append(get_all_adslabs(b, ads_obj, num_threads))
+        else:
+            logging.warning(
+                f"Skipping bulk {mp_ids[i]} since it was "
+                "not found in the local database."
+            )
 
     return structure_list
 
@@ -183,20 +212,33 @@ def save_adslabs(
 
 
 if __name__ == "__main__":
-    adsorbate_binding_indices = {"CO2": [2], "CO": [0]}
-    for ads in ["CO2", "*CO"]:
+    adsorbate_binding_indices = {"CO2": [2], "*CO": [0], "*OCHO": [0]}
+    adsorbate_times = {}
+    for ads in ["CO2", "*CO", "*OCHO"]:
         ads_ats = ads_symbols_to_structure(ads)
         ads_obj = Adsorbate(
             adsorbate_atoms=ads_ats,
             adsorbate_binding_indices=adsorbate_binding_indices[ads],
         )
-        for syms in [["Cu", "Zn"], ["Zn", "O"], ["Cu"], ["Cu", "Zn", "O"]]:
-            savedir = Path(f"{ads}_{''.join(syms)}")
-            savedir.mkdir(parents=True, exist_ok=True)
-            adslabs = ocp_adslabs_from_symbols(syms, ads_obj)
-            for b_id in range(len(adslabs)):
-                for s_id in range(len(adslabs[b_id])):
-                    for a_id in range(len(adslabs[b_id][s_id])):
-                        print(adslabs[b_id][s_id][a_id].info)
-                        path = savedir / f"bulk_{b_id}_slab_{s_id}_ads_{a_id}.xyz"
-                        write(str(path), adslabs[b_id][s_id][a_id])
+        materials = [
+            "mp-30",
+            "mp-1017539",
+            "mp-1046785",
+            # "mp-1047156",
+            # "mp-1351757",
+        ]
+        start = time.time()
+        adslabs = ocp_adslabs_from_mp_ids(materials, ads_obj)
+        for b_id in range(len(adslabs)):
+            savedir = Path(f"{ads}_{materials[b_id]}")
+            for s_id in range(len(adslabs[b_id])):
+                for a_id in range(len(adslabs[b_id][s_id])):
+                    savedir.mkdir(parents=True, exist_ok=True)
+                    # print(adslabs[b_id][s_id][a_id].info)
+                    path = (
+                        savedir / f"bulk_{materials[b_id]}_slab_{s_id}_ads_{a_id}.xyz"
+                    )
+                    write(str(path), adslabs[b_id][s_id][a_id])
+        end = time.time()
+        adsorbate_times[ads] = end - start
+    print(adsorbate_times)
