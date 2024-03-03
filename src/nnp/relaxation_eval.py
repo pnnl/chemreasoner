@@ -1,6 +1,7 @@
 """Evaluate relaxed adsorption eneries for the given xyz files."""
 
 import logging
+import random
 import sys
 import time
 
@@ -21,7 +22,7 @@ calc = OCAdsorptionCalculator(
     **{
         "model": "gemnet-oc-22",
         "traj_dir": data_path,
-        "batch_size": 75,
+        "batch_size": 64,
         "device": "cuda",
         "ads_tag": 2,
         "fmax": 0.05,
@@ -29,7 +30,7 @@ calc = OCAdsorptionCalculator(
     }
 )
 
-batch_size = 75
+batch_size = 64
 batch = []
 fnames = []
 evals = []
@@ -37,8 +38,9 @@ for xyz in data_path.rglob("*.xyz"):
     print(xyz)
     traj_path = str(xyz).replace(str(data_path), "")[1:]
     p = data_path / (traj_path.replace(".xyz", "") + ".traj")
+    p_tmp = data_path / (traj_path.replace(".xyz", "") + ".traj_tmp")
 
-    if not p.exists():
+    if not p.exists() and not p_tmp.exists():
         # Append data to batch
         fnames.append(traj_path.replace(".xyz", ""))
         print(data_path / traj_path)
