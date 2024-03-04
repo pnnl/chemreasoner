@@ -664,9 +664,10 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             bulk_ats = Atoms()
             bulk_ats.set_cell(ats.get_cell())
             bulk_ats.set_pbc(ats.get_pbc())
+            print(bulk_ats.get_pbc())
             if len(bulk_ats.get_pbc().shape) == 1:
                 bulk_ats.set_pbc(bulk_ats.get_pbc()[np.newaxis, :])
-
+            print(bulk_ats.get_pbc())
             for i, t in enumerate(ats.get_tags()):
                 if t != self.ads_tag:  # part of the adsorbate
                     bulk_ats.append(ats[i])
