@@ -79,7 +79,7 @@ for traj in data_path.rglob("*.traj"):
         logging.info((end - start))
 
         for i, ats in enumerate(evaled_ats):
-            reference_energies[bulk_slabs[i]] = ats.get_potential_energy
+            reference_energies[bulk_slabs[i]] = ats.get_potential_energy()
             write(
                 str(
                     data_path
@@ -103,7 +103,7 @@ if len(batch) > 0:
     logging.info((end - start))
 
     for i, ats in enumerate(evaled_ats):
-        reference_energies[bulk_slabs[i]] = ats.get_potential_energy
+        reference_energies[bulk_slabs[i]] = ats.get_potential_energy()
         write(
             str(
                 data_path
