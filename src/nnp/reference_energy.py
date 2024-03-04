@@ -115,7 +115,7 @@ if len(batch) > 0:
 logging.info(f"Total time: {total_time}.")
 
 pandas_data_dict = [
-    {"bulk": str(k[0]), "slab": str(k[0]), "reference_energy": v}
+    {"bulk": str(k[0]), "slab": str(k[1]), "reference_energy": v}
     for k, v in reference_energies.items()
 ]
 df = pd.DataFrame(pandas_data_dict)
