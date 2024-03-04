@@ -64,6 +64,11 @@ for traj in data_path.rglob("*.traj"):
 
     except ulm.InvalidULMFileError:
         logging.warning(f"Could not read file {str(traj)}.")
+    except ValueError as err:
+        if "buffer is smaller than requested size" in str(err):
+            logging.warning(f"Could not read file {str(traj)}, with error {str(err)}.")
+        else:
+            raise err
 
     if len(batch) == batch_size:
         logging.info("==== Running Batch ====")
