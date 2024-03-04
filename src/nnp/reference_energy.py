@@ -51,7 +51,6 @@ batch = []
 reference_energies = {}
 bulk_slabs = []
 for traj in data_path.rglob("*.traj"):
-    logging.info("==== Running Batch ====")
     ats = Trajectory(str(traj))[0]
     bulk = traj.stem.split("bulk_")[-1].split("_")[0]
     slab = traj.stem.split("slab_")[-1].split("_")[0]
@@ -62,6 +61,7 @@ for traj in data_path.rglob("*.traj"):
         reference_energies[bulk_slab] = None
 
     if len(batch) == batch_size:
+        logging.info("==== Running Batch ====")
         start = time.time()
         evaled_ats = calc.calculate_slab_energies(batch)
         end = time.time()
