@@ -660,15 +660,17 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Calculate the slab energies for the given structures."""
         # Set up calculation for oc
         bulk_atoms = []
-        ads_e = []
         for ats in structures:
             bulk_ats = Atoms()
             bulk_ats.set_cell(ats.get_cell())
-            e_ref = 0
+            bulk_ats.set_pbc(ats.get_pbc())
+            if len(bulk_ats.get_pbc().shape) == 1:
+                bulk_ats.set_pbc(bulk_ats.get_pbc()[np.newaxis, :])
+
             for i, t in enumerate(ats.get_tags()):
                 if t != self.ads_tag:  # part of the adsorbate
                     bulk_ats.append(ats[i])
-            ads_e.append(e_ref)
+
             bulk_atoms.append(bulk_ats.copy())
         # convert to torch geometric batch
         batch = Batch.from_data_list(
