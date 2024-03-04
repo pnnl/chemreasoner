@@ -657,6 +657,60 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Retunr the path to the adsorption energy file for given adslab."""
         return self.traj_dir / adslab_name / "adsorption.json"
 
+    def calculate_slab_energies(self, structures: list[Atoms], device: str = None):
+        """Calculate the slab energies for the given structures."""
+        # Set up calculation for oc
+        bulk_atoms = []
+        ads_e = []
+        for ats in structures:
+            bulk_ats = Atoms()
+            bulk_ats.set_cell(ats.get_cell())
+            e_ref = 0
+            for i, t in enumerate(ats.get_tags()):
+                if t != self.ads_tag:  # part of the adsorbate
+                    bulk_ats.append(ats[i])
+            ads_e.append(e_ref)
+            bulk_atoms.append(bulk_ats.copy())
+        # convert to torch geometric batch
+        batch = Batch.from_data_list(
+            self.ats_to_graphs.convert_all(bulk_atoms, disable_tqdm=True)
+        )
+
+        # device='cpu'
+        batch = batch.to(device if device is not None else self.device)
+
+        calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
+        # reset the tags, they got lost in conversion to Torch
+        slabs = batch_to_atoms(calculated_batch)
+        # collect the reference and adslab energies
+        return slabs
+
+    def calculate_adsorption_energies(
+        self,
+        trajectories: list[Atoms],
+        device: str = None,
+        compute_final_energy: bool = True,
+    ):
+        """The calculate the adsorption energies for each trajectory.
+
+        Slab reference calculations are performed using the first entry in trajectories.
+        Total energy calculations will be performed using the final entry in
+        trajectories, as long as compute_final_energy is True.
+        """
+        if compute_final_energy:
+            total_energy_ats = self.static_eval(
+                [t[-1] for t in trajectories], device=device
+            )
+
+        slab_reference_energy_ats = self.calculate_slab_energies(
+            [t[0] for t in trajectories], device=device
+        )
+
+        return [
+            t.get_potetial_energy() - s.get_potential_energy()
+            for t, s in zip(total_energy_ats, slab_reference_energy_ats)
+        ]
+
 
 class AdsorbedStructureChecker:
     """A class to check whether an adsorbed structure is correct or not."
