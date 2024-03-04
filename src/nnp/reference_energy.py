@@ -89,7 +89,7 @@ for traj in data_path.rglob("*.traj"):
             )
 
         batch = []
-        fnames = []
+        bulk_slabs = []
 
         logging.info(end - start)
 
