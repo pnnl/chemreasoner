@@ -7,7 +7,7 @@ import time
 
 from pathlib import Path
 
-from ase.io import Trajectory, write
+from ase.io import Trajectory, write, ulm
 import numpy as np
 import pandas as pd
 
@@ -51,14 +51,19 @@ batch = []
 reference_energies = {}
 bulk_slabs = []
 for traj in data_path.rglob("*.traj"):
-    ats = Trajectory(str(traj))[0]
-    bulk = traj.stem.split("bulk_")[-1].split("_")[0]
-    slab = traj.stem.split("slab_")[-1].split("_")[0]
-    bulk_slab = (bulk, slab)
-    if bulk_slab not in reference_energies:
-        bulk_slabs.append(bulk_slab)
-        batch.append(ats)
-        reference_energies[bulk_slab] = None
+    try:
+        bulk = traj.stem.split("bulk_")[-1].split("_")[0]
+        slab = traj.stem.split("slab_")[-1].split("_")[0]
+        bulk_slab = (bulk, slab)
+
+        if bulk_slab not in reference_energies:
+            ats = Trajectory(str(traj))[0]
+            bulk_slabs.append(bulk_slab)
+            batch.append(ats)
+            reference_energies[bulk_slab] = None
+
+    except ulm.InvalidULMFileError:
+        logging.warning(f"Could not read file {str(traj)}.")
 
     if len(batch) == batch_size:
         logging.info("==== Running Batch ====")
