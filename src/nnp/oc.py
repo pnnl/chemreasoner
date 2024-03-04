@@ -436,7 +436,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 result_batch = method(batch, **kwargs)
                 evaluated_batches.append(result_batch)
             except RuntimeError as err:
-                raise err
                 e = err
                 oom = True
                 torch.cuda.empty_cache()
