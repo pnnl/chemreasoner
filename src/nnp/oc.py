@@ -635,6 +635,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
         batch = Batch.from_data_list(data_list)
         batch = batch.to(self.device)
+        print(batch)
 
         calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
         calculated_slabs = batch_to_atoms(calculated_batch)
