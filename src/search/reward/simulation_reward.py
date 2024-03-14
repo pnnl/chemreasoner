@@ -21,7 +21,7 @@ from ase.data import chemical_symbols
 
 
 sys.path.append("src")
-# from llm import ase_interface  # noqa: E402
+from llm import ase_interface  # noqa: E402
 from search.state.reasoner_state import ReasonerState  # noqa: E402
 from evaluation.break_traj_files import break_trajectory  # noqa: E402
 
