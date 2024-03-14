@@ -324,9 +324,11 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             ads_e.append(e_ref)
             bulk_atoms.append(bulk_ats.copy())
         # convert to torch geometric batch
-        batch = Batch.from_data_list(
-            self.ats_to_graphs.convert_all(bulk_atoms, disable_tqdm=True)
-        )
+        data_list = self.ats_to_graphs.convert_all(bulk_atoms, disable_tqdm=True)
+        for i, d in enumerate(data_list):
+            d.pbc = d.pbc[None, :]
+
+        batch = Batch.from_data_list(data_list)
 
         # device='cpu'
         batch = batch.to(device if device is not None else self.device)
@@ -396,9 +398,11 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     def static_eval(self, atoms: list[Atoms], device: str = None):
         """Evaluate the static energies and forces of the given atoms."""
-        batch = Batch.from_data_list(
-            self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
-        )
+        data_list = self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
+        for i, d in enumerate(data_list):
+            d.pbc = d.pbc[None, :]
+        batch = Batch.from_data_list(data_list)
+
         batch = batch.to(device if device is not None else self.device)
         calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
         # reset the tags, they got lost in conversion to Torch
@@ -625,9 +629,10 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """Choose the minimum slab from a given set of slabs."""
         atoms = self.copy_atoms_list(slab_samples)
         self.prepare_atoms_list(atoms)
-        batch = Batch.from_data_list(
-            self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
-        )
+        data_list = self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
+        for i, d in enumerate(data_list):
+            d.pbc = d.pbc[None, :]
+        batch = Batch.from_data_list(data_list)
         batch = batch.to(self.device)
 
         calculated_batch = self.eval_with_oom_logic(batch, self._batched_static_eval)
