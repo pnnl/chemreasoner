@@ -69,6 +69,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         """
         self.gnn_calls = 0
         self.gnn_time = 0
+        self.gnn_relaxed = 0
         self.device = device
         # self.device = "cpu"
         self.batch_size = batch_size
@@ -292,6 +293,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         )
         end = time.time()
         self.gnn_calls += self.steps
+        self.gnn_relaxed += len(atoms)
         self.gnn_time += end - start
 
         final_atoms = batch_to_atoms(final_batch)
