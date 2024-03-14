@@ -70,6 +70,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.gnn_calls = 0
         self.gnn_time = 0
         self.gnn_relaxed = 0
+        self.energies_retrieved = 0
         self.device = device
         # self.device = "cpu"
         self.batch_size = batch_size
@@ -560,6 +561,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             and "adsorption_energy" in data[idx].keys()
         ):
             ads_energy = data[idx]["adsorption_energy"]
+            self.energies_retrieved += 1
             return ads_energy
         else:
             return None

@@ -181,6 +181,7 @@ class StructureReward(BaseReward):
                         gnn_calls,
                         gnn_time,
                         gnn_relaxed,
+                        energies_retrieved,
                         name_candidate_mapping,
                     ) = self.call_gnn_server(
                         slab_syms[i],
@@ -193,6 +194,7 @@ class StructureReward(BaseReward):
                         gnn_calls,
                         gnn_time,
                         gnn_relaxed,
+                        energies_retrieved,
                         name_candidate_mapping,
                     ) = self.create_structures_and_calculate(
                         slab_syms[i],
@@ -231,6 +233,7 @@ class StructureReward(BaseReward):
                         "gnn_calls": gnn_calls,
                         "gnn_time": gnn_time,
                         "gnn_relaxed": gnn_relaxed,
+                        "energies_retrieved": energies_retrieved,
                     }
                 )
             else:
@@ -241,6 +244,7 @@ class StructureReward(BaseReward):
                     "gnn_calls": gnn_calls,
                     "gnn_time": gnn_time,
                     "gnn_relaxed": gnn_relaxed,
+                    "energies_retrieved": energies_retrieved,
                 }
             if s.ads_preferences is None:
                 s.info["simulation-reward"].update(
@@ -283,6 +287,7 @@ class StructureReward(BaseReward):
         start_gnn_calls = self.adsorption_calculator.gnn_calls
         start_gnn_time = self.adsorption_calculator.gnn_time
         start_gnn_relaxed = self.adsorption_calculator.gnn_relaxed
+        start_energies_retrieved = self.adsorption_calculator.energies_retrieved
         adslab_ats = []  # List to store initial adslabs and indices
         name_candidate_mapping = (
             {}
@@ -359,12 +364,14 @@ class StructureReward(BaseReward):
         end_gnn_calls = self.adsorption_calculator.gnn_calls
         end_gnn_time = self.adsorption_calculator.gnn_time
         end_gnn_relaxed = self.adsorption_calculator.gnn_relaxed
+        end_energies_retrieved = self.adsorption_calculator.energies_retrieved
 
         return (
             adslabs_and_energies,
             end_gnn_calls - start_gnn_calls,
             end_gnn_time - start_gnn_time,
             end_gnn_relaxed - start_gnn_relaxed,
+            end_energies_retrieved - start_energies_retrieved,
             name_candidate_mapping,
         )
 
