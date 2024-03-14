@@ -1,7 +1,9 @@
 """Functions for running azync azure openai prompts."""
+
 import asyncio
 import logging
 import os
+import time
 
 from typing import Union
 
@@ -34,9 +36,12 @@ async def parallel_azure_openai_chat_completion(
         messages.append({"role": "system", "content": system_prompt})
     messages.append({"role": "user", "content": prompt})
     try:
-        return await client.chat.completions.create(
+        start = time.time()
+        value = await client.chat.completions.create(
             messages=messages, model=model, **kwargs
         )
+        end = time.time()
+        return value, end - start
     except RateLimitError as err:
         error_message = str(err)
         logging.info(f"TIMING: Recieved RateLimitError {error_message}")
@@ -48,13 +53,16 @@ async def parallel_azure_openai_chat_completion(
         else:
             await asyncio.sleep(60)
 
-        return await parallel_azure_openai_chat_completion(
+        start = time.time()
+        value = await parallel_azure_openai_chat_completion(
             client=client,
             prompt=prompt,
             system_prompt=system_prompt,
             model=model,
             **kwargs,
         )
+        end = time.time()
+        return value, end - start
 
 
 async def azure_openai_chat_async_evaluation(
@@ -102,11 +110,13 @@ class AzureOpenaiInterface:
                 **kwargs,
             )
         )
-        answer_strings = [a.choices[0].message.content for a in answer_objects]
+        answer_strings = [a[0].choices[0].message.content for a in answer_objects]
+        answer_times = [a[1] for a in answer_objects]
         usages = [
             {
                 "completion_tokens": a.usage.completion_tokens,
                 "prompt_tokens": a.usage.prompt_tokens,
+                "completion_time": answer_times,
             }
             for a in answer_objects
         ]

@@ -250,10 +250,10 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     def batched_relax_atoms(
         self,
         atoms: list[Atoms],
-        atoms_names,
-        device=None,
-        fmax=None,
-        steps=None,
+        atoms_names: list[str],
+        device: str = None,
+        fmax: float = None,
+        steps: int = None,
         **bfgs_kwargs,
     ):
         """Relax the postitions of the given atoms. Setting device overrides self."""

@@ -727,9 +727,10 @@ if __name__ == "__main__":
 
     #     torch.cuda.empty_cache()
 
-    for p in Path("src", "nnp", "adslabs_CO").rglob("*.traj.traj"):
+    for p in Path("src", "nnp", "oc_eval_set").rglob("*/*.traj"):
         print(p)
-        break_trajectory(p)
+        if "CO2" not in str(p):
+            break_trajectory(p)
         # xyz_dir = p.parent / p.stem
         # highest_xyz = max([p for p in xyz_dir.rglob("*.xyz")])
         # adslab = p.parent.stem
