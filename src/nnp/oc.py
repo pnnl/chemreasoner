@@ -443,7 +443,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 result_batch = method(batch, **kwargs)
                 evaluated_batches.append(result_batch)
             except RuntimeError as err:
-                raise err
                 e = err
                 oom = True
                 torch.cuda.empty_cache()
@@ -469,7 +468,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         if constraints:
             cons = FixAtoms(indices=[atom.index for atom in atoms if (atom.tag == 0)])
             atoms.set_constraint(cons)
-        # atoms.center(vacuum=13.0, axis=2)
+        atoms.center(vacuum=13.0, axis=2)
         atoms.set_pbc(True)
 
     @staticmethod
