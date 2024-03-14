@@ -469,7 +469,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             cons = FixAtoms(indices=[atom.index for atom in atoms if (atom.tag == 0)])
             atoms.set_constraint(cons)
         # atoms.center(vacuum=13.0, axis=2)
-        # atoms.set_pbc(True)
+        atoms.set_pbc(True)
 
     @staticmethod
     def prepare_atoms_list(atoms_list: Atoms, constraints: bool = True) -> None:
@@ -632,6 +632,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         data_list = self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
         for i, d in enumerate(data_list):
             d.pbc = d.pbc[None, :]
+
         batch = Batch.from_data_list(data_list)
         batch = batch.to(self.device)
 
