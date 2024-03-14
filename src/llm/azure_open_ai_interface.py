@@ -111,12 +111,11 @@ class AzureOpenaiInterface:
             )
         )
         answer_strings = [a[0].choices[0].message.content for a in answer_objects]
-        answer_times = [a[1] for a in answer_objects]
         usages = [
             {
-                "completion_tokens": a.usage.completion_tokens,
-                "prompt_tokens": a.usage.prompt_tokens,
-                "completion_time": answer_times,
+                "completion_tokens": a[0].usage.completion_tokens,
+                "prompt_tokens": a[0].usage.prompt_tokens,
+                "completion_time": a[1],
             }
             for a in answer_objects
         ]
