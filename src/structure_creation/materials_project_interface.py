@@ -22,6 +22,7 @@ from pymatgen.ext.matproj import MPRester
 from pymatgen.io.ase import AseAtomsAdaptor
 
 from ocdata.core import Adsorbate, AdsorbateSlabConfig, Bulk, Slab
+from ocdata.core.slab import is_structure_invertible, compute_slabs, tile_and_tag_atoms
 
 sys.path.append("src")
 from llm.ase_interface import ads_symbols_to_structure
@@ -41,7 +42,7 @@ _bulk_df = pd.DataFrame(_bulk_db)
 
 def mp_docs_from_symbols(syms: list[str]) -> list:
     time1 = time.time()
-    with MPRester(MP_API_KEY) as mpr:
+    with MPRester(os.getenv("MP_API_KEY")) as mpr:
         time2 = time.time()
         print(f"Time to start client: {time2 - time1}.")
         docs = mpr.materials.summary.search(elements=syms)
@@ -53,11 +54,11 @@ def mp_docs_from_symbols(syms: list[str]) -> list:
 
 def retrive_materials_project_structures(mp_ids: list[str]) -> list:
     time1 = time.time()
-    with MPRester(MP_API_KEY) as mpr:
+    print(os.getenv("MP_API_KEY"))
+    with MPRester(os.getenv("MP_API_KEY")) as mpr:
         time2 = time.time()
         print(f"Time to start client: {time2 - time1}.")
         docs = mpr.materials.summary.search(material_ids=mp_ids)
-        print(docs)
         time3 = time.time()
         print(f"Time to get structures: {time3 - time2}.")
 
@@ -99,11 +100,52 @@ def ocp_bulks_from_symbols(syms: list[str]) -> list[Bulk]:
     ]
 
 
-def create_adslab_config(adslab_pair: list[Slab, Adsorbate]) -> Atoms:
+def get_ocp_slab_from_mp_id(mp_id: str, millers, shift, top, min_ab=8.0):
+    """Get the slab corresponging to given bulk, miller index, and cell shift, flip.
+
+    bulk structure: materials projject bulk
+    miller index: miller index of the surface
+    cell shift: ammount to shift the cell. Changes which atsom are exposed to the
+        surface (depends heavily on bulk). Will snap to nearest computed value.
+    top: bool, determine whether to use the top of the cell or bottom
+
+    This function should not be used unless the specific, valid values of cell_shift
+    are known. top may be a redundant parameter if the structure is symmetric about
+    c -> -c.
+    """
+    bulk = ocp_bulks_from_mp_ids([mp_id])[0]
+    untiled_slabs = compute_slabs(
+        bulk.atoms,
+        max_miller=max(np.abs(millers)),
+        specific_millers=[millers],
+    )  # Check if top doesn't matter
+    this_slab = min(
+        [
+            s
+            for s in untiled_slabs
+            if s[3] == top or is_structure_invertible(s[0]) is False
+        ],
+        key=lambda s: abs(s[2] - shift),
+    )
+    return Slab(
+        bulk,
+        tile_and_tag_atoms(this_slab[0], bulk.atoms, min_ab=min_ab),
+        this_slab[1],
+        this_slab[2],
+        this_slab[3],
+    )
+
+
+def get_all_ocp_slabs_from_symbols(bulk: Bulk):
+    """Get all the slabs associated with the given bulk."""
+    return bulk.get_slabs()
+
+
+def create_adslab_config(slab: Slab, adsorbate: Adsorbate) -> Atoms:
     """Return the list of adslabs for the given sla, which the given adsorbate."""
     atoms_list = AdsorbateSlabConfig(
-        adslab_pair[0],
-        adsorbate=adslab_pair[1],
+        slab,
+        adsorbate=adsorbate,
         num_augmentations_per_site=1,
         mode="heuristic",
     ).atoms_list
@@ -116,14 +158,31 @@ def create_adslab_config(adslab_pair: list[Slab, Adsorbate]) -> Atoms:
     return atoms_list
 
 
-def get_all_adslabs(
+def get_all_adslabs_bulk(
     bulk: Bulk,
     adsorbate: Adsorbate,
 ):
-    """Get all the adslabs for the given bulk."""
-    slabs = bulk.get_slabs()
-    adslab_pairs = [[s, adsorbate] for s in slabs]
-    return [create_adslab_config(p) for p in adslab_pairs]
+    """Get all the adslabs for the given bulk.
+
+    Saves slab info in the adslab atoms info.
+    """
+    slabs = bulk.get_all_slabs()
+    output_ats = []
+    for s in slabs:
+        adslab_ats = create_adslab_config(s, adsorbate)
+        for ats in adslab_ats:
+            ats.info.update(
+                {
+                    "slab_info": {
+                        # "bulk":  TODO: What could go here?
+                        "miller_index": s.millers,
+                        "shift": s.shift,
+                        "top": s.top,
+                    }
+                }
+            )
+            output_ats.append(ats)
+    return output_ats
 
 
 def prepare_ocp_adsorbate(

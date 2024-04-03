@@ -55,7 +55,7 @@ def _clean_json(data: dict):
 
 
 if __name__ == "__main__":
-    for p in Path("icml_runs").rglob("*"):
+    for p in Path("scaling_test").rglob("*"):
         if p.is_dir():
             for i in range(145):
                 fname = p / f"search_tree_{i}.json"
@@ -109,11 +109,13 @@ if __name__ == "__main__":
                     if len(data["node_rewards"]) == 6 and not np.allclose(
                         flattened_node_rewards, -10
                     ):
-                        (Path("icml_processed") / p.stem).mkdir(
+                        (Path("scaling_test_processed") / p.stem).mkdir(
                             parents=True, exist_ok=True
                         )
                         with open(
-                            Path("icml_processed") / p.stem / (fname.stem + ".json"),
+                            Path("scaling_test_processed")
+                            / p.stem
+                            / (fname.stem + ".json"),
                             "w",
                         ) as f:
                             json.dump(j_graph, f)
