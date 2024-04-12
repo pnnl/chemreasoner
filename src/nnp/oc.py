@@ -31,7 +31,7 @@ from ocpmodels.preprocessing.atoms_to_graphs import AtomsToGraphs
 import torch
 from torch_geometric.data import Batch
 
-from .base_nnp import BaseAdsorptionCalculator
+from base_nnp import BaseAdsorptionCalculator
 
 import redis
 
