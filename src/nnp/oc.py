@@ -5,6 +5,7 @@ Must intsall the sub-module ocpmodels included in ext/ocp.
 
 import json
 import pickle
+import sys
 import time
 import wget
 import yaml
@@ -31,9 +32,10 @@ from ocpmodels.preprocessing.atoms_to_graphs import AtomsToGraphs
 import torch
 from torch_geometric.data import Batch
 
-from base_nnp import BaseAdsorptionCalculator
-
 import redis
+
+sys.path.append("src")
+from nnp.base_nnp import BaseAdsorptionCalculator
 
 
 class OCAdsorptionCalculator(BaseAdsorptionCalculator):
@@ -807,3 +809,17 @@ def break_trajectory(traj_path: Path, dirname: str = None):
     mag = order_of_magnitude(len(traj))
     for i, ats in enumerate(traj):
         write(dir_path / f"{str(i).zfill(mag+1)}.xyz", ats)
+
+
+if __name__ == "__main__":
+    calc = OCAdsorptionCalculator(
+        **{
+            "model": "gemnet-oc-22",
+            "traj_dir": Path("data", "output_data"),
+            "batch_size": 75,
+            "device": "cuda",
+            "ads_tag": 2,
+            "fmax": 0.05,
+            "steps": 0,
+        }
+    )
