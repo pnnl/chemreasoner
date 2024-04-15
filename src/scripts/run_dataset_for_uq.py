@@ -17,7 +17,7 @@ from nnp.oc import OCAdsorptionCalculator
 ads_calc = OCAdsorptionCalculator(
     **{
         "model": "gemnet-t",
-        "traj_dir": Path("gnn_eval_structures", "new_trajs"),
+        "traj_dir": Path("irrelevant"),
         "batch_size": 40,
         "device": "cpu",
         "ads_tag": 2,
