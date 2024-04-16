@@ -42,6 +42,7 @@ if __name__ == "__main__":
     for data_list in loader:
         batch = Batch.from_data_list(data_list)
         print(batch)
+        print(torch_calc.model)
         print(
             torch_calc.predict(
                 batch,
