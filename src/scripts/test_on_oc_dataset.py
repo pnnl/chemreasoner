@@ -35,7 +35,7 @@ atoms = {}
 for p in Path("src/nnp/oc_eval_set").rglob("*.xyz"):
     if "initial" not in str(p):
         atoms[p.parent.stem + "/" + p.stem] = read(str(p))
-atoms
+
 # print(8 not in [atom.number for atom in atoms['oc_20/0_23101'] if (atom.tag == 0)])
 
 timing = {}
