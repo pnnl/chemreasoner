@@ -31,6 +31,7 @@ from ocpmodels.preprocessing.atoms_to_graphs import AtomsToGraphs
 
 import torch
 from torch_geometric.data import Batch
+from torch_geometric.loader.data_list_loader import DataListLoader
 
 import redis
 
@@ -271,35 +272,38 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             d.pbc = d.pbc[None, :]
             d.sid = atoms_names[i]
         # convert to torch geometric batch
-        batch = Batch.from_data_list(data_list)
-        batch = batch.to(device if device is not None else self.device)
+        final_atoms = []
+        dl = DataListLoader(data_list, batch_size=self.batch_size, shuffle=False)
+        for batch in dl:
+            batch = Batch.from_data_list(data_list)
+            batch = batch.to(device if device is not None else self.device)
 
-        trainer = self.get_torch_model
+            trainer = self.get_torch_model
 
-        try:
-            relax_opt = self.config["task"]["relax_opt"]
-        except KeyError:
-            relax_opt = {"memory": steps}  # only need to set memory and traj_dir
+            try:
+                relax_opt = self.config["task"]["relax_opt"]
+            except KeyError:
+                relax_opt = {"memory": steps}  # only need to set memory and traj_dir
 
-        relax_opt["traj_dir"] = self.traj_dir
-        # assume 100 steps every time
-        start = time.time()
-        final_batch = ml_relax(
-            batch=batch,  # ml_relax always uses batch[0]
-            model=trainer,
-            steps=steps,
-            fmax=fmax,
-            relax_opt=relax_opt,
-            save_full_traj=True,
-            device=trainer.device,
-            # device="cuda:1",
-        )
-        end = time.time()
-        self.gnn_calls += self.steps
-        self.gnn_relaxed += len(atoms)
-        self.gnn_time += end - start
+            relax_opt["traj_dir"] = self.traj_dir
+            # assume 100 steps every time
+            start = time.time()
+            final_batch = ml_relax(
+                batch=batch,  # ml_relax always uses batch[0]
+                model=trainer,
+                steps=steps,
+                fmax=fmax,
+                relax_opt=relax_opt,
+                save_full_traj=True,
+                device=trainer.device,
+                # device="cuda:1",
+            )
+            end = time.time()
+            self.gnn_calls += self.steps
+            self.gnn_relaxed += len(atoms)
+            self.gnn_time += end - start
 
-        final_atoms = batch_to_atoms(final_batch)
+            final_atoms += batch_to_atoms(final_batch)
         return final_atoms
 
     def batched_adsorption_calculation(
