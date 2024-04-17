@@ -259,6 +259,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         device: str = None,
         fmax: float = None,
         steps: int = None,
+        constraints: bool = True,
         **bfgs_kwargs,
     ):
         """Relax the postitions of the given atoms. Setting device overrides self."""
@@ -266,7 +267,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         fmax = fmax if fmax is not None else self.fmax
         steps = steps if steps is not None else self.steps
         # Set up calculation for oc
-        self.prepare_atoms_list(atoms)
+        self.prepare_atoms_list(atoms, constraints=constraints)
         data_list = self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
         for i, d in enumerate(data_list):
             d.pbc = d.pbc[None, :]
@@ -471,7 +472,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     @staticmethod
     def prepare_atoms(atoms: Atoms, constraints: bool = True) -> None:
         """Prepare an atoms object for simulation."""
-        if constraints:
+        if constraints and 8 not in [atom.number for atom in atoms if (atom.tag == 0)]:
             cons = FixAtoms(indices=[atom.index for atom in atoms if (atom.tag == 0)])
             atoms.set_constraint(cons)
         atoms.center(vacuum=13.0, axis=2)
@@ -479,7 +480,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
     @staticmethod
     def prepare_atoms_list(atoms_list: Atoms, constraints: bool = True) -> None:
-        """Prepare an atoms object for simulation."""
+        """Prepare an atoms object list for simulation."""
         for ats in atoms_list:
             OCAdsorptionCalculator.prepare_atoms(ats, constraints=constraints)
 
