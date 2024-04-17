@@ -47,9 +47,7 @@ atoms_names = ["trajectories_e_tot/" + k for k in keys]
 for n in atoms_names:
     Path(n).parent.mkdir(parents=True, exist_ok=True)
 start_timting = calc.gnn_time
-relaxed_atoms = calc.batched_relax_atoms(
-    atoms_list, atoms_names=atoms_names, fmax=0.05, steps=200, device="cpu"
-)
+relaxed_atoms = calc.batched_relax_atoms(atoms_list, atoms_names=atoms_names)
 end_timing = calc.gnn_time
 timing["total_energy"] = end_timing - start_timting
 
@@ -80,9 +78,7 @@ bulk_atoms_names = ["trajectories_e_slab/" + k for k in bulk_atoms.keys()]
 for n in atoms_names:
     Path(n).parent.mkdir(parents=True, exist_ok=True)
 start_timting = calc.gnn_time
-bulk_relaxed_atoms = calc.batched_relax_atoms(
-    bulk_atoms_list, atoms_names=atoms_names, fmax=0.05, steps=200, device="cpu"
-)
+bulk_relaxed_atoms = calc.batched_relax_atoms(bulk_atoms_list, atoms_names=atoms_names)
 end_timing = calc.gnn_time
 timing["total_energy"] = end_timing - start_timting
 
@@ -108,7 +104,7 @@ for n in atoms_names:
     Path(n).parent.mkdir(parents=True, exist_ok=True)
 start_timting = calc.gnn_time
 bulk_relaxed_atoms_prime = calc.batched_relax_atoms(
-    bulk_atoms_list, atoms_names=atoms_names, fmax=0.05, steps=200, device="cpu"
+    bulk_atoms_list, atoms_names=atoms_names
 )
 end_timing = calc.gnn_time
 timing["total_energy"] = end_timing - start_timting
