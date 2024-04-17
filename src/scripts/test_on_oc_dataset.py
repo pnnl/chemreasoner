@@ -28,7 +28,7 @@ calc = OCAdsorptionCalculator(
         "device": "cuda",
         "ads_tag": 2,
         "fmax": 0.05,
-        "steps": 100,
+        "steps": 200,
     }
 )
 atoms = {}
