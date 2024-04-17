@@ -59,7 +59,7 @@ for k, ats in enumerate(keys, relaxed_atoms):
     if "random" + k in oc20_reference_data.keys():
         energies[k].update({"original_reference": atoms[k]})
 
-### Run slab reference calculation ###
+# Run slab reference calculation
 
 bulk_atoms = {}
 for k, ats in atoms.items():
@@ -90,4 +90,37 @@ for k, ats in enumerate(keys, bulk_relaxed_atoms):
     energies[k].update({"slab_relaxed_energy": ats.get_potential_energy()})
 
 
-## Run relaxed slab reference calculation ##
+# Run slab reference calculation
+
+bulk_atoms_prime = {}
+for k, ats in zip(keys, relaxed_atoms):
+    energies[k].update({"adsorbate_reference_energy": 0})
+    bulk_ats = Atoms()
+    e_ref = 0
+    for i, t in enumerate(ats.get_tags()):
+        if t != 2:  # part of the bulk
+            bulk_ats.append(ats[i])
+    bulk_atoms_prime[k] = bulk_ats.copy()
+
+bulk_atoms_list = [ats for ats in bulk_atoms_prime.values()]
+bulk_atoms_names = ["trajectories_e_slab_prime/" + k for k in bulk_atoms_prime.keys()]
+for n in atoms_names:
+    Path(n).parent.mkdir(parents=True, exist_ok=True)
+start_timting = calc.gnn_time
+bulk_relaxed_atoms_prime = calc.batched_relax_atoms(
+    bulk_atoms_list, atoms_names=atoms_names, fmax=0.05, steps=200, device="cpu"
+)
+end_timing = calc.gnn_time
+timing["total_energy"] = end_timing - start_timting
+
+for k, ats in enumerate(keys, bulk_relaxed_atoms_prime):
+    energies[k].update({"slab_relaxed_prime_energy": ats.get_potential_energy()})
+
+df = []
+for i, item in enumerate(energies.items()):
+    k, v = item
+    df[i] = {"key": k}.update(v)
+
+pd.dataframe(df).to_csv("energy_results.csv", index=False)
+with open("energy_timing_results.json", "w") as f:
+    json.dump(timing, f)
