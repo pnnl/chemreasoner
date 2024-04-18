@@ -120,6 +120,7 @@ example_data_structure = {
     {
         "Answer": "(3) Zinc Oxide: This catalyst is good because...",
         "catalyst_name": "Zinc Oxide",
+        "symbols": ["Zn", "O"],
         "bulk_structure": "mp-123",
         "millers": (1, 2, 3),
         "cell_shift": 3,
