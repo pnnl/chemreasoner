@@ -93,12 +93,15 @@ class MicrostructurePlanner:
 
     def run_bulk_prompt(self, slab_symbols):
         """Run the bulk prompt for the given slab symbols."""
+        ...
 
     def run_millers_prompt(self, bulks):
         """Run the bulk prompt for the given slab symbols."""
+        ...
 
     def compute_cell_shifts(self, bulk, millers):
         """Compute the possible cell shifts for the given bulk and millers."""
+        ...
 
     def run_cell_shift_prompt(self, slabs):
         """Run the bulk prompt for the given slab symbols."""
@@ -106,9 +109,11 @@ class MicrostructurePlanner:
 
     def compute_site_placements(self, slab):
         """Compute the possible site placements for the given slab."""
+        ...
 
     def run_site_plancement_prompt(self, bulks):
         """Run the bulk prompt for the given slab symbols."""
+        ...
 
 
 example_data_structure = {
