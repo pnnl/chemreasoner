@@ -118,7 +118,7 @@ class MicrostructurePlanner:
 
 example_data_structure = {
     {
-        "Answer": "Zinc Oxide is good because...",
+        "Answer": "(3) Zinc Oxide: This catalyst is good because...",
         "catalyst_name": "Zinc Oxide",
         "bulk_structure": "mp-123",
         "millers": (1, 2, 3),
