@@ -51,7 +51,7 @@ relaxed_atoms = calc.batched_relax_atoms(atoms_list, atoms_names=atoms_names)
 end_timing = calc.gnn_time
 timing["total_energy"] = end_timing - start_timting
 
-for k, ats in enumerate(keys, relaxed_atoms):
+for k, ats in zip(keys, relaxed_atoms):
     energies[k] = {"relaxed_energy": ats}
     random_sid = k.split("/")[-1].split("_") - 1
     if "random" + k in oc20_reference_data.keys():
@@ -82,7 +82,7 @@ bulk_relaxed_atoms = calc.batched_relax_atoms(bulk_atoms_list, atoms_names=atoms
 end_timing = calc.gnn_time
 timing["total_energy"] = end_timing - start_timting
 
-for k, ats in enumerate(keys, bulk_relaxed_atoms):
+for k, ats in zip(keys, bulk_relaxed_atoms):
     energies[k].update({"slab_relaxed_energy": ats.get_potential_energy()})
 
 
@@ -109,7 +109,7 @@ bulk_relaxed_atoms_prime = calc.batched_relax_atoms(
 end_timing = calc.gnn_time
 timing["total_energy"] = end_timing - start_timting
 
-for k, ats in enumerate(keys, bulk_relaxed_atoms_prime):
+for k, ats in zip(keys, bulk_relaxed_atoms_prime):
     energies[k].update({"slab_relaxed_prime_energy": ats.get_potential_energy()})
 
 df = []
