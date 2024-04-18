@@ -46,10 +46,10 @@ atoms_list = list(atoms.values())
 atoms_names = ["trajectories_e_tot/" + k for k in keys]
 for n in atoms_names:
     Path(n).parent.mkdir(parents=True, exist_ok=True)
-start_timting = calc.gnn_time
+start_timing = calc.gnn_time
 relaxed_atoms = calc.batched_relax_atoms(atoms_list, atoms_names=atoms_names)
 end_timing = calc.gnn_time
-timing["total_energy"] = end_timing - start_timting
+timing["total_energy"] = end_timing - start_timing
 
 for k, ats in zip(keys, relaxed_atoms):
     energies[k] = {"relaxed_energy": ats}
@@ -77,16 +77,16 @@ bulk_atoms_list = [ats for ats in bulk_atoms.values()]
 bulk_atoms_names = ["trajectories_e_slab/" + k for k in bulk_atoms.keys()]
 for n in atoms_names:
     Path(n).parent.mkdir(parents=True, exist_ok=True)
-start_timting = calc.gnn_time
+start_timing = calc.gnn_time
 bulk_relaxed_atoms = calc.batched_relax_atoms(bulk_atoms_list, atoms_names=atoms_names)
 end_timing = calc.gnn_time
-timing["total_energy"] = end_timing - start_timting
+timing["slab_energy"] = end_timing - start_timing
 
 for k, ats in zip(keys, bulk_relaxed_atoms):
     energies[k].update({"slab_relaxed_energy": ats.get_potential_energy()})
 
 
-# Run slab reference calculation
+# Run slab print reference calculation
 
 bulk_atoms_prime = {}
 for k, ats in zip(keys, relaxed_atoms):
@@ -102,12 +102,12 @@ bulk_atoms_list = [ats for ats in bulk_atoms_prime.values()]
 bulk_atoms_names = ["trajectories_e_slab_prime/" + k for k in bulk_atoms_prime.keys()]
 for n in atoms_names:
     Path(n).parent.mkdir(parents=True, exist_ok=True)
-start_timting = calc.gnn_time
+start_timing = calc.gnn_time
 bulk_relaxed_atoms_prime = calc.batched_relax_atoms(
     bulk_atoms_list, atoms_names=atoms_names
 )
 end_timing = calc.gnn_time
-timing["total_energy"] = end_timing - start_timting
+timing["slab_prime_energy"] = end_timing - start_timing
 
 for k, ats in zip(keys, bulk_relaxed_atoms_prime):
     energies[k].update({"slab_relaxed_prime_energy": ats.get_potential_energy()})
