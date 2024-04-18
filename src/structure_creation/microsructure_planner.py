@@ -155,7 +155,7 @@ class OCPMicrostructurePlanner:
         ...
 
 
-example_data_structure = {
+example_data_structure = [
     {
         "llm_answer": "(3) Zinc Oxide: This catalyst is good because...",
         "catalyst_name": "Zinc Oxide",
@@ -166,4 +166,4 @@ example_data_structure = {
         "site_placement": (3.2, 4.5, 6.7),
         "atoms_object_id": "{db_id}_{structure_id}",
     }
-}
+]
