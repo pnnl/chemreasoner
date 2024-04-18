@@ -59,7 +59,9 @@ for k, ats in zip(keys, relaxed_atoms):
     energies[k] = {"relaxed_energy": ats}
     random_sid = k.split("/")[-1].split("_")[-1]
     if "random" + random_sid in oc20_reference_data.keys():
-        energies[k].update({"original_reference": atoms["random" + random_sid]})
+        energies[k].update(
+            {"original_reference": oc20_reference_data["random" + random_sid]}
+        )
 
 # Run slab reference calculation
 
