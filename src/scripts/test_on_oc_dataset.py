@@ -41,11 +41,15 @@ for p in Path("src/nnp/oc_eval_set").rglob("*.xyz"):
 timing = {}
 energies = {}
 keys = list(atoms.keys())
-atoms_list = list(atoms.values())
 
-atoms_names = ["trajectories_e_tot/" + k for k in keys]
-for n in atoms_names:
-    Path(n).parent.mkdir(parents=True, exist_ok=True)
+atoms_list = []
+atoms_names = []
+for k, v in atoms.items():
+    atoms_list.append(v)
+    name = "trajectories_e_tot/" + k
+    atoms_names.append(name)
+    Path(name).parent.mkdir(parents=True, exist_ok=True)
+
 start_timing = calc.gnn_time
 relaxed_atoms = calc.batched_relax_atoms(atoms_list, atoms_names=atoms_names)
 end_timing = calc.gnn_time
@@ -73,12 +77,18 @@ for k, ats in atoms.items():
             bulk_ats.append(ats[i])
     bulk_atoms[k] = bulk_ats.copy()
 
-bulk_atoms_list = [ats for ats in bulk_atoms.values()]
-bulk_atoms_names = ["trajectories_e_slab/" + k for k in bulk_atoms.keys()]
-for n in atoms_names:
-    Path(n).parent.mkdir(parents=True, exist_ok=True)
+bulk_atoms_list = []
+bulk_atoms_names = []
+for k, v in bulk_atoms.items():
+    bulk_atoms_list.append(v)
+    name = "trajectories_e_slab/" + k
+    bulk_atoms_names.append(name)
+    Path(name).parent.mkdir(parents=True, exist_ok=True)
+
 start_timing = calc.gnn_time
-bulk_relaxed_atoms = calc.batched_relax_atoms(bulk_atoms_list, atoms_names=atoms_names)
+bulk_relaxed_atoms = calc.batched_relax_atoms(
+    bulk_atoms_list, atoms_names=bulk_atoms_names
+)
 end_timing = calc.gnn_time
 timing["slab_energy"] = end_timing - start_timing
 
@@ -98,13 +108,17 @@ for k, ats in zip(keys, relaxed_atoms):
             bulk_ats.append(ats[i])
     bulk_atoms_prime[k] = bulk_ats.copy()
 
-bulk_atoms_list = [ats for ats in bulk_atoms_prime.values()]
-bulk_atoms_names = ["trajectories_e_slab_prime/" + k for k in bulk_atoms_prime.keys()]
-for n in atoms_names:
-    Path(n).parent.mkdir(parents=True, exist_ok=True)
+bulk_atoms_prime_list = []
+bulk_atoms_prime_names = []
+for k, v in bulk_atoms_prime.items():
+    atoms_list.append(v)
+    name = "trajectories_e_slab_prime/" + k
+    atoms_names.append(name)
+    Path(name).parent.mkdir(parents=True, exist_ok=True)
+
 start_timing = calc.gnn_time
 bulk_relaxed_atoms_prime = calc.batched_relax_atoms(
-    bulk_atoms_list, atoms_names=atoms_names
+    bulk_atoms_prime_list, atoms_names=bulk_atoms_prime_names
 )
 end_timing = calc.gnn_time
 timing["slab_prime_energy"] = end_timing - start_timing
@@ -112,6 +126,8 @@ timing["slab_prime_energy"] = end_timing - start_timing
 for k, ats in zip(keys, bulk_relaxed_atoms_prime):
     energies[k].update({"slab_relaxed_prime_energy": ats.get_potential_energy()})
 
+
+# Write the final results to disk
 df = []
 for i, item in enumerate(energies.items()):
     k, v = item
