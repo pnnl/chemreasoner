@@ -53,7 +53,7 @@ timing["total_energy"] = end_timing - start_timting
 
 for k, ats in zip(keys, relaxed_atoms):
     energies[k] = {"relaxed_energy": ats}
-    random_sid = k.split("/")[-1].split("_") - 1
+    random_sid = k.split("/")[-1].split("_")[-1] - 1
     if "random" + k in oc20_reference_data.keys():
         energies[k].update({"original_reference": atoms[k]})
 
