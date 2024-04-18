@@ -7,6 +7,7 @@ import time
 from typing import Optional
 
 sys.path.append("src")
+from llm.utils import process_prompt
 from search.state.reasoner_state import ReasonerState
 
 logging.getLogger().setLevel(logging.INFO)
@@ -39,43 +40,21 @@ class OCPMicrostructurePlanner:
         **llm_function_kwargs,
     ):
         """A script to handle the creation, running, parsing of a prompt."""
-        return_value = False
-        if isinstance(prompt_info, list):
-            return_value = True
-            prompt_info = [prompt_info]
         if retries is None:
             if prompt_type in self.default_retries:
                 retries = self.default_retries[prompt_type]
             else:
                 retries = self.default_retries["__default__"]
 
-        attempts = 0
-        answers = [None] * len(prompt_info)
-        while attempts <= retries and any([ans is None for ans in answers]):
-            # Get the prompts
-            prompt_idx = []
-            prompts = []
-            system_prompts = []
-            for i, p_info in prompt_info:
-                if answers[i] is None:  # If answer hasn't been found, yet
-                    proposed_prompt = prompt_creation_function(p_info)
-                    if proposed_prompt is not None:  # If prompt creation is successful
-                        prompt_idx.append(i)
-                        prompts.append(prompt_creation_function(p_info))
-                        system_prompts.append(system_prompt_function(p_info))
-
-            # Run non-None prompts through the LLM to get raw answers
-            raw_answers = self.llm_function(
-                prompts, system_prompts, **llm_function_kwargs
-            )
-            for p_idx, raw_answer in zip(prompt_idx, raw_answers):
-                # Attempt to parse out the answer
-                answers[p_idx] = prompt_parsing_function(raw_answer)
-
-        if return_value:
-            return answers[0]
-        else:
-            return answers
+        return process_prompt(
+            self.llm_function,
+            prompt_info,
+            prompt_creation_function,
+            prompt_parsing_function,
+            system_prompt_function,
+            retries=retries,
+            **llm_function_kwargs,
+        )
 
     def run_generation_prompts(
         self, slab_syms: list[list[str]], states: list[ReasonerState]
