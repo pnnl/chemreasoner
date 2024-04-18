@@ -32,7 +32,7 @@ class OCPMicrostructurePlanner:
     def process_prompt(
         self,
         prompt_info: list[str],
-        prompt_type,
+        prompt_type: str,
         prompt_creation_function: callable[str, str | None],
         prompt_parsing_function: callable[str, str | None],
         system_prompt_function: callable[str, str | None],
