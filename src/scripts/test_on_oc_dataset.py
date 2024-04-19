@@ -1,6 +1,7 @@
 """Script to test GemNet on the OC dataset."""
 
 import json
+import logging
 import pickle
 import sys
 
@@ -13,6 +14,8 @@ import pandas as pd
 
 sys.path.append("src")
 from nnp.oc import OCAdsorptionCalculator
+
+logging.getLogger().setLevel(logging.INFO)
 
 with open("src/nnp/oc20_ref.pkl", "rb") as f:
     oc20_reference_data = pickle.load(f)
