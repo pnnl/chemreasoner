@@ -122,8 +122,6 @@ for k, ats in zip(keys, relaxed_atoms):
     for i, t in enumerate(ats.get_tags()):
         if t != 2:  # part of the bulk
             bulk_ats.append(ats[i])
-        else:
-            bulk_ats.append(at)
 
     for key, value in ats.arrays.items():
         bulk_ats.arrays[key] = value[tags_mask]
