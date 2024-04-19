@@ -61,7 +61,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         traj_dir: Path,
         batch_size=64,
         device="cpu",
-        ads_tag=0,
+        ads_tag=2,
         fmax=0.005,
         steps=150,
         adsorbed_structure_checker=None,
@@ -275,7 +275,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         # convert to torch geometric batch
         final_atoms = []
         dl = DataListLoader(data_list, batch_size=self.batch_size, shuffle=False)
-        for batch in dl:
+        for data_list in dl:
             batch = Batch.from_data_list(data_list)
             batch = batch.to(device if device is not None else self.device)
 

@@ -22,10 +22,10 @@ data_path = Path(".")
 
 calc = OCAdsorptionCalculator(
     **{
-        "model": "gemnet-oc-22",
+        "model": "gemnet-t",
         "traj_dir": data_path,
         "batch_size": 32,
-        "device": "cuda",
+        "device": "cpu",
         "ads_tag": 2,
         "fmax": 0.05,
         "steps": 200,
@@ -51,9 +51,11 @@ for k, v in atoms.items():
     Path(name).parent.mkdir(parents=True, exist_ok=True)
 
 start_timing = calc.gnn_time
-relaxed_atoms = calc.batched_relax_atoms(atoms_list, atoms_names=atoms_names)
-end_timing = calc.gnn_time
-timing["total_energy"] = end_timing - start_timing
+relaxed_atoms = (
+    atoms_list  # calc.batched_relax_atoms(atoms_list, atoms_names=atoms_names)
+)
+# end_timing = calc.gnn_time
+# timing["total_energy"] = end_timing - start_timing
 
 for k, ats in zip(keys, relaxed_atoms):
     energies[k] = {"relaxed_energy": ats}
@@ -70,13 +72,21 @@ for k, ats in atoms.items():
     energies[k].update({"adsorbate_reference_energy": 0})
     bulk_ats = Atoms()
     e_ref = 0
-    for i, t in enumerate(ats.get_tags()):
-        if t == 2:  # part of the adsorbate
+    for i, at in enumerate(ats):
+        if at.tag == 2:  # part of the adsorbate
             energies[k]["adsorbate_reference_energy"] = calc.ads_references[
                 ats.get_atomic_numbers()[i]
             ]
-        else:  # part of the bulk
-            bulk_ats.append(ats[i])
+        else:
+            bulk_ats.append(at)
+
+    tags_mask = ats.get_tags() != 2
+
+    for key, value in ats.arrays.items():
+        bulk_ats.arrays[key] = value[tags_mask]
+
+    bulk_ats.set_pbc(ats.get_pbc())
+    bulk_ats.set_cell(ats.get_cell())
     bulk_atoms[k] = bulk_ats.copy()
 
 bulk_atoms_list = []
@@ -91,6 +101,7 @@ start_timing = calc.gnn_time
 bulk_relaxed_atoms = calc.batched_relax_atoms(
     bulk_atoms_list, atoms_names=bulk_atoms_names
 )
+
 end_timing = calc.gnn_time
 timing["slab_energy"] = end_timing - start_timing
 
@@ -108,7 +119,16 @@ for k, ats in zip(keys, relaxed_atoms):
     for i, t in enumerate(ats.get_tags()):
         if t != 2:  # part of the bulk
             bulk_ats.append(ats[i])
+        else:
+            bulk_ats.append(at)
+
+    for key, value in ats.arrays.items():
+        bulk_ats.arrays[key] = value[tags_mask]
+
+    bulk_ats.set_pbc(ats.get_pbc())
+    bulk_ats.set_cell(ats.get_cell())
     bulk_atoms_prime[k] = bulk_ats.copy()
+
 
 bulk_atoms_prime_list = []
 bulk_atoms_prime_names = []
