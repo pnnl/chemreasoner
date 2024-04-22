@@ -158,6 +158,6 @@ for i, item in enumerate(energies.items()):
     k, v = item
     df.append({"key": k}.update(v))
 
-pd.dataframe(df).to_csv("energy_results.csv", index=False)
+pd.DataFrame(df).to_csv("energy_results.csv", index=False)
 with open("energy_timing_results.json", "w") as f:
     json.dump(timing, f)
