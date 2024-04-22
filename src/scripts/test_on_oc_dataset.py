@@ -30,7 +30,7 @@ calc = OCAdsorptionCalculator(
         "batch_size": 32,
         "device": "cuda",
         "ads_tag": 2,
-        "fmax": 0.05,
+        "fmax": 0.03,
         "steps": 200,
     }
 )
