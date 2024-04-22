@@ -59,7 +59,7 @@ end_timing = calc.gnn_time
 timing["total_energy"] = end_timing - start_timing
 
 for k, ats in zip(keys, relaxed_atoms):
-    energies[k] = {"relaxed_energy": ats}
+    energies[k] = {"relaxed_energy": ats.get_potential_energy()}
     random_sid = k.split("/")[-1].split("_")[-1]
     if "random" + random_sid in oc20_reference_data.keys():
         energies[k].update(
@@ -75,7 +75,7 @@ for k, ats in atoms.items():
     e_ref = 0
     for i, at in enumerate(ats):
         if at.tag == 2:  # part of the adsorbate
-            energies[k]["adsorbate_reference_energy"] = calc.ads_references[
+            energies[k]["adsorbate_reference_energy"] += calc.ads_references[
                 ats.get_atomic_numbers()[i]
             ]
         else:
@@ -152,8 +152,7 @@ for k, ats in zip(keys, bulk_relaxed_atoms_prime):
 
 # Write the final results to disk
 df = []
-for i, item in enumerate(energies.items()):
-    k, v = item
+for k, v in energies.items():
     df.append({"key": k}.update(v))
 
 pd.DataFrame(df).to_csv("energy_results.csv", index=False)
