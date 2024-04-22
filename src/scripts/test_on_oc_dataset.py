@@ -134,9 +134,9 @@ for k, ats in zip(keys, relaxed_atoms):
 bulk_atoms_prime_list = []
 bulk_atoms_prime_names = []
 for k, v in bulk_atoms_prime.items():
-    atoms_list.append(v)
+    bulk_atoms_prime_list.append(v)
     name = "trajectories_e_slab_prime/" + k
-    atoms_names.append(name)
+    bulk_atoms_prime_names.append(name)
     Path(name).parent.mkdir(parents=True, exist_ok=True)
 
 start_timing = calc.gnn_time
