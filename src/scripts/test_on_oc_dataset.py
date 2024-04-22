@@ -54,11 +54,9 @@ for k, v in atoms.items():
     Path(name).parent.mkdir(parents=True, exist_ok=True)
 
 start_timing = calc.gnn_time
-relaxed_atoms = (
-    atoms_list  # calc.batched_relax_atoms(atoms_list, atoms_names=atoms_names)
-)
-# end_timing = calc.gnn_time
-# timing["total_energy"] = end_timing - start_timing
+relaxed_atoms = calc.batched_relax_atoms(atoms_list, atoms_names=atoms_names)
+end_timing = calc.gnn_time
+timing["total_energy"] = end_timing - start_timing
 
 for k, ats in zip(keys, relaxed_atoms):
     energies[k] = {"relaxed_energy": ats}
@@ -104,8 +102,8 @@ start_timing = calc.gnn_time
 bulk_relaxed_atoms = calc.batched_relax_atoms(
     bulk_atoms_list, atoms_names=bulk_atoms_names
 )
-
 end_timing = calc.gnn_time
+
 timing["slab_energy"] = end_timing - start_timing
 
 for k, ats in zip(keys, bulk_relaxed_atoms):
