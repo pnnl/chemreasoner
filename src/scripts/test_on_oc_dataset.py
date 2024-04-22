@@ -112,7 +112,7 @@ for k, ats in zip(keys, bulk_relaxed_atoms):
     energies[k].update({"slab_relaxed_energy": ats.get_potential_energy()})
 
 
-# Run slab print reference calculation
+# Run slab prime reference calculation
 
 bulk_atoms_prime = {}
 for k, ats in zip(keys, relaxed_atoms):
@@ -122,6 +122,8 @@ for k, ats in zip(keys, relaxed_atoms):
     for i, t in enumerate(ats.get_tags()):
         if t != 2:  # part of the bulk
             bulk_ats.append(ats[i])
+
+    tags_mask = ats.get_tags() != 2
 
     for key, value in ats.arrays.items():
         bulk_ats.arrays[key] = value[tags_mask]
