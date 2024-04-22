@@ -153,7 +153,9 @@ for k, ats in zip(keys, bulk_relaxed_atoms_prime):
 # Write the final results to disk
 df = []
 for k, v in energies.items():
-    df.append({"key": k}.update(v))
+    data = {"key": k}
+    data.update(v)
+    df.append(data)
 
 pd.DataFrame(df).to_csv("energy_results.csv", index=False)
 with open("energy_timing_results.json", "w") as f:
