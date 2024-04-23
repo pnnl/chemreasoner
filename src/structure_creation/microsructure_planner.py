@@ -24,6 +24,60 @@ logging.getLogger().setLevel(logging.INFO)
 MP_API_KEY = os.environ["MP_API_KEY"]
 
 
+prompts = {
+    "bulk_structure": {
+        "prompt": (
+            "$ROOT_PROMPT = {root_prompt}"
+            "Consider the following list of materials. "
+            "Return the index of the material that would be best suited for answering the $ROOT_PROMPT.\n\n"
+            "{bulks_summaries}"
+            "\nReturn your answer as a python list called 'final_answer' of your top two choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
+        ),
+        "system_prompt": (
+            "You are an AI assistant that has knowledge about materials science and can make accurate recommendations about bulk material structures based on their crystal structure and composition. You will consider factors such as catalytic performance and synthesizability in your analysis."
+        ),
+    },
+    "millers": {
+        "prompt": (
+            "$ANSWER = {answer}"
+            "$ROOT_PROMPT = {root_prompt}"
+            "Consider the material {material}. "
+            "Return a list of miller indices that would answer the $ROOT_PROMPT. You miller indices should be consistent with the information in $ANSWER\n\n"
+            "\nReturn your answer as a python list called 'final_answer' of your top two miller indices. Let's think step-by-step and provide justifications for your answers."
+        ),
+        "system_prompt": (
+            "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about surface composition based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
+        ),
+    },
+    "cell_shift": {
+        "prompt": (
+            "$ROOT_PROMPT = {root_prompt}"
+            "$ANSWER = {answer}"
+            "Consider the material {material} with miller index {millers}. "
+            "Return the index of the following surfaces which has the best configuration for accomplishing the $ROOT_PROMPT. You should target surfaces with binding sites that are consisten with the $ANSWER given above.\n\n"
+            "{cell_shift_summaries}"
+            "\nReturn your answer as a python list called 'final_answer' of your top two choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
+        ),
+        "system_prompt": (
+            "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about miller indices based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
+        ),
+    },
+    "site_placement": {
+        "prompt": (
+            "$ROOT_PROMPT"
+            "$ANSWER"
+            "Consider the material {material} with miller index {millers}. "
+            "Return the index of the atomic environment of the best adsorbate placemnet site.\n\n"
+            "{atomic_environments}"
+            "\nReturn your answer as a python list called 'final_answer' of your top two choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
+        ),
+        "system_prompt": (
+            "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about adsorbate binding sites based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
+        ),
+    },
+}
+
+
 class OCPMicrostructurePlanner:
     """A class to handle LLM-driven microstructure creation using the OCP format."""
 
@@ -166,12 +220,9 @@ class OCPMicrostructurePlanner:
         ...
 
 
-_example_bulk_answer = """In order to convert CO2 to methanol, a catalyst is required that can promote the reduction of CO2. ZnO is widely known to be a good catalyst for this process due to its ability to adsorb and activate CO2. ZnO2, however, is not typically used for this purpose. So, we can exclude the ZnO2 materials from consideration.\n\nNext, we need to consider the impact of the crystal structure on the catalytic performance. Here are some general rules:\n\n1. The cubic Fm-3m space group ZnO has a high symmetry and densely packed atoms, which might not provide enough surface area and active sites for CO2 conversion. \n\n2. The hexagonal P6_3mc space group ZnO has lower symmetry and loosely packed atoms, which could provide more surface area and active sites for CO2 conversion.\n\n3. The cubic F-43m space group ZnO has a high symmetry and densely packed atoms, similar to the cubic Fm-3m space group. \n\nBased on this information, the hexagonal P6_3mc space group ZnO would be expected to perform better due to its larger surface area and more available active sites. However, the cubic F-43m space group ZnO might also perform well due to its high stability and good synthesizability, despite its high symmetry.\n\nTherefore, the top two choices would be:\n\n`final_answer = [2, 4]` \n\nThis answer is based on the known properties of these materials and their crystal structures. However, the actual performance could vary and should be verified through experiments."""
-
-
 class BulkSelector:
-    system_prompt = """You are an AI assistant that has knowledge about materials science and can make accurate recommendations about bulk material structures based on their crustal structure and composition. You will consider factors such as catalytic performance and synthesizability in your analysis."""
-    _example_bulk_answer = _example_bulk_answer
+    prompt_templates = prompts["bulk_structure"]
+    _example_bulk_answer = """In order to convert CO2 to methanol, a catalyst is required that can promote the reduction of CO2. ZnO is widely known to be a good catalyst for this process due to its ability to adsorb and activate CO2. ZnO2, however, is not typically used for this purpose. So, we can exclude the ZnO2 materials from consideration.\n\nNext, we need to consider the impact of the crystal structure on the catalytic performance. Here are some general rules:\n\n1. The cubic Fm-3m space group ZnO has a high symmetry and densely packed atoms, which might not provide enough surface area and active sites for CO2 conversion. \n\n2. The hexagonal P6_3mc space group ZnO has lower symmetry and loosely packed atoms, which could provide more surface area and active sites for CO2 conversion.\n\n3. The cubic F-43m space group ZnO has a high symmetry and densely packed atoms, similar to the cubic Fm-3m space group. \n\nBased on this information, the hexagonal P6_3mc space group ZnO would be expected to perform better due to its larger surface area and more available active sites. However, the cubic F-43m space group ZnO might also perform well due to its high stability and good synthesizability, despite its high symmetry.\n\nTherefore, the top two choices would be:\n\n`final_answer = [2, 4]` \n\nThis answer is based on the known properties of these materials and their crystal structures. However, the actual performance could vary and should be verified through experiments."""
 
     @staticmethod
     def fetch_materials(symbols: list[str]) -> list["MPDataDoc"]:
@@ -208,13 +259,13 @@ class BulkSelector:
         return [d for d in docs if not d.theoretical]
 
     @staticmethod
-    def create_prompt(docs: list["MPDataDoc"]) -> str:
+    def create_prompt(docs: list["MPDataDoc"], state) -> str:
         """Create a prompt for the given dictionaries."""
         bulks_summaries = ""
         for i, doc in enumerate(docs):
             bulks_summaries += f"({i}) {doc.formula_pretty} in the {doc.symmetry.crystal_system.value.lower()} {doc.symmetry.symbol} space group.\n"
 
-        return fstr(prompts["prompt"], {"bukls_summaries": bulks_summaries})
+        return fstr(prompts["prompt"], {"bulks_summaries": bulks_summaries})
 
     @staticmethod
     def parse_response_list(response: str) -> list[int]:
@@ -238,64 +289,10 @@ example_data_structure = [
         "llm_answer": "(3) Zinc Oxide: This catalyst is good because...",
         "catalyst_name": "Zinc Oxide",
         "symbols": ["Zn", "O"],
-        "bulk_structure": "mp-123",
+        "bulk_structure": "mp-2133",
         "millers": (1, 2, 3),
         "cell_shift": 3,
         "site_placement": (3.2, 4.5, 6.7),
         "atoms_object_id": "{db_id}_{structure_id}",
     }
 ]
-
-
-prompts = {
-    "bulk_structure": {
-        "prompt": (
-            "$ROOT_PROMPT = {root_prompt}"
-            "Consider the following list of materials. "
-            "Return the index of the material that would be best suited for answering the $ROOT_PROMPT.\n\n"
-            "{bulks_summaries}"
-            "\nReturn your answer as a python list called 'final_answer' of your top two choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
-        ),
-        "system_prompt": (
-            "You are an AI assistant that has knowledge about materials science and can make accurate recommendations about bulk material structures based on their crystal structure and composition. You will consider factors such as catalytic performance and synthesizability in your analysis."
-        ),
-    },
-    "millers": {
-        "prompt": (
-            "$ANSWER = {answer}"
-            "$ROOT_PROMPT = {root_prompt}"
-            "Consider the material {material}. "
-            "Return a list of miller indices that would answer the $ROOT_PROMPT. You miller indices should be consistent with the information in $ANSWER\n\n"
-            "\nReturn your answer as a python list called 'final_answer' of your top two miller indices. Let's think step-by-step and provide justifications for your answers."
-        ),
-        "system_prompt": (
-            "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about surface composition based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
-        ),
-    },
-    "cell_shift": {
-        "prompt": (
-            "$ROOT_PROMPT = {root_prompt}"
-            "$ANSWER = {answer}"
-            "Consider the material {material} with miller index {millers}. "
-            "Return the index of the following surfaces which has the best configuration for accomplishing the $ROOT_PROMPT. You should target surfaces with binding sites that are consisten with the $ANSWER given above.\n\n"
-            "{cell_shift_summaries}"
-            "\nReturn your answer as a python list called 'final_answer' of your top two choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
-        ),
-        "system_prompt": (
-            "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about miller indices based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
-        ),
-    },
-    "site_placement": {
-        "prompt": (
-            "$ROOT_PROMPT"
-            "$ANSWER"
-            "Consider the material {material} with miller index {millers}. "
-            "Return the index of the atomic environment of the best adsorbate placemnet site.\n\n"
-            "{atomic_environments}"
-            "\nReturn your answer as a python list called 'final_answer' of your top two choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
-        ),
-        "system_prompt": (
-            "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about adsorbate binding sites based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
-        ),
-    },
-}
