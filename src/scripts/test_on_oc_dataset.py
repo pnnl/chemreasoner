@@ -114,7 +114,6 @@ for k, ats in zip(keys, bulk_relaxed_atoms):
 
 bulk_atoms_prime = {}
 for k, ats in zip(keys, relaxed_atoms):
-    energies[k].update({"adsorbate_reference_energy": 0})
     bulk_ats = Atoms()
     e_ref = 0
     for i, t in enumerate(ats.get_tags()):
