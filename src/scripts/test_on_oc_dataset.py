@@ -25,7 +25,7 @@ data_path = Path(".")
 
 calc = OCAdsorptionCalculator(
     **{
-        "model": "gemnet-t",
+        "model": "gemnet-oc-22",
         "traj_dir": data_path,
         "batch_size": 32,
         "device": "cuda",
