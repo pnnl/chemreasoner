@@ -2,22 +2,25 @@
 
 import logging
 import os
+import pickle
 import sys
 import time
 
 from ast import literal_eval
 from typing import Optional
-
 import crystal_toolkit
 
 import mp_api
 from pymatgen.core.surface import SlabGenerator
 from pymatgen.ext.matproj import MPRester
 
+from ocdata.core import Slab
+
 
 sys.path.append("src")
 from llm.utils import process_prompt
 from search.state.reasoner_state import ReasonerState
+from structure_creation.digital_twin import SlabDigitalTwin
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -98,9 +101,9 @@ class OCPMicrostructurePlanner:
         self,
         prompt_info: list[str],
         prompt_type: str,
-        prompt_creation_function: callable[str, str | None],
-        prompt_parsing_function: callable[str, str | None],
-        system_prompt_function: callable[str, str | None],
+        prompt_creation_function: callable,
+        prompt_parsing_function: callable,
+        system_prompt_function: callable,
         retries: Optional[int] = None,
         **llm_function_kwargs,
     ):
@@ -278,6 +281,11 @@ class BulkSelector:
         return answer_list
 
 
+def compute_subsurface_distribution(slab: Slab):
+    """Compute distribution of atoms under the surface of slab."""
+    ...
+
+
 def fstr(fstring_text, vals):
     """Evaluate the provided fstring_text."""
     ret_val = eval(f'f"{fstring_text}"', vals)
@@ -296,3 +304,13 @@ example_data_structure = [
         "atoms_object_id": "{db_id}_{structure_id}",
     }
 ]
+
+if __name__ == "__main__":
+    dt = SlabDigitalTwin(computational_params={"answer": "Zinc Oxide"})
+    dt.set_symbols(["Zn", "O"])
+    bulks = dt.get_bulks()
+    with open("bulks_tmp.pkl", "wb") as f:
+        pickle.dump(bulks, f)
+    dt.set_bulk([bulks[0]])
+    dt.set_millers([(1, 0, 0)])
+    print(dt.get_surfaces())

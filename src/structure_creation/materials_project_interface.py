@@ -92,6 +92,15 @@ def ocp_bulks_from_mp_ids(mp_ids: list) -> list[Union[Bulk, None]]:
     return oc_bulks
 
 
+def materials_project_structure_to_ase(docs: "MPDataDoc"):
+    """Convert a list of materials project structures to ase atoms."""
+    return_value = False
+    if not isinstance(docs, list):
+        return AseAtomsAdaptor().get_atoms(doc.structure)
+
+    return
+
+
 def ocp_bulks_from_symbols(syms: list[str]) -> list[Bulk]:
     """Get the ocp bulk from the given list of symbols."""
     docs = mp_docs_from_symbols(syms)
@@ -329,3 +338,12 @@ if __name__ == "__main__":
     #     end = time.time()
     #     adsorbate_times[ads] = end - start
     print(adsorbate_times)
+
+
+if __name__ == "__main__":
+    dt = SlabDigitalTwin(computational_params={"answer": "Zinc Oxide"})
+    dt.set_symbols(["Zn", "O"])
+    bulks = dt.get_bulks()
+    dt.set_bulk([bulks[0]])
+    dt.set_millers([(1, 0, 0)])
+    print(dt.get_surfaces())

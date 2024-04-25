@@ -1,14 +1,14 @@
 """General utilities for LLM functions."""
 
-from typing import Optional
+from typing import Optional, Union
 
 
 def process_prompt(
-    llm_function: callable[str, str | None],
+    llm_function: callable,
     prompt_info: list[str],
-    prompt_creation_function: callable[str, str | None],
-    prompt_parsing_function: callable[str, str | None],
-    system_prompt_function: callable[str, str | None],
+    prompt_creation_function: callable,
+    prompt_parsing_function: callable,
+    system_prompt_function: callable,
     retries: Optional[int] = 0,
     **llm_function_kwargs,
 ):

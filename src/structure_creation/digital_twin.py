@@ -2,6 +2,7 @@
 
 import logging
 import os
+import sys
 
 from uuid import uuid4
 
@@ -10,9 +11,12 @@ from ase import Atoms
 import mp_api
 from pymatgen.core.surface import SlabGenerator
 from pymatgen.ext.matproj import MPRester
+from pymatgen.io.ase import AseAtomsAdaptor
 
 from ocdata.core import Adsorbate, AdsorbateSlabConfig, Bulk, Slab
 
+# sys.path.append("src")
+# from structure_creation.materials_project_interface import mp_docs_from_symbols
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -23,7 +27,7 @@ class SlabDigitalTwin:
     """A class for a digital twin of a slab system."""
 
     dummy_adsorbate = Adsorbate(
-        Atoms("X", positions=[[0, 0, 0]]), adsorbate_binding_indices=0
+        Atoms("H", positions=[[0, 0, 0]]), adsorbate_binding_indices=[0]
     )
     available_statuses = [
         "answer",
@@ -83,7 +87,7 @@ class SlabDigitalTwin:
         max_idx = -1
         for i, k in enumerate(self.available_statuses):
             idx = self.available_statuses.index(k)
-            if idx > max_idx:
+            if k in self.computational_params and idx > max_idx:
                 max_idx = idx
         return self.available_statuses[max_idx]
 
@@ -114,7 +118,7 @@ class SlabDigitalTwin:
                 return_values.append(cpy)
         return return_values
 
-    def get_available_bulks(self, filter_theoretical=True):
+    def get_bulks(self, filter_theoretical=True):
         """The the set of bulk available for self."""
         # Filter for materials with only the specified elements
         if self.status != "symbols":
@@ -158,7 +162,9 @@ class SlabDigitalTwin:
         for i, b in enumerate(bulks):
             if i == 0:
                 self.computational_params["bulk"] = b.material_id
-                self.computational_object = Bulk(bulk_src_id_from_db=b.material_id)
+                self.computational_object = Bulk(
+                    bulk_atoms=AseAtomsAdaptor().get_atoms(b.structure)
+                )
             else:
                 cpy = self.copy()
                 cpy.set_bulk([b])
@@ -179,7 +185,7 @@ class SlabDigitalTwin:
         for i, m in enumerate(millers):
             if i == 0:
                 self.computational_params["millers"] = m
-                self.computational_object = Slab.get_specific_millers(
+                self.computational_object = Slab.from_bulk_get_specific_millers(
                     m,
                     self.computational_object,
                     min_ab=8.0,  # consider reducing this before site placement?
@@ -192,9 +198,9 @@ class SlabDigitalTwin:
 
     def get_surfaces(self):
         """Get the possible surfaces for self."""
-        return [s.shift for s in self.computational_object]
+        return self.computational_object
 
-    def set_surface(self, surfaces: list[Slab]):
+    def set_surfaces(self, surfaces: list[Slab]):
         """Set the surfaces given in the list, returning copies if necessary.
 
         Surfaces should be lists of Slab objects."""
@@ -204,15 +210,15 @@ class SlabDigitalTwin:
         return_values = []
         for i, s in enumerate(surfaces):
             if i == 0:
-                self.computational_params["surface"] = (s.shift, s.miller, s.min_ab)
+                self.computational_params["surface"] = (s.shift, s.top)
                 self.computational_object = s
             else:
                 cpy = self.copy()
-                cpy.set_surface([s])
+                cpy.set_surfaces([s])
                 return_values.append(cpy)
         return return_values
 
-    def get_binding_sites(self):
+    def get_site_placements(self):
         """Get the binding sites associated with self."""
         adslab_config = AdsorbateSlabConfig(
             slab=self.computational_object,
