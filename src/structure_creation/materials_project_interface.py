@@ -52,7 +52,7 @@ def mp_docs_from_symbols(syms: list[str]) -> list:
     return docs
 
 
-def retrive_materials_project_structures(mp_ids: list[str]) -> list:
+def retrieve_materials_project_structures(mp_ids: list[str]) -> list:
     time1 = time.time()
     print(os.getenv("MP_API_KEY"))
     with MPRester(os.getenv("MP_API_KEY")) as mpr:
@@ -85,7 +85,7 @@ def ocp_bulks_from_mp_ids(mp_ids: list) -> list[Union[Bulk, None]]:
 
     # Go back and fill in locally missing entries
     if len(leftover_mp_ids) > 0:
-        docs = retrive_materials_project_structures(leftover_mp_ids)
+        docs = retrieve_materials_project_structures(leftover_mp_ids)
         for i, doc in zip(idxs, docs):
             oc_bulks[i] = Bulk(bulk_atoms=AseAtomsAdaptor().get_atoms(doc.structure))
 

@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 
+from copy import deepcopy
 from uuid import uuid4
 
 from ase import Atoms
@@ -40,7 +41,7 @@ class SlabDigitalTwin:
 
     def __init__(
         self,
-        computational_object: object = None,
+        computational_objects: object = {},
         computational_params: dict = {},
         info: dict = {},
         id=None,
@@ -51,24 +52,20 @@ class SlabDigitalTwin:
         Status indicates the most recent completed stage of creation
         (i.e. bulk, millers, surface,...). The computational object
         is the object underlying self."""
-        self.computational_object = computational_object
+        self.computational_objects = computational_objects
         self.computational_params = computational_params
         self.info = info
         if id is None:
             self._id = uuid4()
+        self._parent_twin_id = parent_twin_id
 
     def copy(self):
         """Return a copy of self."""
-        comp_obj = (
-            self.computational_object.copy()
-            if hasattr(self.computational_object, "copy")
-            else self.computational_object
-        )
         return SlabDigitalTwin(
-            computational_object=comp_obj,
-            computational_params=self.computational_params.copy(),
-            info=self.info.copy(),
-            parent_twin_id=self._id,
+            computational_object=deepcopy(self.computational_objects),
+            computational_params=deepcopy(self.computational_params),
+            info=deepcopy(self.info.copy()),
+            _parent_twin_id=self._id,
         )
 
     @property
@@ -89,19 +86,30 @@ class SlabDigitalTwin:
             idx = self.available_statuses.index(k)
             if k in self.computational_params and idx > max_idx:
                 max_idx = idx
-        return self.available_statuses[max_idx]
+        if max_idx == -1:
+            return None
+        else:
+            return self.available_statuses[max_idx]
 
     @property
     def completed(self):
         """Return whether creation is completed."""
-        for k in self.available_statuses:
-            if (
-                k not in self.computational_params
-                or self.computational_params[k] in None
-            ):
-                return False
-        # else:
-        return True
+        return self.status == self.available_statuses[-1]
+
+    def set_answers(self, answers: list[str]):
+        """Set the answer for self, returning additional copies if needed."""
+        if isinstance(answers, str):
+            answers = [answers]
+        return_values = []
+        for i, ans in enumerate(answers):
+            if i == 0:
+                self.computational_params["answer"] = ans
+                self.computational_objects["answer"] = ans
+            else:
+                cpy = self.copy()
+                cpy.set_answers([ans])
+                return_values.append(cpy)
+        return return_values
 
     def set_symbols(self, symbols: list[list[str]]):
         """Set the symbols for self, returning additional copies if needed."""
@@ -111,7 +119,7 @@ class SlabDigitalTwin:
         for i, syms in enumerate(symbols):
             if i == 0:
                 self.computational_params["symbols"] = syms
-                self.computational_object = syms
+                self.computational_objects = syms
             else:
                 cpy = self.copy()
                 cpy.set_symbols([syms])
@@ -127,14 +135,14 @@ class SlabDigitalTwin:
             )
 
         with MPRester(MP_API_KEY) as mpr:
-            docs = mpr.summary.search(elements=self.computational_params["symbols"])
+            docs = mpr.summary.search(elements=self.computational_objects["symbols"])
         # Filter for materials with only the specified elements
         docs = [
             d
             for d in docs
             if all(
                 [
-                    str(elem) in self.computational_params["symbols"]
+                    str(elem) in self.computational_objects["symbols"]
                     for elem in d.elements
                 ]
             )
@@ -162,7 +170,7 @@ class SlabDigitalTwin:
         for i, b in enumerate(bulks):
             if i == 0:
                 self.computational_params["bulk"] = b.material_id
-                self.computational_object = Bulk(
+                self.computational_objects["bulk"] = Bulk(
                     bulk_atoms=AseAtomsAdaptor().get_atoms(b.structure)
                 )
             else:
@@ -185,10 +193,12 @@ class SlabDigitalTwin:
         for i, m in enumerate(millers):
             if i == 0:
                 self.computational_params["millers"] = m
-                self.computational_object = Slab.from_bulk_get_specific_millers(
-                    m,
-                    self.computational_object,
-                    min_ab=8.0,  # consider reducing this before site placement?
+                self.computational_objects["millers"] = (
+                    Slab.from_bulk_get_specific_millers(
+                        m,
+                        self.computational_objects["bulk"],
+                        min_ab=8.0,  # consider reducing this before site placement?
+                    )
                 )
             else:
                 cpy = self.copy()
@@ -198,7 +208,7 @@ class SlabDigitalTwin:
 
     def get_surfaces(self):
         """Get the possible surfaces for self."""
-        return self.computational_object
+        return self.computational_objects
 
     def set_surfaces(self, surfaces: list[Slab]):
         """Set the surfaces given in the list, returning copies if necessary.
@@ -211,7 +221,7 @@ class SlabDigitalTwin:
         for i, s in enumerate(surfaces):
             if i == 0:
                 self.computational_params["surface"] = (s.shift, s.top)
-                self.computational_object = s
+                self.computational_objects["surface"] = s
             else:
                 cpy = self.copy()
                 cpy.set_surfaces([s])
@@ -220,8 +230,9 @@ class SlabDigitalTwin:
 
     def get_site_placements(self):
         """Get the binding sites associated with self."""
+
         adslab_config = AdsorbateSlabConfig(
-            slab=self.computational_object,
+            slab=self.computational_objects["surface"],
             adsorbate=self.dummy_adsorbate,
             mode="heuristic",
         )
@@ -238,9 +249,22 @@ class SlabDigitalTwin:
         for i, site in binding_sites:
             if i == 0:
                 self.computational_params["site_placement"] = site
-                self.computational_object = (self.computational_object, site)
+                self.computational_objects["site_placement"] = (
+                    self.computational_objects["surface"],
+                    site,
+                )
             else:
                 cpy = self.copy()
                 cpy.set_site_placement([site])
                 return_values.append(cpy)
         return return_values
+
+    def return_data(self):
+        """Return the data stored within the digital twin."""
+        if not self.completed:
+            raise ValueError("Cannot return data from an incomplete digital twin.")
+        else:
+            row = deepcopy(self.computational_params)
+            data = self.computational_objects[self.available_statuses[-1]]
+            row.update({"data": data})
+        return row

@@ -30,8 +30,8 @@ MP_API_KEY = os.environ["MP_API_KEY"]
 prompts = {
     "bulk_structure": {
         "prompt": (
-            "$ROOT_PROMPT = {root_prompt}"
-            "Consider the following list of materials. "
+            "$ROOT_PROMPT = {root_prompt}\n\n"
+            "Consider the following list of materials. \n"
             "Return the index of the material that would be best suited for answering the $ROOT_PROMPT.\n\n"
             "{bulks_summaries}"
             "\nReturn your answer as a python list called 'final_answer' of your top two choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
@@ -42,8 +42,8 @@ prompts = {
     },
     "millers": {
         "prompt": (
-            "$ANSWER = {answer}"
-            "$ROOT_PROMPT = {root_prompt}"
+            "$ANSWER = {answer}\n\n"
+            "$ROOT_PROMPT = {root_prompt}\n\n"
             "Consider the material {material}. "
             "Return a list of miller indices that would answer the $ROOT_PROMPT. You miller indices should be consistent with the information in $ANSWER\n\n"
             "\nReturn your answer as a python list called 'final_answer' of your top two miller indices. Let's think step-by-step and provide justifications for your answers."
@@ -53,24 +53,16 @@ prompts = {
         ),
     },
     "cell_shift": {
-        "prompt": (
-            "$ROOT_PROMPT = {root_prompt}"
-            "$ANSWER = {answer}"
-            "Consider the material {material} with miller index {millers}. "
-            "Return the index of the following surfaces which has the best configuration for accomplishing the $ROOT_PROMPT. You should target surfaces with binding sites that are consisten with the $ANSWER given above.\n\n"
-            "{cell_shift_summaries}"
-            "\nReturn your answer as a python list called 'final_answer' of your top two choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
-        ),
+        "prompt": "$ROOT_PROMPT = {root_prompt}\n\nConsider the material {material} with miller index {millers}. Return the index of the following surfaces which has the best configuration for accomplishing the $ROOT_PROMPT. You should target surfaces with binding sites that are consisten with the $ANSWER given above.\n\n{cell_shift_summaries}\n\nReturn your answer as a python list called 'final_answer' of your top three choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers.",
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about miller indices based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
         ),
     },
     "site_placement": {
         "prompt": (
-            "$ROOT_PROMPT"
-            "$ANSWER"
+            "$ROOT_PROMPT = {root_prompt}\n\n"
             "Consider the material {material} with miller index {millers}. "
-            "Return the index of the atomic environment of the best adsorbate placemnet site.\n\n"
+            "Return the index of the atomic environment of the best adsorbate placement site.\n\n"
             "{atomic_environments}"
             "\nReturn your answer as a python list called 'final_answer' of your top two choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
         ),
