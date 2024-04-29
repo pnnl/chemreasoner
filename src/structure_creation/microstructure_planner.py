@@ -45,9 +45,8 @@ prompts = {
     },
     "millers": {
         "prompt": (
-            "$ANSWER = {answer}\n\n"
             "$ROOT_PROMPT = {root_prompt}\n\n"
-            "Consider the material {material}. "
+            "Consider the material {material}. \n"
             "Return a list of miller indices that would answer the $ROOT_PROMPT. You miller indices should be consistent with the information in $ANSWER\n\n"
             "\nReturn your answer as a python list called 'final_answer' of your top two miller indices. Let's think step-by-step and provide justifications for your answers."
         ),
@@ -221,7 +220,18 @@ class OCPMicrostructurePlanner:
             "bulks_summaries": bulks_summaries,
             "root_prompt": state.root_prompt,
         }
-        return fstr(prompts["bulk"], prompt_values)
+        prompt = fstr(prompts["bulk"], prompt_values)
+        twin.update_info("bulk", {"prompt": prompt})
+        return
+
+    def create_bulk_system_prompt(
+        self, twin_state: tuple[SlabDigitalTwin, ReasonerState]
+    ):
+        """Create millers system prompt."""
+        twin, state = twin_state
+        prompt = prompts["bulk"]["system_prompt"]
+        twin.update_info("bulk", {"system_prompt": prompt})
+        return prompt
 
     @staticmethod
     def parse_bulk_answer(
@@ -229,7 +239,13 @@ class OCPMicrostructurePlanner:
     ):
         """Parse the bulk_prompt_response."""
         # TODO: Track the behavior here
+        twin, state = twin_state
+        answer = answer["answer"]
+        usage = answer["usage"]
+        info = {"answer": answer, "usage": usage}
+
         answer_list = self.parse_response_list(answer)
+        twin.update_info("bulk", info)
         return answer_list
 
     def select_bulks(self, digital_twins: SlabDigitalTwin, states: ReasonerState):
@@ -240,7 +256,7 @@ class OCPMicrostructurePlanner:
             twin_states,
             self.create_bulk_prompt,
             self.parse_bulk_answer,
-            lambda x: prompts["bulk"]["system_prompt"],
+            self.create_bulk_system_prompt,
             # TODO: LLM function kwargs
         )
         length_twins = len(digital_twins)
@@ -256,10 +272,20 @@ class OCPMicrostructurePlanner:
         doc = twin.computational_objects["bulks"]
         values = {
             "root_prompt": state.root_prompt,
-            "answer": state.answer,
+            # "answer": state.answer,
             "material": f"{doc.formula_pretty} in the {doc.symmetry.crystal_system.value.lower()} {doc.symmetry.symbol} space group.\n",
         }
         prompt = fstr(prompts["millers"]["prompt"], values)
+        twin.update_info("millers", {"prompt": prompt})
+        return prompt
+
+    def create_millers_system_prompt(
+        self, twin_state: tuple[SlabDigitalTwin, ReasonerState]
+    ):
+        """Create millers system prompt."""
+        twin, state = twin_state
+        prompt = prompts["millers"]["system_prompt"]
+        twin.update_info("millers", {"system_prompt": prompt})
         return prompt
 
     def run_millers_prompt(self, digital_twins: SlabDigitalTwin, states: ReasonerState):
@@ -270,7 +296,7 @@ class OCPMicrostructurePlanner:
             twin_states,
             self.create_millers_prompt,
             self.parse_millers_answer,
-            lambda x: prompts["millers"]["system_prompt"],
+            self.create_millers_system_prompt,
             # TODO: LLM function kwargs
         )
         length_twins = len(digital_twins)
@@ -290,6 +316,25 @@ class OCPMicrostructurePlanner:
                 site_placements_summaries.append(describe_site_placement(site))
         else:
             return None
+        doc = twin.computational_objects["bulk"]
+        values = {
+            "root_prompt": state.root_prompt,
+            "material": f"{doc.formula_pretty} in the {doc.symmetry.crystal_system.value.lower()} {doc.symmetry.symbol} space group.\n",
+            "millers": f"{twin.computational_params['millers']}",
+        }
+        prompt = fstr(prompts["site_placement"]["prompt"], values)
+        twin.update_info("site_placement", {"prompt": prompt})
+        return prompt
+
+    @staticmethod
+    def create_site_placement_system_prompt(
+        twin_state: tuple[SlabDigitalTwin, ReasonerState]
+    ):
+        """Create the prompt for site_placement."""
+        twin, state = twin_state
+        prompt = prompts["site_placement"]["system_prompt"]
+        twin.update_info("site_placement", {"system_prompt": prompt})
+        return prompt
 
     def run_site_placement_prompt(
         self, digital_twins: SlabDigitalTwin, states: ReasonerState
@@ -301,7 +346,7 @@ class OCPMicrostructurePlanner:
             twin_states,
             self.create_millers_prompt,
             self.parse_millers_answer,
-            lambda x: prompts["millers"]["system_prompt"],
+            self.create_site_placement_system_prompt,
             # TODO: LLM function kwargs
         )
         length_twins = len(digital_twins)

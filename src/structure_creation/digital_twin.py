@@ -67,7 +67,7 @@ class SlabDigitalTwin:
         if status_key not in self.info:
             self.info["status_key"] = updates
 
-        if type(self.info["status_key"]) != type(updates):
+        if type(self.info["status_key"]) is type(updates):
             raise TypeError(
                 f"Incorrect type {type(updates)} for info field of type {type(self.info['status_key'])}."
             )
