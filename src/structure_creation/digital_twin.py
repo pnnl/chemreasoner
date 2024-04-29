@@ -5,6 +5,7 @@ import os
 import sys
 
 from copy import deepcopy
+from typing import Union
 from uuid import uuid4
 
 from ase import Atoms
@@ -46,6 +47,7 @@ class SlabDigitalTwin:
         info: dict = {},
         id=None,
         parent_twin_id=None,
+        canceled=False,
     ):
         """Initialize self.
 
@@ -58,25 +60,43 @@ class SlabDigitalTwin:
         if id is None:
             self._id = uuid4()
         self._parent_twin_id = parent_twin_id
+        self.canceled = canceled
 
-    def copy(self):
+    def update_info(self, status_key: str, updates: Union[dict, list]):
+        """Update the info for the self with updates."""
+        if status_key not in self.info:
+            self.info["status_key"] = updates
+
+        if type(self.info["status_key"]) != type(updates):
+            raise TypeError(
+                f"Incorrect type {type(updates)} for info field of type {type(self.info['status_key'])}."
+            )
+        elif isinstance(self.info["status_key"], list):
+            self.info["status_key"] += updates
+        elif isinstance(self.info["status_key"], dict):
+            self.info["status_key"].update(updates)
+
+    def copy(self, copy_info: bool = False):
         """Return a copy of self."""
+        if copy_info:
+            info = deepcopy(self.info.copy())
+        else:
+            info = None
         return SlabDigitalTwin(
             computational_object=deepcopy(self.computational_objects),
             computational_params=deepcopy(self.computational_params),
-            info=deepcopy(self.info.copy()),
+            info=info,
             _parent_twin_id=self._id,
         )
 
-    @property
-    def row(self):
-        """Return the database row associated with self."""
-        row = {}
-        for k in self.available_statuses:
-            if k in self.computational_params:
-                row[k] = self.computational_params[k]
-            else:
-                row[k] = None
+    def return_data(self):
+        """Return the data stored within the digital twin."""
+        if not self.completed:
+            raise ValueError("Cannot return data from an incomplete digital twin.")
+        else:
+            row = deepcopy(self.computational_params)
+            data = deepcopy(self.computational_objects[self.available_statuses[-1]])
+        return (row, data)
 
     @property
     def status(self):
@@ -129,34 +149,35 @@ class SlabDigitalTwin:
     def get_bulks(self, filter_theoretical=True):
         """The the set of bulk available for self."""
         # Filter for materials with only the specified elements
-        if self.status != "symbols":
-            raise ValueError(
-                "Cannot get available bulks without computing symbols, first."
-            )
-
-        with MPRester(MP_API_KEY) as mpr:
-            docs = mpr.summary.search(elements=self.computational_objects["symbols"])
-        # Filter for materials with only the specified elements
-        docs = [
-            d
-            for d in docs
-            if all(
-                [
-                    str(elem) in self.computational_objects["symbols"]
-                    for elem in d.elements
-                ]
-            )
-        ]
-        # Filter for materials that are experimentally verified
-        if filter_theoretical:
-            docs_filtered = [d for d in docs if not d.theoretical]
-            if len(docs_filtered) == 0:
-                logging.warning(
-                    "Unable to filter for theoretical since no experimentally verified materials exist."
+        if not hasattr(self, "_bulks"):
+            with MPRester(MP_API_KEY) as mpr:
+                docs = mpr.summary.search(
+                    elements=self.computational_objects["symbols"]
                 )
-            else:
-                docs = docs_filtered
-        return [d for d in sorted(docs, key=lambda d: d.formation_energy_per_atom)]
+            # Filter for materials with only the specified elements
+            docs = [
+                d
+                for d in docs
+                if all(
+                    [
+                        str(elem) in self.computational_objects["symbols"]
+                        for elem in d.elements
+                    ]
+                )
+            ]
+            # Filter for materials that are experimentally verified
+            if filter_theoretical:
+                docs_filtered = [d for d in docs if not d.theoretical]
+                if len(docs_filtered) == 0:
+                    logging.warning(
+                        "Unable to filter for theoretical since no experimentally verified materials exist."
+                    )
+                else:
+                    docs = docs_filtered
+            self._bulks = [
+                d for d in sorted(docs, key=lambda d: d.formation_energy_per_atom)
+            ]
+        return self._bulks
 
     def set_bulk(self, bulks: list[str]):
         """Set the bulk of self, returning copies if necessary.
@@ -258,13 +279,3 @@ class SlabDigitalTwin:
                 cpy.set_site_placement([site])
                 return_values.append(cpy)
         return return_values
-
-    def return_data(self):
-        """Return the data stored within the digital twin."""
-        if not self.completed:
-            raise ValueError("Cannot return data from an incomplete digital twin.")
-        else:
-            row = deepcopy(self.computational_params)
-            data = self.computational_objects[self.available_statuses[-1]]
-            row.update({"data": data})
-        return row

@@ -37,7 +37,7 @@ def process_prompt(
         raw_answers = llm_function(prompts, system_prompts, **llm_function_kwargs)
         for p_idx, raw_answer in zip(prompt_idx, raw_answers):
             # Attempt to parse out the answer
-            answers[p_idx] = prompt_parsing_function(raw_answer)
+            answers[p_idx] = prompt_parsing_function(raw_answer, prompt_info[p_idx])
 
     if return_value:
         return answers[0]

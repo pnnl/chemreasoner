@@ -8,14 +8,17 @@ import time
 
 from ast import literal_eval
 from typing import Optional
+
+from ase.data import chemical_symbols
+
 import crystal_toolkit
 
 import mp_api
 from pymatgen.core.surface import SlabGenerator
 from pymatgen.ext.matproj import MPRester
 
+import numpy as np
 from ocdata.core import Slab
-
 
 sys.path.append("src")
 from llm.utils import process_prompt
@@ -28,7 +31,7 @@ MP_API_KEY = os.environ["MP_API_KEY"]
 
 
 prompts = {
-    "bulk_structure": {
+    "bulk": {
         "prompt": (
             "$ROOT_PROMPT = {root_prompt}\n\n"
             "Consider the following list of materials. \n"
@@ -52,7 +55,7 @@ prompts = {
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about surface composition based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
         ),
     },
-    "cell_shift": {
+    "surface": {
         "prompt": "$ROOT_PROMPT = {root_prompt}\n\nConsider the material {material} with miller index {millers}. Return the index of the following surfaces which has the best configuration for accomplishing the $ROOT_PROMPT. You should target surfaces with binding sites that are consisten with the $ANSWER given above.\n\n{cell_shift_summaries}\n\nReturn your answer as a python list called 'final_answer' of your top three choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers.",
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about miller indices based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
@@ -88,6 +91,11 @@ class OCPMicrostructurePlanner:
     def __init__(self, llm_function=callable):
         """Init self."""
         self.llm_function = llm_function
+
+    def evaluate_states(self, states: list[ReasonerState]):
+        """Run the microstructure planner for the given set of reasoner states."""
+        self.digital_twins = []
+        self.states = states
 
     def process_prompt(
         self,
@@ -190,29 +198,151 @@ class OCPMicrostructurePlanner:
                 f"TIMING: Slab symbols parsing finished in reward function {end-start}"
             )
 
-    def run_bulk_prompt(self, slab_symbols):
+    @staticmethod
+    def literal_parse_response_list(response: str) -> list[int]:
+        """Create a prompt for the given dictionaries."""
+        for line in response.split("\n"):
+            if "final_answer" in line:
+                list_start = line.find("[")
+                list_end = line.find("]")
+                answer_list = literal_eval(line[list_start : list_end + 1])
+        return answer_list
+
+    @staticmethod
+    def create_bulk_prompt(twin_state: tuple[SlabDigitalTwin, ReasonerState]):
+        """Create the prompt for bulks."""
+        twin, state = twin_state
+        bulks = twin_state.get_bulks()
+        bulks_summaries = ""
+        for i, doc in enumerate(bulks):
+            bulks_summaries += f"({i}) {doc.formula_pretty} in the {doc.symmetry.crystal_system.value.lower()} {doc.symmetry.symbol} space group.\n"
+
+        prompt_values = {
+            "bulks_summaries": bulks_summaries,
+            "root_prompt": state.root_prompt,
+        }
+        return fstr(prompts["bulk"], prompt_values)
+
+    @staticmethod
+    def parse_bulk_answer(
+        self, answer, twin_state: tuple[SlabDigitalTwin, ReasonerState]
+    ):
+        """Parse the bulk_prompt_response."""
+        # TODO: Track the behavior here
+        answer_list = self.parse_response_list(answer)
+        return answer_list
+
+    def select_bulks(self, digital_twins: SlabDigitalTwin, states: ReasonerState):
         """Run the bulk prompt for the given slab symbols."""
-        ...
+        twin_states = [(d, s) for d, s in zip(digital_twins, states)]
+        bulks_idxs = self.process_prompt(
+            self.llm_function,
+            twin_states,
+            self.create_bulk_prompt,
+            self.parse_bulk_answer,
+            lambda x: prompts["bulk"]["system_prompt"],
+            # TODO: LLM function kwargs
+        )
+        length_twins = len(digital_twins)
+        for i in range(length_twins):
+            ans = bulks_idxs[i]
+            digital_twin = digital_twins[i]
+            selected_bulks = [digital_twin.get_bulks()[j] for j in ans]
+            digital_twins += digital_twin.set_bulk(selected_bulks)
 
-    def run_millers_prompt(self, bulks):
+    def create_millers_prompt(self, twin_state: tuple[SlabDigitalTwin, ReasonerState]):
+        """Create a prompt for the miller index."""
+        twin, state = twin_state
+        doc = twin.computational_objects["bulks"]
+        values = {
+            "root_prompt": state.root_prompt,
+            "answer": state.answer,
+            "material": f"{doc.formula_pretty} in the {doc.symmetry.crystal_system.value.lower()} {doc.symmetry.symbol} space group.\n",
+        }
+        prompt = fstr(prompts["millers"]["prompt"], values)
+        return prompt
+
+    def run_millers_prompt(self, digital_twins: SlabDigitalTwin, states: ReasonerState):
         """Run the bulk prompt for the given slab symbols."""
-        ...
+        twin_states = [(d, s) for d, s in zip(digital_twins, states)]
+        millers_choices = self.process_prompt(
+            self.llm_function,
+            twin_states,
+            self.create_millers_prompt,
+            self.parse_millers_answer,
+            lambda x: prompts["millers"]["system_prompt"],
+            # TODO: LLM function kwargs
+        )
+        length_twins = len(digital_twins)
+        for i in range(length_twins):
+            millers = millers_choices[i]
+            digital_twin = digital_twins[i]
+            digital_twins += digital_twin.set_millers(millers)
 
-    def compute_cell_shifts(self, bulk, millers):
-        """Compute the possible cell shifts for the given bulk and millers."""
-        ...
+    @staticmethod
+    def create_site_placement_prompt(twin_state: tuple[SlabDigitalTwin, ReasonerState]):
+        """Create the prompt for site_placement."""
+        twin, state = twin_state
+        site_placements = twin.get_site_placements()
+        if len(site_placements) > 0:
+            site_placements_summaries = []
+            for site in site_placements:
+                site_placements_summaries.append(describe_site_placement(site))
+        else:
+            return None
 
-    def run_cell_shift_prompt(self, slabs):
+    def run_site_placement_prompt(
+        self, digital_twins: SlabDigitalTwin, states: ReasonerState
+    ):
         """Run the bulk prompt for the given slab symbols."""
-        ...
+        twin_states = [(d, s) for d, s in zip(digital_twins, states)]
+        millers_choices = self.process_prompt(
+            self.llm_function,
+            twin_states,
+            self.create_millers_prompt,
+            self.parse_millers_answer,
+            lambda x: prompts["millers"]["system_prompt"],
+            # TODO: LLM function kwargs
+        )
+        length_twins = len(digital_twins)
+        for i in range(length_twins):
+            millers = millers_choices[i]
+            digital_twin = digital_twins[i]
+            digital_twins += digital_twin.set_millers(millers)
 
-    def compute_site_placements(self, slab):
-        """Compute the possible site placements for the given slab."""
-        ...
 
-    def run_site_plancement_prompt(self, bulks):
-        """Run the bulk prompt for the given slab symbols."""
-        ...
+def get_neighbors_site(surface: Slab, site: tuple, cutoff=2.5):
+    """Get the neighboring atoms of the given site."""
+    print(site)
+    site = np.array(site)
+    diffs = surface.atoms.get_positions() - site
+    distances = np.linalg.norm(diffs, axis=1)
+    return surface.atoms.get_atomic_numbers()[distances <= cutoff]
+
+
+def describe_neighbors_site(neighbors):
+    """Linguistically describe the given neigbhors."""
+    if len(neighbors) == 0:
+        return "Far from any atoms on the surface."
+    elif len(neighbors) == 1:
+        return f"Near a single {chemical_symbols[neighbors[0]]}."
+    else:
+        counts = {}
+        for z in np.unique(neighbors):
+            counts[chemical_symbols[z]] = len(
+                [z_prime for z_prime in neighbors if z == z_prime]
+            )
+        return (
+            "Near "
+            + ", ".join([f"{count} {elem}" for elem, count in counts.items()])
+            + "."
+        )
+
+
+def describe_site_placement(surface: Slab, site: tuple, cutoff=2.5):
+    """Describe the site placement for the given surface, site, cutoff."""
+    n = get_neighbors_site(surface, site, cutoff=cutoff)
+    return describe_neighbors_site(n)
 
 
 class BulkSelector:
@@ -261,16 +391,6 @@ class BulkSelector:
             bulks_summaries += f"({i}) {doc.formula_pretty} in the {doc.symmetry.crystal_system.value.lower()} {doc.symmetry.symbol} space group.\n"
 
         return fstr(prompts["prompt"], {"bulks_summaries": bulks_summaries})
-
-    @staticmethod
-    def parse_response_list(response: str) -> list[int]:
-        """Create a prompt for the given dictionaries."""
-        for line in response.split("\n"):
-            if "final_answer" in line:
-                list_start = line.find("[")
-                list_end = line.find("]")
-                answer_list = literal_eval(line[list_start : list_end + 1])
-        return answer_list
 
 
 def compute_subsurface_distribution(slab: Slab):
