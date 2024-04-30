@@ -7,6 +7,7 @@ import sys
 import time
 
 from ast import literal_eval
+from copy import deepcopy
 from typing import Optional
 
 from ase.data import chemical_symbols
@@ -22,6 +23,7 @@ from ocdata.core import Slab
 
 sys.path.append("src")
 from llm.utils import process_prompt
+from llm.azure_open_ai_interface import AzureOpenaiInterface
 from search.state.reasoner_state import ReasonerState
 from structure_creation.digital_twin import SlabDigitalTwin
 
@@ -90,6 +92,14 @@ class OCPMicrostructurePlanner:
     def __init__(self, llm_function=callable):
         """Init self."""
         self.llm_function = llm_function
+
+    def set_state(self, state: ReasonerState):
+        """Set the state for self."""
+        self.state = state
+
+    def set_digital_twins(self, twins: list[SlabDigitalTwin]):
+        """Set digital twins for self."""
+        self.digital_twins = deepcopy(twins)
 
     def evaluate_states(self, states: list[ReasonerState]):
         """Run the microstructure planner for the given set of reasoner states."""
@@ -214,7 +224,8 @@ class OCPMicrostructurePlanner:
         bulks = twin_state.get_bulks()
         bulks_summaries = ""
         for i, doc in enumerate(bulks):
-            bulks_summaries += f"({i}) {doc.formula_pretty} in the {doc.symmetry.crystal_system.value.lower()} {doc.symmetry.symbol} space group.\n"
+            verified = " (experimentally verified)" if not doc.theoretical else ""
+            bulks_summaries += f"({i}) {doc.formula_pretty} in the {doc.symmetry.crystal_system.value.lower()} {doc.symmetry.symbol} space group{verified}.\n"
 
         prompt_values = {
             "bulks_summaries": bulks_summaries,
@@ -248,7 +259,7 @@ class OCPMicrostructurePlanner:
         twin.update_info("bulk", info)
         return answer_list
 
-    def select_bulks(self, digital_twins: SlabDigitalTwin, states: ReasonerState):
+    def run_bulk_prompt(self, digital_twins: SlabDigitalTwin, states: ReasonerState):
         """Run the bulk prompt for the given slab symbols."""
         twin_states = [(d, s) for d, s in zip(digital_twins, states)]
         bulks_idxs = self.process_prompt(
@@ -391,7 +402,7 @@ def describe_site_placement(surface: Slab, site: tuple, cutoff=2.5):
 
 
 class BulkSelector:
-    prompt_templates = prompts["bulk_structure"]
+    prompt_templates = prompts["bulk"]
     _example_bulk_answer = """In order to convert CO2 to methanol, a catalyst is required that can promote the reduction of CO2. ZnO is widely known to be a good catalyst for this process due to its ability to adsorb and activate CO2. ZnO2, however, is not typically used for this purpose. So, we can exclude the ZnO2 materials from consideration.\n\nNext, we need to consider the impact of the crystal structure on the catalytic performance. Here are some general rules:\n\n1. The cubic Fm-3m space group ZnO has a high symmetry and densely packed atoms, which might not provide enough surface area and active sites for CO2 conversion. \n\n2. The hexagonal P6_3mc space group ZnO has lower symmetry and loosely packed atoms, which could provide more surface area and active sites for CO2 conversion.\n\n3. The cubic F-43m space group ZnO has a high symmetry and densely packed atoms, similar to the cubic Fm-3m space group. \n\nBased on this information, the hexagonal P6_3mc space group ZnO would be expected to perform better due to its larger surface area and more available active sites. However, the cubic F-43m space group ZnO might also perform well due to its high stability and good synthesizability, despite its high symmetry.\n\nTherefore, the top two choices would be:\n\n`final_answer = [2, 4]` \n\nThis answer is based on the known properties of these materials and their crystal structures. However, the actual performance could vary and should be verified through experiments."""
 
     @staticmethod
@@ -454,7 +465,7 @@ example_data_structure = [
         "llm_answer": "(3) Zinc Oxide: This catalyst is good because...",
         "catalyst_name": "Zinc Oxide",
         "symbols": ["Zn", "O"],
-        "bulk_structure": "mp-2133",
+        "bulk": "mp-2133",
         "millers": (1, 2, 3),
         "cell_shift": 3,
         "site_placement": (3.2, 4.5, 6.7),
@@ -463,7 +474,10 @@ example_data_structure = [
 ]
 
 if __name__ == "__main__":
-    dt = SlabDigitalTwin(computational_params={"answer": "Zinc Oxide"})
+    llm_function = AzureOpenaiInterface(dotenv_path=".env", model="gpt-4")
+    print(llm_function(["test1", "test2"]))
+    dt = SlabDigitalTwin(computational_params={"symbols": ["Cu", "Zn"]})
+    digital_twins = [dt]
     dt.set_symbols(["Zn", "O"])
     bulks = dt.get_bulks()
     with open("bulks_tmp.pkl", "wb") as f:

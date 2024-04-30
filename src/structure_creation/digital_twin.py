@@ -148,7 +148,7 @@ class SlabDigitalTwin:
                 return_values.append(cpy)
         return return_values
 
-    def get_bulks(self, filter_theoretical=True):
+    def get_bulks(self, filter_theoretical=False):
         """The the set of bulk available for self."""
         # Filter for materials with only the specified elements
         if not hasattr(self, "_bulks"):
