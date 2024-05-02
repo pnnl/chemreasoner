@@ -99,8 +99,7 @@ class SlabDigitalTwin:
             row = deepcopy(self.computational_params)
             row["id"] = self._id
             row["parent_twin_id"] = self._parent_twin_id
-            data = deepcopy(self.computational_objects[self.available_statuses[-1]])
-        return (row, data)
+        return row
 
     def return_adslab_config(
         self, adsorbate: Adsorbate, num_augmentations_per_site: int = 1

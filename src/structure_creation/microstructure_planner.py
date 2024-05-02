@@ -45,7 +45,7 @@ print(oc_20_ads_structures["*CO"])
 prompts = {
     "bulk": {
         "prompt": (
-            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the following list of materials. \nReturn the index of the material that would be best suited for answering the $ROOT_PROMPT.\n\n{bulks_summaries}\nReturn your answer as a python list called 'final_answer' of your top two choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
+            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the following list of materials. \nReturn the index of the material that would be best suited for answering the $ROOT_PROMPT.\n\n{bulks_summaries}\nReturn your answer as a python list called 'final_answer' of your top three choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
         ),
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and can make accurate recommendations about bulk material structures based on their crystal structure and composition. You will consider factors such as catalytic performance and synthesizability in your analysis."
@@ -53,7 +53,7 @@ prompts = {
     },
     "millers": {
         "prompt": (
-            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material}. \nReturn a list of miller indices that would answer the $ROOT_PROMPT. You miller indices should be consistent with the information in $ANSWER\n\n\nReturn your answer as a python list called 'final_answer' of your top two miller indices. Your miller indices should be python 3-tuples. Let's think step-by-step and provide justifications for your answers."
+            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material}. \nReturn a list of miller indices that would answer the $ROOT_PROMPT. You miller indices should be consistent with the information in $ANSWER\n\n\nReturn your answer as a python list called 'final_answer' of your top three miller indices. Your miller indices should be python 3-tuples. Let's think step-by-step and provide justifications for your answers."
         ),
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about surface composition based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
@@ -539,11 +539,11 @@ if __name__ == "__main__":
 
         adslab_config = twin.return_adslab_config(adsorbate=adsorbate)
         adslab = adslab_config.atoms_list[0]
-        adslab.info.update({"_id": _id})
+        adslab.info.update({"id": str(_id)})
         adslab_metadata = adslab_config.metadata_list[0]
 
         row.update(adslab_metadata)
-        row_data[_id] = row
+        row_data.append(row)
 
         write(str(save_dir / f"{_id}.xyz"), adslab)
 
