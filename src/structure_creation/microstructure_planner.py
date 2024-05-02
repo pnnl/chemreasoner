@@ -482,31 +482,6 @@ def fstr(fstring_text, vals):
     return ret_val
 
 
-def get_adslab(
-    digital_twin: SlabDigitalTwin,
-    adsorbate: Adsorbate,
-    num_augmentations_per_site: int = 1,
-) -> AdsorbateSlabConfig:
-    """Get the adsorbate+slab configuration specified by digital twin."""
-    slab, site = digital_twin.computational_objects["site_placements"]
-    adslab_config = AdsorbateSlabConfig(
-        slab=slab,
-        adsorbate=adsorbate,
-        num_sites=1,
-        num_augmentations_per_site=num_augmentations_per_site,
-        mode="random",
-    )
-    adslab_config.sites = [np.array(site)]
-    adslab_config.atoms_list, adslab_config.metadata_list = (
-        adslab_config.place_adsorbate_on_sites(
-            adslab_config.sites,
-            adslab_config.num_augmentations_per_site,
-            adslab_config.interstitial_gap,
-        )
-    )
-    return adslab_config
-
-
 example_data_structure = [
     {
         "llm_answer": "(3) Zinc Oxide: This catalyst is good because...",
@@ -559,7 +534,7 @@ if __name__ == "__main__":
         _id = twin._id
         row = twin.return_row()
 
-        ads_ats, binding_atoms, _ = oc_20_ads_structures["*CO"]
+        ads_ats, binding_atoms = oc_20_ads_structures["*CO"]
         adsorbate = Adsorbate(ads_ats, adsorbate_binding_indices=list(binding_atoms))
 
         adslab_config = twin.return_adslab_config(adsorbate=adsorbate)

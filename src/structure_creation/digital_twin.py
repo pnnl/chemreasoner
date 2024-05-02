@@ -106,7 +106,7 @@ class SlabDigitalTwin:
         self, adsorbate: Adsorbate, num_augmentations_per_site: int = 1
     ) -> AdsorbateSlabConfig:
         """Get the adsorbate+slab configuration specified by self."""
-        slab, site = self.computational_objects["site_placements"]
+        slab, site = self.computational_objects["site_placement"]
         adslab_config = AdsorbateSlabConfig(
             slab=slab,
             adsorbate=adsorbate,
