@@ -537,7 +537,6 @@ class TestState:
 
 
 if __name__ == "__main__":
-    exit()
 
     llm_function = AzureOpenaiInterface(dotenv_path=".env", model="gpt-4")
     ms_planner = OCPMicrostructurePlanner(llm_function=llm_function)
