@@ -126,17 +126,6 @@ class OCPMicrostructurePlanner:
             else:
                 retries = self.default_retries["__default__"]
 
-        if prompt_type != "site_placement":
-            return process_prompt(
-                lambda x, y: "string",
-                prompt_info,
-                prompt_creation_function,
-                prompt_parsing_function,
-                system_prompt_function,
-                retries=retries,
-                **llm_function_kwargs,
-            )
-
         return process_prompt(
             self.llm_function,
             prompt_info,
