@@ -501,7 +501,7 @@ class TestState:
 
 
 if __name__ == "__main__":
-
+    start = time.time()
     llm_function = AzureOpenaiInterface(dotenv_path=".env", model="gpt-4")
     ms_planner = OCPMicrostructurePlanner(llm_function=llm_function)
 
@@ -529,7 +529,8 @@ if __name__ == "__main__":
     save_dir = Path("microstructure_planner_test")
     save_dir.mkdir(parents=True, exist_ok=True)
     metadata = {}
-    row_data = {}
+    row_data = []
+
     for twin in digital_twins:
         _id = twin._id
         row = twin.return_row()
@@ -548,9 +549,10 @@ if __name__ == "__main__":
         write(str(save_dir / f"{_id}.xyz"), adslab)
 
         metadata[_id] = twin.info
+    end = time.time()
+    print(f"TIME: {end-start}")
+    with open(save_dir / "metadata.pkl", "wb") as f:
+        pickle.dump(metadata, f)
 
-with open(save_dir / "metadata.pkl", "wb") as f:
-    pickle.dump(metadata, f)
-
-df = pd.DataFrame(row_data)
-df.to_csv(save_dir / "row_data.csv")
+    df = pd.DataFrame(row_data)
+    df.to_csv(save_dir / "row_data.csv")
