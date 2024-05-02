@@ -15,6 +15,8 @@ from pymatgen.core.surface import SlabGenerator
 from pymatgen.ext.matproj import MPRester
 from pymatgen.io.ase import AseAtomsAdaptor
 
+import numpy as np
+
 from ocdata.core import Adsorbate, AdsorbateSlabConfig, Bulk, Slab
 
 # sys.path.append("src")
@@ -65,31 +67,31 @@ class SlabDigitalTwin:
     def update_info(self, status_key: str, updates: Union[dict, list]):
         """Update the info for the self with updates."""
         if status_key not in self.info:
-            self.info["status_key"] = updates
+            self.info[status_key] = updates
 
-        if type(self.info["status_key"]) is type(updates):
+        if type(self.info[status_key]) is not type(updates):
             raise TypeError(
-                f"Incorrect type {type(updates)} for info field of type {type(self.info['status_key'])}."
+                f"Incorrect type {type(updates)} for info field of type {type(self.info[status_key])}."
             )
-        elif isinstance(self.info["status_key"], list):
-            self.info["status_key"] += updates
-        elif isinstance(self.info["status_key"], dict):
-            self.info["status_key"].update(updates)
+        elif isinstance(self.info[status_key], list):
+            self.info[status_key] += updates
+        elif isinstance(self.info[status_key], dict):
+            self.info[status_key].update(updates)
 
     def copy(self, copy_info: bool = False):
         """Return a copy of self."""
         if copy_info:
             info = deepcopy(self.info.copy())
         else:
-            info = None
+            info = {}
         return SlabDigitalTwin(
-            computational_object=deepcopy(self.computational_objects),
+            computational_objects=deepcopy(self.computational_objects),
             computational_params=deepcopy(self.computational_params),
             info=info,
-            _parent_twin_id=self._id,
+            parent_twin_id=self._id,
         )
 
-    def return_data(self):
+    def return_row(self):
         """Return the data stored within the digital twin."""
         if not self.completed:
             raise ValueError("Cannot return data from an incomplete digital twin.")
@@ -99,6 +101,28 @@ class SlabDigitalTwin:
             row["parent_twin_id"] = self._parent_twin_id
             data = deepcopy(self.computational_objects[self.available_statuses[-1]])
         return (row, data)
+
+    def return_adslab_config(
+        self, adsorbate: Adsorbate, num_augmentations_per_site: int = 1
+    ) -> AdsorbateSlabConfig:
+        """Get the adsorbate+slab configuration specified by self."""
+        slab, site = self.computational_objects["site_placements"]
+        adslab_config = AdsorbateSlabConfig(
+            slab=slab,
+            adsorbate=adsorbate,
+            num_sites=1,
+            num_augmentations_per_site=num_augmentations_per_site,
+            mode="random",
+        )
+        adslab_config.sites = [np.array(site)]
+        adslab_config.atoms_list, adslab_config.metadata_list = (
+            adslab_config.place_adsorbate_on_sites(
+                adslab_config.sites,
+                adslab_config.num_augmentations_per_site,
+                adslab_config.interstitial_gap,
+            )
+        )
+        return adslab_config
 
     @property
     def status(self):
@@ -141,7 +165,7 @@ class SlabDigitalTwin:
         for i, syms in enumerate(symbols):
             if i == 0:
                 self.computational_params["symbols"] = syms
-                self.computational_objects = syms
+                self.computational_objects["symbols"] = syms
             else:
                 cpy = self.copy()
                 cpy.set_symbols([syms])
@@ -193,9 +217,7 @@ class SlabDigitalTwin:
         for i, b in enumerate(bulks):
             if i == 0:
                 self.computational_params["bulk"] = b.material_id
-                self.computational_objects["bulk"] = Bulk(
-                    bulk_atoms=AseAtomsAdaptor().get_atoms(b.structure)
-                )
+                self.computational_objects["bulk"] = b
             else:
                 cpy = self.copy()
                 cpy.set_bulk([b])
@@ -214,12 +236,18 @@ class SlabDigitalTwin:
 
         return_values = []
         for i, m in enumerate(millers):
+            if len(m) != 3:
+                m = convert_miller_bravais_to_miller(m)
             if i == 0:
                 self.computational_params["millers"] = m
                 self.computational_objects["millers"] = (
                     Slab.from_bulk_get_specific_millers(
                         m,
-                        self.computational_objects["bulk"],
+                        Bulk(
+                            bulk_atoms=AseAtomsAdaptor().get_atoms(
+                                self.computational_objects["bulk"].structure
+                            )
+                        ),
                         min_ab=8.0,  # consider reducing this before site placement?
                     )
                 )
@@ -231,7 +259,7 @@ class SlabDigitalTwin:
 
     def get_surfaces(self):
         """Get the possible surfaces for self."""
-        return self.computational_objects
+        return self.computational_objects["millers"]
 
     def set_surfaces(self, surfaces: list[Slab]):
         """Set the surfaces given in the list, returning copies if necessary.
@@ -261,7 +289,7 @@ class SlabDigitalTwin:
         )
         return [tuple(s) for s in adslab_config.sites]
 
-    def set_site_placement(self, binding_sites: list[tuple[float]]):
+    def set_site_placements(self, binding_sites: list[tuple[float]]):
         """Set the binding sites given in the list, returning copies if necessary.
 
         Binding sites should be lists of Slab objects."""
@@ -269,7 +297,7 @@ class SlabDigitalTwin:
             binding_sites = [binding_sites]
 
         return_values = []
-        for i, site in binding_sites:
+        for i, site in enumerate(binding_sites):
             if i == 0:
                 self.computational_params["site_placement"] = site
                 self.computational_objects["site_placement"] = (
@@ -278,6 +306,32 @@ class SlabDigitalTwin:
                 )
             else:
                 cpy = self.copy()
-                cpy.set_site_placement([site])
+                cpy.set_site_placements([site])
                 return_values.append(cpy)
         return return_values
+
+
+def convert_miller_bravais_to_miller(miller_bravais_indices: tuple[int]):
+    """Convert a 4-tuple Miller-Bravais indices to 3-tuple Miller indices for surface plane.
+
+    Uses the definitions from:
+    https://ssd.phys.strath.ac.uk/resources/crystallography/crystallographic-direction-calculator/
+
+    Coordinate transformation hkil -> hkl defined by:
+
+    i = -(h+k)
+    h = h
+    k = k
+    l = l
+
+    This function simply drops the third entry in miller_bravais_indices.
+    """
+    assert len(miller_bravais_indices) == 4
+    assert miller_bravais_indices[2] == -(
+        miller_bravais_indices[0] + miller_bravais_indices[1]
+    ), "Invalid Miller-Bravais lattice."
+    return (
+        miller_bravais_indices[0],
+        miller_bravais_indices[1],
+        miller_bravais_indices[3],
+    )

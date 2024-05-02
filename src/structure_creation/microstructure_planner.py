@@ -8,9 +8,11 @@ import time
 
 from ast import literal_eval
 from copy import deepcopy
+from pathlib import Path
 from typing import Optional
 
 from ase.data import chemical_symbols
+from ase.io import write
 
 import crystal_toolkit
 
@@ -19,7 +21,8 @@ from pymatgen.core.surface import SlabGenerator
 from pymatgen.ext.matproj import MPRester
 
 import numpy as np
-from ocdata.core import Slab
+import pandas as pd
+from ocdata.core import Slab, Adsorbate, AdsorbateSlabConfig
 
 sys.path.append("src")
 from llm.utils import process_prompt
@@ -31,15 +34,18 @@ logging.getLogger().setLevel(logging.INFO)
 
 MP_API_KEY = os.environ["MP_API_KEY"]
 
+with open(Path("data", "input_data", "oc", "oc_20_adsorbates.pkl"), "rb") as f:
+    oc_20_ads_structures = pickle.load(f)
+    oc_20_ads_structures = {
+        v[1]: (v[0], v[2:]) for k, v in oc_20_ads_structures.items()
+    }
+
+print(oc_20_ads_structures["*CO"])
 
 prompts = {
     "bulk": {
         "prompt": (
-            "$ROOT_PROMPT = {root_prompt}\n\n"
-            "Consider the following list of materials. \n"
-            "Return the index of the material that would be best suited for answering the $ROOT_PROMPT.\n\n"
-            "{bulks_summaries}"
-            "\nReturn your answer as a python list called 'final_answer' of your top two choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
+            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the following list of materials. \nReturn the index of the material that would be best suited for answering the $ROOT_PROMPT.\n\n{bulks_summaries}\nReturn your answer as a python list called 'final_answer' of your top two choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
         ),
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and can make accurate recommendations about bulk material structures based on their crystal structure and composition. You will consider factors such as catalytic performance and synthesizability in your analysis."
@@ -47,28 +53,21 @@ prompts = {
     },
     "millers": {
         "prompt": (
-            "$ROOT_PROMPT = {root_prompt}\n\n"
-            "Consider the material {material}. \n"
-            "Return a list of miller indices that would answer the $ROOT_PROMPT. You miller indices should be consistent with the information in $ANSWER\n\n"
-            "\nReturn your answer as a python list called 'final_answer' of your top two miller indices. Let's think step-by-step and provide justifications for your answers."
+            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material}. \nReturn a list of miller indices that would answer the $ROOT_PROMPT. You miller indices should be consistent with the information in $ANSWER\n\n\nReturn your answer as a python list called 'final_answer' of your top two miller indices. Your miller indices should be python 3-tuples. Let's think step-by-step and provide justifications for your answers."
         ),
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about surface composition based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
         ),
     },
     "surface": {
-        "prompt": "$ROOT_PROMPT = {root_prompt}\n\nConsider the material {material} with miller index {millers}. Return the index of the following surfaces which has the best configuration for accomplishing the $ROOT_PROMPT. You should target surfaces with binding sites that are consisten with the $ANSWER given above.\n\n{cell_shift_summaries}\n\nReturn your answer as a python list called 'final_answer' of your top three choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers.",
+        r"prompt": "$ROOT_PROMPT = {root_prompt}\n\nConsider the material {material} with miller index {millers}. Return the index of the following surfaces which has the best configuration for accomplishing the $ROOT_PROMPT. You should target surfaces with binding sites that are consisten with the $ANSWER given above.\n\n{cell_shift_summaries}\n\nReturn your answer as a python list called 'final_answer' of your top three choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers.",
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about miller indices based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
         ),
     },
     "site_placement": {
         "prompt": (
-            "$ROOT_PROMPT = {root_prompt}\n\n"
-            "Consider the material {material} with miller index {millers}. "
-            "Return the index of the atomic environment of the best adsorbate placement site.\n\n"
-            "{atomic_environments}"
-            "\nReturn your answer as a python list called 'final_answer' of your top two choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
+            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material} with miller index {millers}. Return the indices of the atomic environment of the best adsorbate placement site.\n\n{atomic_environments}\nReturn your answer as a python list called 'final_answer' of your top ten choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
         ),
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about adsorbate binding sites based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
@@ -89,13 +88,17 @@ class OCPMicrostructurePlanner:
         "__default__": 1,
     }
 
-    def __init__(self, llm_function=callable):
+    def __init__(self, llm_function=callable, debug: bool = False):
         """Init self."""
         self.llm_function = llm_function
 
     def set_state(self, state: ReasonerState):
         """Set the state for self."""
         self.state = state
+
+    def get_twin_states(self, digital_twins: list[SlabDigitalTwin]):
+        """Get twin-state pair list for given list of twins."""
+        return [(d, self.state) for d in digital_twins]
 
     def set_digital_twins(self, twins: list[SlabDigitalTwin]):
         """Set digital twins for self."""
@@ -122,6 +125,17 @@ class OCPMicrostructurePlanner:
                 retries = self.default_retries[prompt_type]
             else:
                 retries = self.default_retries["__default__"]
+
+        if prompt_type != "site_placement":
+            return process_prompt(
+                lambda x, y: "string",
+                prompt_info,
+                prompt_creation_function,
+                prompt_parsing_function,
+                system_prompt_function,
+                retries=retries,
+                **llm_function_kwargs,
+            )
 
         return process_prompt(
             self.llm_function,
@@ -210,18 +224,18 @@ class OCPMicrostructurePlanner:
     @staticmethod
     def literal_parse_response_list(response: str) -> list[int]:
         """Create a prompt for the given dictionaries."""
-        for line in response.split("\n"):
-            if "final_answer" in line:
-                list_start = line.find("[")
-                list_end = line.find("]")
-                answer_list = literal_eval(line[list_start : list_end + 1])
+        final_answer_idx = response.find("final_answer")
+        list_start = response.find("[", final_answer_idx)
+        list_end = response.find("]", list_start)
+
+        answer_list = literal_eval(response[list_start : list_end + 1])
         return answer_list
 
     @staticmethod
     def create_bulk_prompt(twin_state: tuple[SlabDigitalTwin, ReasonerState]):
         """Create the prompt for bulks."""
         twin, state = twin_state
-        bulks = twin_state.get_bulks()
+        bulks = twin.get_bulks()
         bulks_summaries = ""
         for i, doc in enumerate(bulks):
             verified = " (experimentally verified)" if not doc.theoretical else ""
@@ -231,9 +245,9 @@ class OCPMicrostructurePlanner:
             "bulks_summaries": bulks_summaries,
             "root_prompt": state.root_prompt,
         }
-        prompt = fstr(prompts["bulk"], prompt_values)
+        prompt = fstr(prompts["bulk"]["prompt"], prompt_values)
         twin.update_info("bulk", {"prompt": prompt})
-        return
+        return prompt
 
     def create_bulk_system_prompt(
         self, twin_state: tuple[SlabDigitalTwin, ReasonerState]
@@ -244,30 +258,26 @@ class OCPMicrostructurePlanner:
         twin.update_info("bulk", {"system_prompt": prompt})
         return prompt
 
-    @staticmethod
     def parse_bulk_answer(
-        self, answer, twin_state: tuple[SlabDigitalTwin, ReasonerState]
+        self, answer_data, twin_state: tuple[SlabDigitalTwin, ReasonerState]
     ):
         """Parse the bulk_prompt_response."""
         # TODO: Track the behavior here
         twin, state = twin_state
-        answer = answer["answer"]
-        usage = answer["usage"]
-        info = {"answer": answer, "usage": usage}
+        answer_list = self.literal_parse_response_list(answer_data["answer"])
+        twin.update_info("bulk", answer_data)
 
-        answer_list = self.parse_response_list(answer)
-        twin.update_info("bulk", info)
         return answer_list
 
-    def run_bulk_prompt(self, digital_twins: SlabDigitalTwin, states: ReasonerState):
+    def run_bulk_prompt(self, digital_twins: SlabDigitalTwin):
         """Run the bulk prompt for the given slab symbols."""
-        twin_states = [(d, s) for d, s in zip(digital_twins, states)]
+        twin_states = self.get_twin_states(digital_twins)
         bulks_idxs = self.process_prompt(
-            self.llm_function,
-            twin_states,
-            self.create_bulk_prompt,
-            self.parse_bulk_answer,
-            self.create_bulk_system_prompt,
+            prompt_info=twin_states,
+            prompt_type="bulk",
+            prompt_creation_function=self.create_bulk_prompt,
+            prompt_parsing_function=self.parse_bulk_answer,
+            system_prompt_function=self.create_bulk_system_prompt,
             # TODO: LLM function kwargs
         )
         length_twins = len(digital_twins)
@@ -280,7 +290,7 @@ class OCPMicrostructurePlanner:
     def create_millers_prompt(self, twin_state: tuple[SlabDigitalTwin, ReasonerState]):
         """Create a prompt for the miller index."""
         twin, state = twin_state
-        doc = twin.computational_objects["bulks"]
+        doc = twin.computational_objects["bulk"]
         values = {
             "root_prompt": state.root_prompt,
             # "answer": state.answer,
@@ -299,12 +309,23 @@ class OCPMicrostructurePlanner:
         twin.update_info("millers", {"system_prompt": prompt})
         return prompt
 
-    def run_millers_prompt(self, digital_twins: SlabDigitalTwin, states: ReasonerState):
+    def parse_millers_answer(
+        self, answer_data, twin_state: tuple[SlabDigitalTwin, ReasonerState]
+    ):
+        """Parse the given answer for the miller indices."""
+        twin, state = twin_state
+        print(answer_data["answer"])
+        answer_list = self.literal_parse_response_list(answer_data["answer"])
+        twin.update_info("millers", answer_data)
+
+        return answer_list
+
+    def run_millers_prompt(self, digital_twins: SlabDigitalTwin):
         """Run the bulk prompt for the given slab symbols."""
-        twin_states = [(d, s) for d, s in zip(digital_twins, states)]
+        twin_states = self.get_twin_states(digital_twins)
         millers_choices = self.process_prompt(
-            self.llm_function,
             twin_states,
+            "millers",
             self.create_millers_prompt,
             self.parse_millers_answer,
             self.create_millers_system_prompt,
@@ -323,8 +344,10 @@ class OCPMicrostructurePlanner:
         site_placements = twin.get_site_placements()
         if len(site_placements) > 0:
             site_placements_summaries = []
-            for site in site_placements:
-                site_placements_summaries.append(describe_site_placement(site))
+            for i, site in enumerate(site_placements):
+                site_placements_summaries.append(
+                    f"({i}) {describe_site_placement(twin.computational_objects['surface'], site)}"
+                )
         else:
             return None
         doc = twin.computational_objects["bulk"]
@@ -332,6 +355,7 @@ class OCPMicrostructurePlanner:
             "root_prompt": state.root_prompt,
             "material": f"{doc.formula_pretty} in the {doc.symmetry.crystal_system.value.lower()} {doc.symmetry.symbol} space group.\n",
             "millers": f"{twin.computational_params['millers']}",
+            "atomic_environments": "\n".join(site_placements_summaries),
         }
         prompt = fstr(prompts["site_placement"]["prompt"], values)
         twin.update_info("site_placement", {"prompt": prompt})
@@ -347,29 +371,38 @@ class OCPMicrostructurePlanner:
         twin.update_info("site_placement", {"system_prompt": prompt})
         return prompt
 
-    def run_site_placement_prompt(
-        self, digital_twins: SlabDigitalTwin, states: ReasonerState
+    def parse_site_placement_answer(
+        self, answer_data, twin_state: tuple[SlabDigitalTwin, ReasonerState]
     ):
+        """Parse the given answer for the miller indices."""
+        twin, state = twin_state
+
+        answer_list = self.literal_parse_response_list(answer_data["answer"])
+        twin.update_info("site_placement", answer_data)
+        return answer_list
+
+    def run_site_placement_prompt(self, digital_twins: SlabDigitalTwin):
         """Run the bulk prompt for the given slab symbols."""
-        twin_states = [(d, s) for d, s in zip(digital_twins, states)]
-        millers_choices = self.process_prompt(
-            self.llm_function,
+        twin_states = self.get_twin_states(digital_twins)
+        site_choices = self.process_prompt(
             twin_states,
-            self.create_millers_prompt,
-            self.parse_millers_answer,
+            "site_placement",
+            self.create_site_placement_prompt,
+            self.parse_site_placement_answer,
             self.create_site_placement_system_prompt,
             # TODO: LLM function kwargs
         )
         length_twins = len(digital_twins)
         for i in range(length_twins):
-            millers = millers_choices[i]
+            ans = site_choices[i]
+            print(ans)
             digital_twin = digital_twins[i]
-            digital_twins += digital_twin.set_millers(millers)
+            selected_sites = [digital_twin.get_site_placements()[j] for j in ans]
+            digital_twins += digital_twin.set_site_placements(selected_sites)
 
 
 def get_neighbors_site(surface: Slab, site: tuple, cutoff=2.5):
     """Get the neighboring atoms of the given site."""
-    print(site)
     site = np.array(site)
     diffs = surface.atoms.get_positions() - site
     distances = np.linalg.norm(diffs, axis=1)
@@ -460,6 +493,31 @@ def fstr(fstring_text, vals):
     return ret_val
 
 
+def get_adslab(
+    digital_twin: SlabDigitalTwin,
+    adsorbate: Adsorbate,
+    num_augmentations_per_site: int = 1,
+) -> AdsorbateSlabConfig:
+    """Get the adsorbate+slab configuration specified by digital twin."""
+    slab, site = digital_twin.computational_objects["site_placements"]
+    adslab_config = AdsorbateSlabConfig(
+        slab=slab,
+        adsorbate=adsorbate,
+        num_sites=1,
+        num_augmentations_per_site=num_augmentations_per_site,
+        mode="random",
+    )
+    adslab_config.sites = [np.array(site)]
+    adslab_config.atoms_list, adslab_config.metadata_list = (
+        adslab_config.place_adsorbate_on_sites(
+            adslab_config.sites,
+            adslab_config.num_augmentations_per_site,
+            adslab_config.interstitial_gap,
+        )
+    )
+    return adslab_config
+
+
 example_data_structure = [
     {
         "llm_answer": "(3) Zinc Oxide: This catalyst is good because...",
@@ -473,15 +531,63 @@ example_data_structure = [
     }
 ]
 
+
+class TestState:
+    root_prompt = "Propose a catalyst for the adsorption of *CO."
+
+
 if __name__ == "__main__":
+    exit()
+
     llm_function = AzureOpenaiInterface(dotenv_path=".env", model="gpt-4")
-    print(llm_function(["test1", "test2"]))
-    dt = SlabDigitalTwin(computational_params={"symbols": ["Cu", "Zn"]})
+    ms_planner = OCPMicrostructurePlanner(llm_function=llm_function)
+
+    state = TestState()
+    ms_planner.set_state(state)
+
+    dt = SlabDigitalTwin()
+    dt.set_symbols(["Cu", "Zn"])
     digital_twins = [dt]
-    dt.set_symbols(["Zn", "O"])
-    bulks = dt.get_bulks()
-    with open("bulks_tmp.pkl", "wb") as f:
-        pickle.dump(bulks, f)
-    dt.set_bulk([bulks[0]])
-    dt.set_millers([(1, 0, 0)])
-    print(dt.get_surfaces())
+    ms_planner.run_bulk_prompt(digital_twins)
+
+    ms_planner.run_millers_prompt(digital_twins=digital_twins)
+    for t in digital_twins:
+        print(t.info)
+
+    num_twins = len(digital_twins)
+    for i in range(num_twins):
+        print(digital_twins[i].get_surfaces())
+        digital_twins += digital_twins[i].set_surfaces(
+            digital_twins[i].get_surfaces()[0]
+        )
+
+    ms_planner.run_site_placement_prompt(digital_twins=digital_twins)
+
+    save_dir = Path("microstructure_planner_test")
+    save_dir.mkdir(parents=True, exist_ok=True)
+    metadata = {}
+    row_data = {}
+    for twin in digital_twins:
+        _id = twin._id
+        row = twin.return_row()
+
+        ads_ats, binding_atoms, _ = oc_20_ads_structures["*CO"]
+        adsorbate = Adsorbate(ads_ats, adsorbate_binding_indices=list(binding_atoms))
+
+        adslab_config = twin.return_adslab_config(adsorbate=adsorbate)
+        adslab = adslab_config.atoms_list[0]
+        adslab.info.update({"_id": _id})
+        adslab_metadata = adslab_config.metadata_list[0]
+
+        row.update(adslab_metadata)
+        row_data[_id] = row
+
+        write(str(save_dir / f"{_id}.xyz"), adslab)
+
+        metadata[_id] = twin.info
+
+with open(save_dir / "metadata.pkl", "wb") as f:
+    pickle.dump(metadata, f)
+
+df = pd.DataFrame(row_data)
+df.to_csv(save_dir / "row_data.csv")
