@@ -45,7 +45,7 @@ atoms_list = []
 atoms_names = []
 for k, v in atoms.items():
     atoms_list.append(v)
-    name = data_path / "trajectories_e_tot" / k
+    name = Path("trajectories_e_tot") / k
     atoms_names.append(str(name))
     name.parent.mkdir(parents=True, exist_ok=True)
 
@@ -85,7 +85,7 @@ bulk_atoms_list = []
 bulk_atoms_names = []
 for k, v in bulk_atoms.items():
     atoms_list.append(v)
-    name = data_path / "trajectories_e_slab" / k
+    name = Path("trajectories_e_slab") / k
     atoms_names.append(str(name))
     name.parent.mkdir(parents=True, exist_ok=True)
 
@@ -125,7 +125,7 @@ bulk_atoms_prime_list = []
 bulk_atoms_prime_names = []
 for k, v in bulk_atoms_prime.items():
     atoms_list.append(v)
-    name = data_path / "trajectories_e_slab_prime" / k
+    name = Path("trajectories_e_slab_prime") / k
     atoms_names.append(str(name))
     name.parent.mkdir(parents=True, exist_ok=True)
 
