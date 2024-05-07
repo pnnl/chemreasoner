@@ -20,7 +20,7 @@ Please cite the following papers [https://arxiv.org/abs/2310.14420] [https://arx
 ```bibtex
 @inproceedings{sprueill2023MCR,
   title={Monte Carlo Thought Search: Large Language Model Querying for Complex Scientific Reasoning in Catalyst Design},
-  author={Sprueill, Henry and Edwards, Carl and Sanyal, Sanyal and Olarte, Mariefel and Ji, Heng and Choudhury, Sutanay}
+  author={Sprueill, Henry W. and Edwards, Carl and Sanyal, Udishnu and Olarte, Mariefel and Ji, Heng and Choudhury, Sutanay}
   booktitle={In Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP2023) Findings},
   year={2023}
 }
