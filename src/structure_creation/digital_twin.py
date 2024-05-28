@@ -60,7 +60,7 @@ class SlabDigitalTwin:
         self.computational_params = computational_params
         self.info = info
         if id is None:
-            self._id = uuid4()
+            self._id = str(uuid4())
         self._parent_twin_id = parent_twin_id
         self.canceled = canceled
 

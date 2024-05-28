@@ -45,7 +45,7 @@ print(oc_20_ads_structures["*CO"])
 prompts = {
     "bulk": {
         "prompt": (
-            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the following list of materials. \nReturn the index of the material that would be best suited for answering the $ROOT_PROMPT.\n\n{bulks_summaries}\nReturn your answer as a python list called 'final_answer' of your top three choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
+            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the following list of materials. \nReturn the index of the material that would be best suited for answering the $ROOT_PROMPT.\n\n{bulks_summaries}\nReturn your answer as a python list called 'final_answer' of your top {num_choices} choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
         ),
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and can make accurate recommendations about bulk material structures based on their crystal structure and composition. You will consider factors such as catalytic performance and synthesizability in your analysis."
@@ -53,21 +53,21 @@ prompts = {
     },
     "millers": {
         "prompt": (
-            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material}. \nReturn a list of miller indices that would answer the $ROOT_PROMPT. You miller indices should be consistent with the information in $ANSWER\n\n\nReturn your answer as a python list called 'final_answer' of your top three miller indices. Your miller indices should be python 3-tuples. Let's think step-by-step and provide justifications for your answers."
+            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material}. \nReturn a list of miller indices that would answer the $ROOT_PROMPT. You miller indices should be consistent with the information in $ANSWER\n\n\nReturn your answer as a python list called 'final_answer' of your top {num_choices} miller indices. Your miller indices should be python 3-tuples. Let's think step-by-step and provide justifications for your answers."
         ),
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about surface composition based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
         ),
     },
     "surface": {
-        r"prompt": "$ROOT_PROMPT = {root_prompt}\n\nConsider the material {material} with miller index {millers}. Return the index of the following surfaces which has the best configuration for accomplishing the $ROOT_PROMPT. You should target surfaces with binding sites that are consisten with the $ANSWER given above.\n\n{cell_shift_summaries}\n\nReturn your answer as a python list called 'final_answer' of your top three choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers.",
+        r"prompt": "$ROOT_PROMPT = {root_prompt}\n\nConsider the material {material} with miller index {millers}. Return the index of the following surfaces which has the best configuration for accomplishing the $ROOT_PROMPT. You should target surfaces with binding sites that are consisten with the $ANSWER given above.\n\n{cell_shift_summaries}\n\nReturn your answer as a python list called 'final_answer' of your top {num_choices} choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers.",
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about miller indices based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
         ),
     },
     "site_placement": {
         "prompt": (
-            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material} with miller index {millers}. Return the indices of the atomic environment of the best adsorbate placement site.\n\n{atomic_environments}\nReturn your answer as a python list called 'final_answer' of your top ten choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
+            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material} with miller index {millers}. Return the indices of the atomic environment of the best adsorbate placement sites.\n\n{atomic_environments}\nReturn your answer as a python list called 'final_answer' of your top {num_choices} choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
         ),
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about adsorbate binding sites based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
@@ -84,13 +84,22 @@ class OCPMicrostructurePlanner:
         "bulk": 0,
         "millers": 0,
         "cell_shift": 0,
-        "adsorbate_site": 0,
+        "site_placement": 0,
         "__default__": 1,
+    }
+    num_choices = {
+        "bulk": 3,
+        "millers": 3,
+        "site_placement": 10,
     }
 
     def __init__(self, llm_function=callable, debug: bool = False):
         """Init self."""
         self.llm_function = llm_function
+
+    def update_num_choices(self, num_choices: dict[str, int]):
+        """Update the num_choices in self with given dictionary."""
+        self.num_choices.update(num_choices)
 
     def set_state(self, state: ReasonerState):
         """Set the state for self."""
@@ -168,7 +177,7 @@ class OCPMicrostructurePlanner:
             )
 
     def run_slab_sym_prompts(
-        self, symbols: list[list[str]], states: list[ReasonerState]
+        self, slab_syms: list[list[str]], states: list[ReasonerState]
     ):
         """Run the generation prompts for the given states where the reward is None.
 
@@ -179,7 +188,7 @@ class OCPMicrostructurePlanner:
         system_prompts = []
         prompts_idx = []
         for i, s in enumerate(states):
-            if symbols[i] is None:
+            if slab_syms[i] is None:
                 try:
                     prompts.append(s.catalyst_symbols_prompt)
                     system_prompts.append(None)
@@ -201,7 +210,7 @@ class OCPMicrostructurePlanner:
                 state_idx = prompts_idx[i]
                 s = states[state_idx]
                 try:
-                    symbols[state_idx] = s.process_catalyst_symbols(answers[i])
+                    slab_syms[state_idx] = s.process_catalyst_symbols(answers[i])
 
                 except Exception as err:
                     logging.warning(f"Failed to parse answer with error: {str(err)}.")
@@ -220,8 +229,7 @@ class OCPMicrostructurePlanner:
         answer_list = literal_eval(response[list_start : list_end + 1])
         return answer_list
 
-    @staticmethod
-    def create_bulk_prompt(twin_state: tuple[SlabDigitalTwin, ReasonerState]):
+    def create_bulk_prompt(self, twin_state: tuple[SlabDigitalTwin, ReasonerState]):
         """Create the prompt for bulks."""
         twin, state = twin_state
         bulks = twin.get_bulks()
@@ -233,6 +241,7 @@ class OCPMicrostructurePlanner:
         prompt_values = {
             "bulks_summaries": bulks_summaries,
             "root_prompt": state.root_prompt,
+            "num_choices": self.num_choices["bulk"],
         }
         prompt = fstr(prompts["bulk"]["prompt"], prompt_values)
         twin.update_info("bulk", {"prompt": prompt})
@@ -284,6 +293,7 @@ class OCPMicrostructurePlanner:
             "root_prompt": state.root_prompt,
             # "answer": state.answer,
             "material": f"{doc.formula_pretty} in the {doc.symmetry.crystal_system.value.lower()} {doc.symmetry.symbol} space group.\n",
+            "num_choices": self.num_choices["bulk"],
         }
         prompt = fstr(prompts["millers"]["prompt"], values)
         twin.update_info("millers", {"prompt": prompt})
@@ -326,8 +336,9 @@ class OCPMicrostructurePlanner:
             digital_twin = digital_twins[i]
             digital_twins += digital_twin.set_millers(millers)
 
-    @staticmethod
-    def create_site_placement_prompt(twin_state: tuple[SlabDigitalTwin, ReasonerState]):
+    def create_site_placement_prompt(
+        self, twin_state: tuple[SlabDigitalTwin, ReasonerState]
+    ):
         """Create the prompt for site_placement."""
         twin, state = twin_state
         site_placements = twin.get_site_placements()
@@ -345,6 +356,7 @@ class OCPMicrostructurePlanner:
             "material": f"{doc.formula_pretty} in the {doc.symmetry.crystal_system.value.lower()} {doc.symmetry.symbol} space group.\n",
             "millers": f"{twin.computational_params['millers']}",
             "atomic_environments": "\n".join(site_placements_summaries),
+            "num_choices": self.num_choices["bulk"],
         }
         prompt = fstr(prompts["site_placement"]["prompt"], values)
         twin.update_info("site_placement", {"prompt": prompt})
