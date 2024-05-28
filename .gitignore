@@ -4,8 +4,10 @@
 *.ipynb
 *.zip
 *.DS_Store
-*.xyz
+data/*.xyz
+src/*.xyz
 *.traj
+*.traj_tmp
 *.sdf
 *.pt
 data/output_data/
