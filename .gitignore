@@ -4,8 +4,7 @@
 *.ipynb
 *.zip
 *.DS_Store
-data/*.xyz
-src/*.xyz
+.xyz
 *.traj
 *.traj_tmp
 *.sdf
