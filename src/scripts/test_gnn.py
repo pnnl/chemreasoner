@@ -1,8 +1,7 @@
 """Script to test GemNet on the OC dataset."""
 
-import json
+import argparse
 import logging
-import pickle
 import sys
 
 from pathlib import Path
@@ -10,12 +9,15 @@ from pathlib import Path
 from ase import Atoms
 from ase.io import read
 
-import pandas as pd
-
 sys.path.append("src")
 from nnp.oc import OCAdsorptionCalculator
 
 logging.getLogger().setLevel(logging.INFO)
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("--cpu", action="store_true")
+args = parser.parse_args()
 
 
 data_path = Path("test/gnn_test_structures")
@@ -25,7 +27,7 @@ calc = OCAdsorptionCalculator(
         "model": "gemnet-oc-22",
         "traj_dir": data_path,
         "batch_size": 32,
-        "device": "cpu",
+        "device": "cpu" if args.cpu else "cuda",
         "ads_tag": 2,
         "fmax": 0.03,
         "steps": 3,
