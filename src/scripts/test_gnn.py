@@ -59,7 +59,9 @@ logging.info(f"Total Energy: {end_timing - start_timing}")
 
 for k, ats in zip(keys, relaxed_atoms):
     energies[k] = {"relaxed_energy": ats.get_potential_energy()}
-    (Path("trajectories_e_tot") / (k + ".traj")).unlink()
+
+for p in (data_path / "trajectories_e_tot").rglob("*.traj*"):
+    p.unlink()
 
 # Run slab reference calculation
 
@@ -104,4 +106,6 @@ logging.info(f"Slab Energy: {end_timing - start_timing}")
 
 for k, ats in zip(keys, bulk_relaxed_atoms):
     energies[k] = {"relaxed_energy": ats.get_potential_energy()}
-    (Path("trajectories_e_slab") / (k + ".traj")).unlink()
+
+for p in (data_path / "trajectories_e_slab").rglob("*.traj*"):
+    p.unlink()
