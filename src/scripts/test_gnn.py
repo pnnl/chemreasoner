@@ -25,7 +25,7 @@ calc = OCAdsorptionCalculator(
         "model": "gemnet-oc-22",
         "traj_dir": data_path,
         "batch_size": 32,
-        "device": "cuda",
+        "device": "cpu",
         "ads_tag": 2,
         "fmax": 0.03,
         "steps": 3,
@@ -41,6 +41,7 @@ timing = {}
 energies = {}
 keys = list(atoms.keys())
 
+(data_path / "trajectories_e_tot").mkdir(parents=True, exist_ok=True)
 atoms_list = []
 atoms_names = []
 for k, v in atoms.items():
@@ -82,6 +83,7 @@ for k, ats in atoms.items():
     bulk_ats.set_cell(ats.get_cell())
     bulk_atoms[k] = bulk_ats.copy()
 
+(data_path / "trajectories_e_slab").mkdir(parents=True, exist_ok=True)
 bulk_atoms_list = []
 bulk_atoms_names = []
 for k, v in bulk_atoms.items():
