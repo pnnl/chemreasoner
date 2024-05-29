@@ -62,4 +62,4 @@ for k, ats in zip(keys, relaxed_atoms):
 
 for p in (data_path / "trajectories_e_tot").rglob("*.traj*"):
     p.unlink()
-(data_path / "trajectories_e_tot").unlink()
+(data_path / "trajectories_e_tot").rmdir()
