@@ -24,7 +24,7 @@ calc = OCAdsorptionCalculator(
     **{
         "model": "gemnet-oc-22",
         "traj_dir": data_path,
-        "batch_size": 32,
+        "batch_size": 64,
         "device": "cuda",
         "ads_tag": 2,
         "fmax": 0.03,
