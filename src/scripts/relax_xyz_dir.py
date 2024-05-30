@@ -47,7 +47,7 @@ for k, v in atoms.items():
     atoms_list.append(v)
     name = Path("trajectories_e_tot") / k
     atoms_names.append(str(name))
-    name.parent.mkdir(parents=True, exist_ok=True)
+    (data_path / name).parent.mkdir(parents=True, exist_ok=True)
 
 start_timing = calc.gnn_time
 relaxed_atoms = calc.batched_relax_atoms(atoms_list, atoms_names=atoms_names)
@@ -87,7 +87,7 @@ for k, v in bulk_atoms.items():
     atoms_list.append(v)
     name = Path("trajectories_e_slab") / k
     atoms_names.append(str(name))
-    name.parent.mkdir(parents=True, exist_ok=True)
+    (data_path / name).parent.mkdir(parents=True, exist_ok=True)
 
 start_timing = calc.gnn_time
 bulk_relaxed_atoms = calc.batched_relax_atoms(
@@ -127,7 +127,7 @@ for k, v in bulk_atoms_prime.items():
     atoms_list.append(v)
     name = Path("trajectories_e_slab_prime") / k
     atoms_names.append(str(name))
-    name.parent.mkdir(parents=True, exist_ok=True)
+    (data_path / name).parent.mkdir(parents=True, exist_ok=True)
 
 start_timing = calc.gnn_time
 bulk_relaxed_atoms_prime = calc.batched_relax_atoms(
