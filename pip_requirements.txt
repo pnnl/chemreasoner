@@ -1,3 +1,5 @@
+ase
+openai
 pyyaml
 lmdb
 orjson
