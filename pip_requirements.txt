@@ -1,4 +1,4 @@
-ase
+ase==3.22
 openai
 pyyaml
 lmdb
