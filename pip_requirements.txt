@@ -8,3 +8,4 @@ redis
 wandb
 tensorboard
 e3nn
+pydot
