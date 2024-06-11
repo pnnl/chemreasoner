@@ -28,7 +28,7 @@ sys.path.append("src")
 from llm.utils import process_prompt
 from llm.azure_open_ai_interface import AzureOpenaiInterface
 from search.state.reasoner_state import ReasonerState
-from structure_creation.digital_twin import SlabDigitalTwin
+from structure_creation.digital_twin import CatalystDigitalTwin
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -105,11 +105,11 @@ class OCPMicrostructurePlanner:
         """Set the state for self."""
         self.state = state
 
-    def get_twin_states(self, digital_twins: list[SlabDigitalTwin]):
+    def get_twin_states(self, digital_twins: list[CatalystDigitalTwin]):
         """Get twin-state pair list for given list of twins."""
         return [(d, self.state) for d in digital_twins]
 
-    def set_digital_twins(self, twins: list[SlabDigitalTwin]):
+    def set_digital_twins(self, twins: list[CatalystDigitalTwin]):
         """Set digital twins for self."""
         self.digital_twins = deepcopy(twins)
 
@@ -229,7 +229,7 @@ class OCPMicrostructurePlanner:
         answer_list = literal_eval(response[list_start : list_end + 1])
         return answer_list
 
-    def create_bulk_prompt(self, twin_state: tuple[SlabDigitalTwin, ReasonerState]):
+    def create_bulk_prompt(self, twin_state: tuple[CatalystDigitalTwin, ReasonerState]):
         """Create the prompt for bulks."""
         twin, state = twin_state
         bulks = twin.get_bulks()
@@ -248,7 +248,7 @@ class OCPMicrostructurePlanner:
         return prompt
 
     def create_bulk_system_prompt(
-        self, twin_state: tuple[SlabDigitalTwin, ReasonerState]
+        self, twin_state: tuple[CatalystDigitalTwin, ReasonerState]
     ):
         """Create millers system prompt."""
         twin, state = twin_state
@@ -257,7 +257,7 @@ class OCPMicrostructurePlanner:
         return prompt
 
     def parse_bulk_answer(
-        self, answer_data, twin_state: tuple[SlabDigitalTwin, ReasonerState]
+        self, answer_data, twin_state: tuple[CatalystDigitalTwin, ReasonerState]
     ):
         """Parse the bulk_prompt_response."""
         # TODO: Track the behavior here
@@ -267,7 +267,7 @@ class OCPMicrostructurePlanner:
 
         return answer_list
 
-    def run_bulk_prompt(self, digital_twins: SlabDigitalTwin):
+    def run_bulk_prompt(self, digital_twins: list[CatalystDigitalTwin]):
         """Run the bulk prompt for the given slab symbols."""
         twin_states = self.get_twin_states(digital_twins)
         bulks_idxs = self.process_prompt(
@@ -278,14 +278,11 @@ class OCPMicrostructurePlanner:
             system_prompt_function=self.create_bulk_system_prompt,
             # TODO: LLM function kwargs
         )
-        length_twins = len(digital_twins)
-        for i in range(length_twins):
-            ans = bulks_idxs[i]
-            digital_twin = digital_twins[i]
-            selected_bulks = [digital_twin.get_bulks()[j] for j in ans]
-            digital_twins += digital_twin.set_bulk(selected_bulks)
+        return bulks_idxs
 
-    def create_millers_prompt(self, twin_state: tuple[SlabDigitalTwin, ReasonerState]):
+    def create_millers_prompt(
+        self, twin_state: tuple[CatalystDigitalTwin, ReasonerState]
+    ):
         """Create a prompt for the miller index."""
         twin, state = twin_state
         doc = twin.computational_objects["bulk"]
@@ -300,7 +297,7 @@ class OCPMicrostructurePlanner:
         return prompt
 
     def create_millers_system_prompt(
-        self, twin_state: tuple[SlabDigitalTwin, ReasonerState]
+        self, twin_state: tuple[CatalystDigitalTwin, ReasonerState]
     ):
         """Create millers system prompt."""
         twin, state = twin_state
@@ -309,7 +306,7 @@ class OCPMicrostructurePlanner:
         return prompt
 
     def parse_millers_answer(
-        self, answer_data, twin_state: tuple[SlabDigitalTwin, ReasonerState]
+        self, answer_data, twin_state: tuple[CatalystDigitalTwin, ReasonerState]
     ):
         """Parse the given answer for the miller indices."""
         twin, state = twin_state
@@ -319,7 +316,7 @@ class OCPMicrostructurePlanner:
 
         return answer_list
 
-    def run_millers_prompt(self, digital_twins: SlabDigitalTwin):
+    def run_millers_prompt(self, digital_twins: CatalystDigitalTwin):
         """Run the bulk prompt for the given slab symbols."""
         twin_states = self.get_twin_states(digital_twins)
         millers_choices = self.process_prompt(
@@ -330,14 +327,10 @@ class OCPMicrostructurePlanner:
             self.create_millers_system_prompt,
             # TODO: LLM function kwargs
         )
-        length_twins = len(digital_twins)
-        for i in range(length_twins):
-            millers = millers_choices[i]
-            digital_twin = digital_twins[i]
-            digital_twins += digital_twin.set_millers(millers)
+        return millers_choices
 
     def create_site_placement_prompt(
-        self, twin_state: tuple[SlabDigitalTwin, ReasonerState]
+        self, twin_state: tuple[CatalystDigitalTwin, ReasonerState]
     ):
         """Create the prompt for site_placement."""
         twin, state = twin_state
@@ -364,7 +357,7 @@ class OCPMicrostructurePlanner:
 
     @staticmethod
     def create_site_placement_system_prompt(
-        twin_state: tuple[SlabDigitalTwin, ReasonerState]
+        twin_state: tuple[CatalystDigitalTwin, ReasonerState]
     ):
         """Create the prompt for site_placement."""
         twin, state = twin_state
@@ -373,7 +366,7 @@ class OCPMicrostructurePlanner:
         return prompt
 
     def parse_site_placement_answer(
-        self, answer_data, twin_state: tuple[SlabDigitalTwin, ReasonerState]
+        self, answer_data, twin_state: tuple[CatalystDigitalTwin, ReasonerState]
     ):
         """Parse the given answer for the miller indices."""
         twin, state = twin_state
@@ -382,7 +375,7 @@ class OCPMicrostructurePlanner:
         twin.update_info("site_placement", answer_data)
         return answer_list
 
-    def run_site_placement_prompt(self, digital_twins: SlabDigitalTwin):
+    def run_site_placement_prompt(self, digital_twins: CatalystDigitalTwin):
         """Run the bulk prompt for the given slab symbols."""
         twin_states = self.get_twin_states(digital_twins)
         site_choices = self.process_prompt(
@@ -393,13 +386,7 @@ class OCPMicrostructurePlanner:
             self.create_site_placement_system_prompt,
             # TODO: LLM function kwargs
         )
-        length_twins = len(digital_twins)
-        for i in range(length_twins):
-            ans = site_choices[i]
-            print(ans)
-            digital_twin = digital_twins[i]
-            selected_sites = [digital_twin.get_site_placements()[j] for j in ans]
-            digital_twins += digital_twin.set_site_placements(selected_sites)
+        return site_choices
 
 
 def get_neighbors_site(surface: Slab, site: tuple, cutoff=2.5):
@@ -520,7 +507,7 @@ if __name__ == "__main__":
     state = TestState()
     ms_planner.set_state(state)
 
-    dt = SlabDigitalTwin()
+    dt = CatalystDigitalTwin()
     dt.set_symbols(["Cu", "Zn"])
     digital_twins = [dt]
     ms_planner.run_bulk_prompt(digital_twins)

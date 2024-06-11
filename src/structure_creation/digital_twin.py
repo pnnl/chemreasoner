@@ -27,14 +27,14 @@ logging.getLogger().setLevel(logging.INFO)
 MP_API_KEY = os.environ["MP_API_KEY"]
 
 
-class SlabDigitalTwin:
+class CatalystDigitalTwin:
     """A class for a digital twin of a slab system."""
 
     dummy_adsorbate = Adsorbate(
         Atoms("H", positions=[[0, 0, 0]]), adsorbate_binding_indices=[0]
     )
     available_statuses = [
-        "answer",
+        "llm_answer",
         "symbols",
         "bulk",
         "millers",
@@ -44,25 +44,40 @@ class SlabDigitalTwin:
 
     def __init__(
         self,
-        computational_objects: object = {},
-        computational_params: dict = {},
-        info: dict = {},
-        id=None,
-        parent_twin_id=None,
+        computational_objects: object = None,
+        computational_params: dict = None,
+        info: dict = None,
+        _id=None,
+        children_ids: list = None,
         canceled=False,
+        reward=None,
     ):
         """Initialize self.
 
         Status indicates the most recent completed stage of creation
         (i.e. bulk, millers, surface,...). The computational object
         is the object underlying self."""
-        self.computational_objects = computational_objects
-        self.computational_params = computational_params
-        self.info = info
-        if id is None:
+
+        self.computational_objects = (
+            computational_objects if computational_objects is not None else {}
+        )
+        self.computational_params = (
+            computational_params if computational_params is not None else {}
+        )
+        self.info = info if info is not None else {}
+        if _id is None:
             self._id = str(uuid4())
-        self._parent_twin_id = parent_twin_id
+        self.children_ids = children_ids if children_ids is not None else []
         self.canceled = canceled
+        self.reward = reward
+
+    def set_reward(self, reward: float):
+        """Set the value of the reward."""
+        self.reward = reward
+
+    def get_reward(self):
+        """Return the reward associated with self for given reaction info."""
+        return self.reward
 
     def update_info(self, status_key: str, updates: Union[dict, list]):
         """Update the info for the self with updates."""
@@ -84,11 +99,10 @@ class SlabDigitalTwin:
             info = deepcopy(self.info.copy())
         else:
             info = {}
-        return SlabDigitalTwin(
+        return CatalystDigitalTwin(
             computational_objects=deepcopy(self.computational_objects),
             computational_params=deepcopy(self.computational_params),
             info=info,
-            parent_twin_id=self._id,
         )
 
     def return_row(self):
@@ -100,6 +114,11 @@ class SlabDigitalTwin:
             row["id"] = self._id
             row["parent_twin_id"] = self._parent_twin_id
         return row
+
+    def return_slab(self):
+        """Return the slab associated with self."""
+        slab, _ = self.computational_objects["site_placement"]
+        return slab.atoms
 
     def return_adslab_config(
         self, adsorbate: Adsorbate, num_augmentations_per_site: int = 1
@@ -148,8 +167,8 @@ class SlabDigitalTwin:
         return_values = []
         for i, ans in enumerate(answers):
             if i == 0:
-                self.computational_params["answer"] = ans
-                self.computational_objects["answer"] = ans
+                self.computational_params["llm_answer"] = ans
+                self.computational_objects["llm_answer"] = ans
             else:
                 cpy = self.copy()
                 cpy.set_answers([ans])
@@ -214,13 +233,10 @@ class SlabDigitalTwin:
 
         return_values = []
         for i, b in enumerate(bulks):
-            if i == 0:
-                self.computational_params["bulk"] = b.material_id
-                self.computational_objects["bulk"] = b
-            else:
-                cpy = self.copy()
-                cpy.set_bulk([b])
-                return_values.append(cpy)
+            cpy = self.copy()
+            cpy.computational_params["bulk"] = b.material_id
+            cpy.computational_objects["bulk"] = b
+            return_values.append(cpy)
 
         return return_values
 
@@ -229,31 +245,28 @@ class SlabDigitalTwin:
     def set_millers(self, millers: list[tuple[int]]):
         """Set the miller indices given in the list, returning copies if necessary.
 
-        Millers should be passed as a list of tuples of integers with length 3."""
+        Millers should be passed as a list of tuples of integers with length 3. If
+        millers are in Miller-Bravais format, this function will automatically convert
+        to millers."""
         if isinstance(millers, tuple):
             millers = [millers]
 
         return_values = []
-        for i, m in enumerate(millers):
+        for m in millers:
             if len(m) != 3:
                 m = convert_miller_bravais_to_miller(m)
-            if i == 0:
-                self.computational_params["millers"] = m
-                self.computational_objects["millers"] = (
-                    Slab.from_bulk_get_specific_millers(
-                        m,
-                        Bulk(
-                            bulk_atoms=AseAtomsAdaptor().get_atoms(
-                                self.computational_objects["bulk"].structure
-                            )
-                        ),
-                        min_ab=8.0,  # consider reducing this before site placement?
+            cpy = self.copy()
+            cpy.computational_params["millers"] = m
+            cpy.computational_objects["millers"] = Slab.from_bulk_get_specific_millers(
+                m,
+                Bulk(
+                    bulk_atoms=AseAtomsAdaptor().get_atoms(
+                        cpy.computational_objects["bulk"].structure
                     )
-                )
-            else:
-                cpy = self.copy()
-                cpy.set_millers([m])
-                return_values.append(cpy)
+                ),
+                min_ab=8.0,  # TODO: consider reducing this before site placement?
+            )
+            return_values.append(cpy)
         return return_values
 
     def get_surfaces(self):
@@ -268,14 +281,11 @@ class SlabDigitalTwin:
             surfaces = [surfaces]
 
         return_values = []
-        for i, s in enumerate(surfaces):
-            if i == 0:
-                self.computational_params["surface"] = (s.shift, s.top)
-                self.computational_objects["surface"] = s
-            else:
-                cpy = self.copy()
-                cpy.set_surfaces([s])
-                return_values.append(cpy)
+        for s in surfaces:
+            cpy = self.copy()
+            cpy.computational_params["surface"] = (s.shift, s.top)
+            cpy.computational_objects["surface"] = s
+            return_values.append(cpy)
         return return_values
 
     def get_site_placements(self):
@@ -296,17 +306,14 @@ class SlabDigitalTwin:
             binding_sites = [binding_sites]
 
         return_values = []
-        for i, site in enumerate(binding_sites):
-            if i == 0:
-                self.computational_params["site_placement"] = site
-                self.computational_objects["site_placement"] = (
-                    self.computational_objects["surface"],
-                    site,
-                )
-            else:
-                cpy = self.copy()
-                cpy.set_site_placements([site])
-                return_values.append(cpy)
+        for site in binding_sites:
+            cpy = self.copy()
+            cpy.computational_params["site_placement"] = site
+            cpy.computational_objects["site_placement"] = (
+                cpy.computational_objects["surface"],
+                site,
+            )
+            return_values.append(cpy)
         return return_values
 
 

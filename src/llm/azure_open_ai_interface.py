@@ -96,7 +96,7 @@ class AzureOpenaiInterface:
         # Apply defaults to kwargs
         kwargs["temperature"] = kwargs.get("temperature", 0.7)
         kwargs["top_p"] = kwargs.get("top_p", 0.95)
-        kwargs["max_tokens"] = kwargs.get("max_tokens", 800)
+        kwargs["max_tokens"] = kwargs.get("max_tokens", 1600)
 
         if system_prompts is None:
             system_prompts = [None] * len(prompts)
