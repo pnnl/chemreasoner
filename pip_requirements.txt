@@ -1,3 +1,4 @@
+wget
 ase==3.22
 openai
 pyyaml
@@ -7,3 +8,4 @@ redis
 wandb
 tensorboard
 e3nn
+pydot
