@@ -1,6 +1,7 @@
 """Calculate the reward for a set of structures from the microstructure planner."""
 
 import pickle
+import random
 import sys
 
 from pathlib import Path
@@ -11,10 +12,9 @@ from ase import Atoms
 import ase.build as build
 from ase.io import read
 
-from ocdata.core import Adsorbate, AdsorbateSlabConfig
+from ocdata.core import Adsorbate
 
 sys.path.append("src")
-from llm import ase_interface
 from nnp.oc import OCAdsorptionCalculator
 from structure_creation.digital_twin import CatalystDigitalTwin
 
@@ -38,8 +38,10 @@ class AdsorptionEnergyCalculator:
         num_augmentations_per_site: int = 1,
     ):
         """Initialize self, setting the data_dir."""
-        self.data_dir = atomistic_calc.data_dir
+        self.data_dir = atomistic_calc.traj_dir
         self.data_dir.mkdir(parents=True, exist_ok=True)
+
+        self.num_augmentations_per_site = num_augmentations_per_site
 
         self.e_tot_dir = self.data_dir / "e_tot"
         self.e_tot_dir = self.data_dir / "e_slab"
@@ -88,9 +90,7 @@ class AdsorptionEnergyCalculator:
             results[catalyst_name] = {"e_slab": e_slab.get_potential_energy()}
             for j, ads_sym in enumerate(self.adsorbates_syms):
                 e_tot = e_tot_results[i * len(self.adsorbates_syms) + j]
-                results[catalyst_name].update(
-                    {"adsorbate_syms": e_tot.get_potential_energy()}
-                )
+                results[catalyst_name].update({ads_sym: e_tot.get_potential_energy()})
         return results
 
     def gather_total_energy_structures(
@@ -195,3 +195,12 @@ if __name__ == "__main__":
             "steps": 3,
         }
     )
+
+
+class TestStructure:
+    def __init__(self):
+        self.value = random.random()
+
+    def get_potential_energy(self):
+        """Return the value of self."""
+        return self.value

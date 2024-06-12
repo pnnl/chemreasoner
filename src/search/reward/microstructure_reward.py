@@ -5,11 +5,10 @@ import sys
 import time
 
 import numpy as np
-import pandas as pd
 
 sys.path.append("src")
 from nnp.oc import OCAdsorptionCalculator
-from structure_creation.digital_twin import SlabDigitalTwin
+from structure_creation.digital_twin import CatalystDigitalTwin
 from search.reward.adsorption_energy_reward import AdsorptionEnergyCalculator
 
 logging.getLogger().setLevel(logging.INFO)
@@ -29,7 +28,7 @@ class MicrostructureRewardFunction:
             {ads_sym for ads_list in self.reaction_pathways for ads_sym in ads_list}
         )
         self.calc = calc
-        self.num_augmentations_per_site
+        self.num_augmentations_per_site = num_augmentations_per_site
 
         self.ads_e_reward = AdsorptionEnergyCalculator(
             atomistic_calc=self.calc,
@@ -37,15 +36,15 @@ class MicrostructureRewardFunction:
             num_augmentations_per_site=self.num_augmentations_per_site,
         )
 
-    def __call__(self, structures: list[SlabDigitalTwin]):
+    def __call__(self, structures: list[CatalystDigitalTwin]):
         """Call the reward values for the given list of structures."""
         energies = self.ads_e_reward(
             catalyst_structures=structures, catalyst_names=[s._id for s in structures]
         )
         reactant_energies = self._parse_reactant_energies(energies)
-        energy_barriers = self._parse_reactant_energies(energies)
+        energy_barriers = self._parse_energy_barriers(energies)
         final_values = {  # TODO: Do a better calculation for these
-            k: -1 * (reactant_energies[k] + energy_barriers)
+            k: -1 * (reactant_energies[k] + energy_barriers[k]["best"])
             for k in reactant_energies.keys()
         }
         return [final_values[s._id] for s in structures]
@@ -77,7 +76,7 @@ class MicrostructureRewardFunction:
                 ]
                 diffs = np.diff(e).tolist()
                 barriers[catalyst].update({f"pathway_{i}": max(diffs)})
-            barriers[catalyst].update({"best": min(barriers[catalyst.values()])})
+            barriers[catalyst].update({"best": min(barriers[catalyst].values())})
 
         return barriers
 

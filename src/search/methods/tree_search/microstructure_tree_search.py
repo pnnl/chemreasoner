@@ -1,8 +1,7 @@
 import logging
-import random
 import sys
 
-import pydot
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -11,7 +10,9 @@ import numpy as np
 from networkx.drawing.nx_pydot import graphviz_layout
 
 sys.path.append("src")
+from nnp.oc import OCAdsorptionCalculator
 from llm.azure_open_ai_interface import AzureOpenaiInterface
+from search.reward.microstructure_reward import MicrostructureRewardFunction
 from structure_creation.digital_twin import CatalystDigitalTwin
 from structure_creation.microstructure_planner import OCPMicrostructurePlanner
 
@@ -224,14 +225,7 @@ def microstructure_search(
         )
 
     nodes = [tree.nodes[child] for n in nodes for child in tree.get_children(n._id)]
-    # calculate rewards
-    for n in nodes:
-        if n.completed:
-            n.set_reward(random.random())
-        else:
-            print("n is not completed!")
-
-    print(tree.get_node_value(tree.root_id))
+    return nodes
 
 
 def visualize_tree(tree: MicrostructureTree):
@@ -259,14 +253,38 @@ def visualize_tree(tree: MicrostructureTree):
 if __name__ == "__main__":
 
     class TestState:
-        root_prompt = "Propose a catalyst for the adsorption of *CO."
+        root_prompt = "Propose a catalyst for the conversion of CO to methanol."
+
+    pathways = [
+        ["*CO", "*COH", "CHOH", "*CH2OH", "*OHCH3"],
+        ["*CO", "*CHO", "CHOH", "*CH2OH", "*OHCH3"],
+    ]
+    calc = OCAdsorptionCalculator(
+        **{
+            "model": "gemnet-oc-22",
+            "traj_dir": Path("test_trajs"),
+            "batch_size": 1500,
+            "device": "cpu",
+            "ads_tag": 2,
+            "fmax": 0.03,
+            "steps": 1,
+        }
+    )
+    reward_func = MicrostructureRewardFunction(
+        pathways, calc, num_augmentations_per_site=1
+    )
 
     state = TestState()
 
     llm_function = AzureOpenaiInterface(dotenv_path=".env", model="gpt-4")
     ms_planner = OCPMicrostructurePlanner(llm_function=llm_function)
     ms_planner.set_state(state)
-    microstructure_search(tree, ms_planner)
+    nodes = microstructure_search(tree, ms_planner)
+    rewards = reward_func(nodes)
+    for r, n in zip(rewards, nodes):
+        n.set_reward(r)
+
+    print(rewards)
 
     visualize_tree(tree=tree)
     plt.title("**Placeholder values for rewards and catalyst values**")
