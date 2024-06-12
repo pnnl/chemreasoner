@@ -27,3 +27,4 @@ dependencies:
   - tensorboard
   - e3nn
   - numba
+  - wget
