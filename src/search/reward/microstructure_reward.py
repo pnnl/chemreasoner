@@ -77,7 +77,7 @@ class MicrostructureRewardFunction:
                 ]
                 diffs = np.diff(e).tolist()
                 barriers[catalyst].update({f"pathway_{i}": max(diffs)})
-            barriers[catalyst.update({"best": min(barriers[catalyst.values()])})]
+            barriers[catalyst].update({"best": min(barriers[catalyst.values()])})
 
         return barriers
 
