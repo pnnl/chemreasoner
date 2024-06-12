@@ -140,6 +140,8 @@ class CatalystDigitalTwin:
                 adslab_config.interstitial_gap,
             )
         )
+        for ats in adslab_config.atoms_list:
+            force_equal_length_arrays(ats)
         return adslab_config
 
     @property
@@ -341,3 +343,19 @@ def convert_miller_bravais_to_miller(miller_bravais_indices: tuple[int]):
         miller_bravais_indices[1],
         miller_bravais_indices[3],
     )
+
+
+def force_equal_length_arrays(ats: Atoms):
+    """Force the arrays in the atoms object and make sure they are of equa length."""
+    longest_arrays = []
+    longest_arrays_length = 0
+    for k, arr in ats.arrays:
+        if len(arr.shape[0]) == longest_arrays_length:
+            longest_arrays.append(k)
+        elif len(arr.shape[0]) > longest_arrays_length:
+            for old_k in longest_arrays:
+                ats.arrays.pop(old_k)
+            longest_arrays = [k]
+            longest_arrays_length = len(arr.shape[0])
+        else:
+            ats.arrays.pop(k)
