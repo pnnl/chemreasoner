@@ -1,5 +1,6 @@
 """Calculate the reward for a set of structures from the microstructure planner."""
 
+import pickle
 import sys
 
 from pathlib import Path
@@ -7,6 +8,7 @@ from pathlib import Path
 import numpy as np
 
 from ase import Atoms
+import ase.build as build
 from ase.io import read
 
 from ocdata.core import Adsorbate, AdsorbateSlabConfig
@@ -16,8 +18,19 @@ from llm import ase_interface
 from nnp.oc import OCAdsorptionCalculator
 from structure_creation.digital_twin import CatalystDigitalTwin
 
+with open(Path("data", "input_data", "oc", "oc_20_adsorbates.pkl"), "rb") as f:
+    oc_20_ads_structures = pickle.load(f)
+    oc_20_ads_structures = {
+        v[1]: (v[0], v[2:]) for k, v in oc_20_ads_structures.items()
+    }
+
+with open(Path("data", "input_data", "oc") / "nist_adsorbates.pkl", "rb") as f:
+    nist_ads_structures = pickle.load(f)
+
 
 class AdsorptionEnergyCalculator:
+    reference_energy_key = "e_slab"
+
     def __init__(
         self,
         atomistic_calc: OCAdsorptionCalculator,
@@ -38,19 +51,18 @@ class AdsorptionEnergyCalculator:
     def __call__(
         self,
         catalyst_structures: list[CatalystDigitalTwin],
-        adsorbates_syms: list[str],
         catalyst_names: list[str] = None,
     ):
         """Return the adsorption energy reward for the given structures."""
         if catalyst_names is None:
             catalyst_names = list(range(len(catalyst_structures)))
 
-        e_tot_structures, e_tot_names = self.gather_total_structures(
-            catalyst_structures, adsorbates_syms, catalyst_names
+        e_tot_structures, e_tot_names = self.gather_total_energy_structures(
+            catalyst_structures, catalyst_names
         )
 
         e_slab_structures, e_slab_names = (
-            self.gather_slab_structures(  # TODO: Don't re-calculate slab reference energies
+            self.gather_slab_energy_structures(  # TODO: Don't re-calculate slab reference energies
                 catalyst_structures, catalyst_names
             )
         )
@@ -81,8 +93,8 @@ class AdsorptionEnergyCalculator:
                 )
         return results
 
-    def gather_total_energy(
-        self, structures: list[CatalystDigitalTwin], adsorbates_syms: list[str], names
+    def gather_total_energy_structures(
+        self, structures: list[CatalystDigitalTwin], names
     ):
         """Calculate the total energy for the given structures."""
 
@@ -90,8 +102,8 @@ class AdsorptionEnergyCalculator:
         e_tot_names = []
         e_tot_structures = []
         for n, struct in zip(names, structures):
-            for ads_sym in adsorbates_syms:
-                adsorbate_atoms = ase_interface.ads_symbols_to_structure(ads_sym)
+            for ads_sym in self.adsorbates_syms:
+                adsorbate_atoms = self.get_adsorbate_atoms(ads_sym)
                 binding_atoms = adsorbate_atoms.info.get("binding_sites", np.array([0]))
                 adsorbate_object = Adsorbate(
                     adsorbate_atoms, adsorbate_binding_indices=binding_atoms
@@ -109,7 +121,9 @@ class AdsorptionEnergyCalculator:
 
         return e_tot_structures, e_tot_names
 
-    def gather_slab_energy(self, structures: list[CatalystDigitalTwin], names):
+    def gather_slab_energy_structures(
+        self, structures: list[CatalystDigitalTwin], names
+    ):
         """Calculate the slabal energy for the given structures."""
 
         # Do slabal energy calculation
@@ -123,6 +137,50 @@ class AdsorptionEnergyCalculator:
             e_slab_structures.append(slab_structure)
 
         return e_slab_structures, e_slab_names
+
+    @staticmethod
+    def get_adsorbate_atoms(ads_syms: str):
+        """Get the adsorbate atoms associated with the given adsorbates syms."""
+        return ads_symbols_to_structure(ads_syms)
+
+    def adsorbate_reference_energy(self, ads_syms: str):
+        """Get the adsorbate reference energy from the given adsorbate syns."""
+        ats = self.get_adsorbate_atoms(ads_syms=ads_syms)
+        e_ref = 0
+        for n in ats.get_atomic_numbers():
+            e_ref += self.calc.ads_references[n]
+        return e_ref
+
+
+def ads_symbols_to_structure(syms: str):
+    """Turn adsorbate symbols to a list of strings."""
+    if "*" in syms:
+        ats = oc_20_ads_structures[syms][0].copy()
+        ats.info.update({"binding_molecules": oc_20_ads_structures[syms][1][0].copy()})
+
+    elif syms in map(lambda s: s.replace("*", ""), oc_20_ads_structures.keys()):
+        idx = list(
+            map(lambda s: s.replace("*", ""), oc_20_ads_structures.keys())
+        ).index(syms)
+        given_syms = syms
+        syms = list(oc_20_ads_structures.keys())[idx]
+        ats = oc_20_ads_structures[syms][0].copy()
+        ats.info.update({"given_syms": given_syms})
+        ats.info.update(
+            {"binding_molecules": oc_20_ads_structures[syms][1][0].copy()}
+        )  # get binding indices
+    elif syms.lower() == "ethanol":
+        return ads_symbols_to_structure("*OCH2CH3")
+    elif syms.lower() == "methanol":
+        return ads_symbols_to_structure("*OCH3")
+    elif syms.lower() == "methyl":
+        return ads_symbols_to_structure("*CH3")
+    elif syms.lower() in nist_ads_structures.keys():
+        return nist_ads_structures[syms.lower()]
+    else:
+        ats = build.molecule(syms)
+    ats.info.update({"syms": syms})
+    return ats
 
 
 if __name__ == "__main__":
