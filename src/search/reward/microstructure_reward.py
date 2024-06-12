@@ -12,6 +12,8 @@ from nnp.oc import OCAdsorptionCalculator
 from structure_creation.digital_twin import SlabDigitalTwin
 from search.reward.adsorption_energy_reward import AdsorptionEnergyCalculator
 
+logging.getLogger().setLevel(logging.INFO)
+
 
 class MicrostructureRewardFunction:
 
@@ -42,18 +44,22 @@ class MicrostructureRewardFunction:
         )
         reactant_energies = self._parse_reactant_energies(energies)
         energy_barriers = self._parse_reactant_energies(energies)
-        reactant_energies, energy_barriers
+        final_values = {  # TODO: Do a better calculation for these
+            k: -1 * (reactant_energies[k] + energy_barriers)
+            for k in reactant_energies.keys()
+        }
+        return [final_values[s._id] for s in structures]
 
     def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
         """Parse the energies of the reactants for the reaction pathways."""
         symbols = list({p[0] for p in self.reaction_pathways})
+        if len(symbols) > 0:
+            logging.warning(f"Length of reactant symbols is {len(symbols)}, not 1.")
+        syms = symbols[0]
         energies = {
-            k: {
-                syms: v[symbols]
-                - v[self.ads_e_reward.reference_energy_key]
-                - self.ads_e_reward.adsorbate_reference_energy(syms)
-                for syms in symbols
-            }
+            k: v[syms]
+            - v[self.ads_e_reward.reference_energy_key]
+            - self.ads_e_reward.adsorbate_reference_energy(syms)
             for k, v in energy_results.items()
         }
         return energies
