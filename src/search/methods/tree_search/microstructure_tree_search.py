@@ -264,10 +264,10 @@ if __name__ == "__main__":
             "model": "gemnet-oc-22",
             "traj_dir": Path("test_trajs"),
             "batch_size": 1500,
-            "device": "cpu",
+            "device": "cuda",
             "ads_tag": 2,
             "fmax": 0.03,
-            "steps": 1,
+            "steps": 300,
         }
     )
     reward_func = MicrostructureRewardFunction(
