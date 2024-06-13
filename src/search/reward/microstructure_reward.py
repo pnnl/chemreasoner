@@ -52,7 +52,7 @@ class MicrostructureRewardFunction:
     def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
         """Parse the energies of the reactants for the reaction pathways."""
         symbols = list({p[0] for p in self.reaction_pathways})
-        if len(symbols) > 0:
+        if len(symbols) > 1:
             logging.warning(f"Length of reactant symbols is {len(symbols)}, not 1.")
         syms = symbols[0]
         energies = {

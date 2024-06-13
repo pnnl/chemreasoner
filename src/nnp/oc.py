@@ -472,7 +472,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
     @staticmethod
     def prepare_atoms(atoms: Atoms, constraints: bool = True) -> None:
         """Prepare an atoms object for simulation."""
-        if constraints and 8 not in [atom.number for atom in atoms if (atom.tag == 0)]:
+        if constraints and 8 not in [atom.number for atom in atoms if (atom.tag != 2)]:
             cons = FixAtoms(indices=[atom.index for atom in atoms if (atom.tag == 0)])
             atoms.set_constraint(cons)
         atoms.center(vacuum=13.0, axis=2)
