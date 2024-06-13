@@ -28,3 +28,4 @@ dependencies:
   - e3nn
   - numba
   - wget
+  - python-dotenv
