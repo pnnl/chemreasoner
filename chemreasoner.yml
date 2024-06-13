@@ -29,3 +29,4 @@ dependencies:
   - numba
   - wget
   - python-dotenv
+  - pydot

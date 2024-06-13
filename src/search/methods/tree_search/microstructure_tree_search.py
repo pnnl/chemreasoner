@@ -236,7 +236,12 @@ def visualize_tree(tree: MicrostructureTree):
     tree.get_node_value(tree.root_id, storage_dict=node_values)
     print(node_values)
     node_labels = {
-        k: node.computational_params[node.status] for k, node in tree.nodes.items()
+        k: (
+            node.computational_params[node.status]
+            if not isinstance(node.computational_params[node.status], tuple)
+            else simplify_float_values(node.computational_params[node.status])
+        )
+        for k, node in tree.nodes.items()
     }
     T = tree.to_nx()
 
