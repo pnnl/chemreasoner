@@ -255,7 +255,7 @@ def visualize_tree(tree: MicrostructureTree):
         t.set_rotation(45)
 
     nx.draw(T, pos=pos, labels=node_labels, node_color=node_color, with_labels=False)
-    sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    sm = plt.cm.ScalarMappable(norm=plt.Normalize(vmin=vmin, vmax=vmax))
     sm._A = []
     plt.colorbar(sm)
 
