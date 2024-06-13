@@ -246,6 +246,8 @@ def visualize_tree(tree: MicrostructureTree):
     T = tree.to_nx()
 
     node_color = [node_values[n] for n in T.nodes()]
+    vmin = min(node_color)
+    vmax = max(node_color)
     pos = graphviz_layout(T, prog="dot")
     text = nx.draw_networkx_labels(T, pos=pos, labels=node_labels, font_size=8)
 
@@ -253,6 +255,9 @@ def visualize_tree(tree: MicrostructureTree):
         t.set_rotation(45)
 
     nx.draw(T, pos=pos, labels=node_labels, node_color=node_color, with_labels=False)
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+    sm._A = []
+    plt.colorbar(sm)
 
 
 def simplify_float_values(tuple_data: tuple):
@@ -301,7 +306,7 @@ if __name__ == "__main__":
 
     visualize_tree(tree=tree)
     plt.title("**Placeholder values for rewards and catalyst values**")
-    plt.colorbar()
+
     plt.gcf().set_size_inches(18.5, 10.5)
     plt.savefig("test_tree.png", dpi=300)
     plt.show()
