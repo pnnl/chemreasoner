@@ -87,14 +87,12 @@ class AdsorptionEnergyCalculator:
         results = {}
         for i, e_slab in enumerate(e_slab_results):
             catalyst_name = catalyst_names[i]
-            results[catalyst_name] = {"e_slab": e_slab.get_potential_energy()}
-            print(e_slab)
-            print(e_slab.get_potential_energy())
+            results[catalyst_name] = {"e_slab": e_slab.get_potential_energy()[0]}
             for j, ads_sym in enumerate(self.adsorbates_syms):
                 e_tot = e_tot_results[i * len(self.adsorbates_syms) + j]
-                print(e_tot)
-                print(e_tot.get_potential_energy())
-                results[catalyst_name].update({ads_sym: e_tot.get_potential_energy()})
+                results[catalyst_name].update(
+                    {ads_sym: e_tot.get_potential_energy()[0]}
+                )
         return results
 
     def gather_total_energy_structures(
