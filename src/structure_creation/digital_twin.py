@@ -350,12 +350,12 @@ def force_equal_length_arrays(ats: Atoms):
     longest_arrays = []
     longest_arrays_length = 0
     for k, arr in ats.arrays.items():
-        if len(arr.shape[0]) == longest_arrays_length:
+        if arr.shape[0] == longest_arrays_length:
             longest_arrays.append(k)
-        elif len(arr.shape[0]) > longest_arrays_length:
+        elif arr.shape[0] > longest_arrays_length:
             for old_k in longest_arrays:
                 ats.arrays.pop(old_k)
             longest_arrays = [k]
-            longest_arrays_length = len(arr.shape[0])
+            longest_arrays_length = arr.shape[0]
         else:
             ats.arrays.pop(k)
