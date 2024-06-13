@@ -349,7 +349,7 @@ def force_equal_length_arrays(ats: Atoms):
     """Force the arrays in the atoms object and make sure they are of equa length."""
     longest_arrays = []
     longest_arrays_length = 0
-    for k, arr in ats.arrays:
+    for k, arr in ats.arrays.items():
         if len(arr.shape[0]) == longest_arrays_length:
             longest_arrays.append(k)
         elif len(arr.shape[0]) > longest_arrays_length:
