@@ -257,7 +257,11 @@ def visualize_tree(tree: MicrostructureTree):
     nx.draw(T, pos=pos, labels=node_labels, node_color=node_color, with_labels=False)
     sm = plt.cm.ScalarMappable(norm=plt.Normalize(vmin=vmin, vmax=vmax))
     sm._A = []
-    plt.colorbar(sm)
+    ax = plt.gca()
+    plt.colorbar(
+        sm,
+        cax=ax.inset_axes([0.95, 0.1, 0.05, 0.8]),
+    )
 
 
 def simplify_float_values(tuple_data: tuple):
