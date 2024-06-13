@@ -301,6 +301,7 @@ if __name__ == "__main__":
 
     visualize_tree(tree=tree)
     plt.title("**Placeholder values for rewards and catalyst values**")
+    plt.colorbar()
     plt.gcf().set_size_inches(18.5, 10.5)
     plt.savefig("test_tree.png", dpi=300)
     plt.show()
