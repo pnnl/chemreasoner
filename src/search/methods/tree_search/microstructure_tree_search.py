@@ -289,7 +289,7 @@ if __name__ == "__main__":
             "device": "cuda",
             "ads_tag": 2,
             "fmax": 0.03,
-            "steps": 3,
+            "steps": 300,
         }
     )
     reward_func = MicrostructureRewardFunction(
