@@ -278,8 +278,8 @@ if __name__ == "__main__":
         root_prompt = "Propose a catalyst for the conversion of CO to methanol."
 
     pathways = [
-        ["*CO", "*COH", "CHOH", "*CH2OH", "*OHCH3"],
-        ["*CO", "*CHO", "CHOH", "*CH2OH", "*OHCH3"],
+        ["*CO", "*COH", "*CHOH", "*CH2OH", "*OHCH3"],
+        ["*CO", "*CHO", "*CHOH", "*CH2OH", "*OHCH3"],
     ]
     calc = OCAdsorptionCalculator(
         **{

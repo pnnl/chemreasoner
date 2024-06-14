@@ -87,7 +87,11 @@ class AdsorptionEnergyCalculator:
         results = {}
         for i, e_slab in enumerate(e_slab_results):
             catalyst_name = catalyst_names[i]
-            results[catalyst_name] = {"e_slab": e_slab.get_potential_energy()[0]}
+            # store the slab reference energy
+            results[catalyst_name] = {
+                self.reference_energy_key: e_slab.get_potential_energy()[0]
+            }
+            # store each catalyst energy
             for j, ads_sym in enumerate(self.adsorbates_syms):
                 e_tot = e_tot_results[i * len(self.adsorbates_syms) + j]
                 results[catalyst_name].update(
@@ -172,9 +176,9 @@ def ads_symbols_to_structure(syms: str):
             {"binding_molecules": oc_20_ads_structures[syms][1][0].copy()}
         )  # get binding indices
     elif syms.lower() == "ethanol":
-        return ads_symbols_to_structure("*OCH2CH3")
+        return ads_symbols_to_structure("*OHCH2CH3")
     elif syms.lower() == "methanol":
-        return ads_symbols_to_structure("*OCH3")
+        return ads_symbols_to_structure("*OHCH3")
     elif syms.lower() == "methyl":
         return ads_symbols_to_structure("*CH3")
     elif syms.lower() in nist_ads_structures.keys():

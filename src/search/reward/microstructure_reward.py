@@ -56,10 +56,10 @@ class MicrostructureRewardFunction:
             logging.warning(f"Length of reactant symbols is {len(symbols)}, not 1.")
         syms = symbols[0]
         energies = {
-            k: v[syms]
-            - v[self.ads_e_reward.reference_energy_key]
+            catalyst: catalyst_results[syms]
+            - catalyst_results[self.ads_e_reward.reference_energy_key]
             - self.ads_e_reward.adsorbate_reference_energy(syms)
-            for k, v in energy_results.items()
+            for catalyst, catalyst_results in energy_results.items()
         }
         return energies
 
