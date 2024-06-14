@@ -93,13 +93,23 @@ class AdsorptionEnergyCalculator:
             catalyst_name = catalyst_names[i]
             # store the slab reference energy
             results[catalyst_name] = {
-                self.reference_energy_key: e_slab.get_potential_energy()[0]
+                self.reference_energy_key: (
+                    e_slab.get_potential_energy()
+                    if not isinstance(e_slab.get_potential_energy()[0], list)
+                    else e_slab.get_potential_energy()
+                )
             }
             # store each catalyst energy
             for j, ads_sym in enumerate(self.adsorbates_syms):
                 e_tot = e_tot_results[i * len(self.adsorbates_syms) + j]
                 results[catalyst_name].update(
-                    {ads_sym: e_tot.get_potential_energy()[0]}
+                    {
+                        ads_sym: (
+                            e_tot.get_potential_energy()
+                            if not isinstance(e_tot.get_potential_energy()[0], list)
+                            else e_tot.get_potential_energy()
+                        )
+                    }
                 )
         return results
 
