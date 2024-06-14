@@ -285,7 +285,7 @@ if __name__ == "__main__":
         **{
             "model": "gemnet-oc-22",
             "traj_dir": Path("test_trajs"),
-            "batch_size": 45,
+            "batch_size": 64,
             "device": "cuda",
             "ads_tag": 2,
             "fmax": 0.03,

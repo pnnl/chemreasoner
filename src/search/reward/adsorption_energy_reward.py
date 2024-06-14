@@ -1,5 +1,6 @@
 """Calculate the reward for a set of structures from the microstructure planner."""
 
+import json
 import pickle
 import random
 import sys
@@ -78,6 +79,9 @@ class AdsorptionEnergyCalculator:
         results = self._unpack_results(
             relaxed_atoms, catalyst_names, len_e_slab=len(e_slab_names)
         )
+        print(results)
+        with open("test_gnn_results.json", "w") as f:
+            json.dump(results, f)
         return results
 
     def _unpack_results(self, relaxed_atoms, catalyst_names, len_e_slab):
@@ -204,8 +208,8 @@ if __name__ == "__main__":
 
 
 class TestStructure:
-    def __init__(self):
-        self.value = random.random()
+    def __init__(self, value=None):
+        self.value = [random.random()] if value is None else [value]
 
     def get_potential_energy(self):
         """Return the value of self."""

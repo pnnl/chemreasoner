@@ -44,8 +44,7 @@ class MicrostructureRewardFunction:
         reactant_energies = self._parse_reactant_energies(energies)
         energy_barriers = self._parse_energy_barriers(energies)
         final_values = {  # TODO: Do a better calculation for these
-            k: -1 * (reactant_energies[k] + energy_barriers[k]["best"])
-            for k in reactant_energies.keys()
+            k: -1 * (0 + energy_barriers[k]["best"]) for k in reactant_energies.keys()
         }
         return [final_values[s._id] for s in structures]
 
