@@ -96,7 +96,7 @@ class AdsorptionEnergyCalculator:
                 key = Path(atoms_name).stem.split("_")[-1]
                 value = (
                     relaxed_atom.get_potential_energy()
-                    if not isinstance(relaxed_atom.get_potential_energy()[0], list)
+                    if not isinstance(relaxed_atom.get_potential_energy(), list)
                     else relaxed_atom.get_potential_energy()[0]
                 )
 
