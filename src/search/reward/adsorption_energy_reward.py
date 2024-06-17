@@ -84,33 +84,51 @@ class AdsorptionEnergyCalculator:
             json.dump(results, f)
         return results
 
-    def _unpack_results(self, relaxed_atoms, catalyst_names, len_e_slab):
+    def _unpack_results(self, relaxed_atoms, atoms_names, catalyst_names):
         """Unpack the results of the relaxation."""
-        e_tot_results = relaxed_atoms[:-len_e_slab]
-        e_slab_results = relaxed_atoms[-len_e_slab:]
         results = {}
-        for i, e_slab in enumerate(e_slab_results):
-            catalyst_name = catalyst_names[i]
-            # store the slab reference energy
-            results[catalyst_name] = {
-                self.reference_energy_key: (
-                    e_slab.get_potential_energy()
-                    if not isinstance(e_slab.get_potential_energy()[0], list)
-                    else e_slab.get_potential_energy()[0]
+        for catalyst_name in catalyst_names:
+            indices = [
+                i for i in range(atoms_names) if catalyst_name in atoms_names[i]
+            ]  # Should be fine for uuid catalyst names
+            atoms_names = [atoms_names[i] for i in indices]
+            relaxed_atoms = [relaxed_atoms[i] for i in indices]
+            results[catalyst_name] = {}
+            for atoms_name, relaxed_atom in zip(atoms_names, relaxed_atoms):
+                key = Path(atoms_name).stem.split("_")[-1]
+                value = (
+                    relaxed_atom.get_potential_energy()
+                    if not isinstance(relaxed_atom.get_potential_energy()[0], list)
+                    else relaxed_atom.get_potential_energy()[0]
                 )
-            }
-            # store each catalyst energy
-            for j, ads_sym in enumerate(self.adsorbates_syms):
-                e_tot = e_tot_results[i * len(self.adsorbates_syms) + j]
-                results[catalyst_name].update(
-                    {
-                        ads_sym: (
-                            e_tot.get_potential_energy()
-                            if not isinstance(e_tot.get_potential_energy()[0], list)
-                            else e_tot.get_potential_energy()[0]
-                        )
-                    }
-                )
+
+                results[catalyst_name].update({key: value})
+
+        # e_tot_results = relaxed_atoms[:-len_e_slab]
+        # e_slab_results = relaxed_atoms[-len_e_slab:]
+        # results = {}
+        # for i, e_slab in enumerate(e_slab_results):
+        #     catalyst_name = catalyst_names[i]
+        #     # store the slab reference energy
+        #     results[catalyst_name] = {
+        #         self.reference_energy_key: (
+        #             e_slab.get_potential_energy()
+        #             if not isinstance(e_slab.get_potential_energy()[0], list)
+        #             else e_slab.get_potential_energy()[0]
+        #         )
+        #     }
+        #     # store each catalyst energy
+        #     for j, ads_sym in enumerate(self.adsorbates_syms):
+        #         e_tot = e_tot_results[i * len(self.adsorbates_syms) + j]
+        #         results[catalyst_name].update(
+        #             {
+        #                 ads_sym: (
+        #                     e_tot.get_potential_energy()
+        #                     if not isinstance(e_tot.get_potential_energy()[0], list)
+        #                     else e_tot.get_potential_energy()[0]
+        #                 )
+        #             }
+        #         )
         return results
 
     def gather_total_energy_structures(
