@@ -89,17 +89,17 @@ class AdsorptionEnergyCalculator:
             indices = [
                 i for i in range(len(atoms_names)) if catalyst_name in atoms_names[i]
             ]  # Should be fine for uuid catalyst names
-            atoms_names = [atoms_names[i] for i in indices]
-            relaxed_atoms = [relaxed_atoms[i] for i in indices]
+            names = [atoms_names[i] for i in indices]
+            structures = [relaxed_atoms[i] for i in indices]
             results[catalyst_name] = {}
-            for atoms_name, relaxed_atom in zip(atoms_names, relaxed_atoms):
-                key = Path(atoms_name).stem.split("_")[-1]
+            for name, structure in zip(names, structures):
+                key = Path(name).stem.split("_")[-1]
                 key = "e_slab" if key == "slab" else key
                 print(key)
                 value = (
-                    relaxed_atom.get_potential_energy()
-                    if not isinstance(relaxed_atom.get_potential_energy(), list)
-                    else relaxed_atom.get_potential_energy()[0]
+                    structure.get_potential_energy()
+                    if not isinstance(structure.get_potential_energy(), list)
+                    else structure.get_potential_energy()[0]
                 )
 
                 results[catalyst_name].update({key: value})
