@@ -76,9 +76,7 @@ class AdsorptionEnergyCalculator:
         relaxed_atoms = self.calc.batched_relax_atoms(
             atoms=all_structures, atoms_names=all_names
         )
-        results = self._unpack_results(
-            relaxed_atoms, catalyst_names, len_e_slab=len(e_slab_names)
-        )
+        results = self._unpack_results(relaxed_atoms, all_names, catalyst_names)
         print(results)
         with open("test_gnn_results.json", "w") as f:
             json.dump(results, f)
