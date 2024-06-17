@@ -94,6 +94,7 @@ class AdsorptionEnergyCalculator:
             results[catalyst_name] = {}
             for atoms_name, relaxed_atom in zip(atoms_names, relaxed_atoms):
                 key = Path(atoms_name).stem.split("_")[-1]
+                key = "e_slab" if key == "slab" else key
                 value = (
                     relaxed_atom.get_potential_energy()
                     if not isinstance(relaxed_atom.get_potential_energy(), list)
