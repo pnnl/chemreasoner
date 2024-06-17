@@ -87,7 +87,7 @@ class AdsorptionEnergyCalculator:
         results = {}
         for catalyst_name in catalyst_names:
             indices = [
-                i for i in range(atoms_names) if catalyst_name in atoms_names[i]
+                i for i in range(len(atoms_names)) if catalyst_name in atoms_names[i]
             ]  # Should be fine for uuid catalyst names
             atoms_names = [atoms_names[i] for i in indices]
             relaxed_atoms = [relaxed_atoms[i] for i in indices]
