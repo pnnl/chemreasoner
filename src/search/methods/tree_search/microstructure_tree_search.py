@@ -212,7 +212,7 @@ def microstructure_search(
     # get the nodes
     nodes = [tree.nodes[child] for n in nodes for child in tree.get_children(n._id)]
     site_placement_choices = [
-        n.get_site_placements()[:10] for n in nodes
+        n.get_site_placements()[:3] for n in nodes
     ]  # ms_planner.run_site_placement_prompt(nodes)
     print(site_placement_choices)
     for i in range(len(nodes)):

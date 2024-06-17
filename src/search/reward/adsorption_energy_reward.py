@@ -96,7 +96,7 @@ class AdsorptionEnergyCalculator:
                 self.reference_energy_key: (
                     e_slab.get_potential_energy()
                     if not isinstance(e_slab.get_potential_energy()[0], list)
-                    else e_slab.get_potential_energy()
+                    else e_slab.get_potential_energy()[0]
                 )
             }
             # store each catalyst energy
@@ -107,7 +107,7 @@ class AdsorptionEnergyCalculator:
                         ads_sym: (
                             e_tot.get_potential_energy()
                             if not isinstance(e_tot.get_potential_energy()[0], list)
-                            else e_tot.get_potential_energy()
+                            else e_tot.get_potential_energy()[0]
                         )
                     }
                 )
