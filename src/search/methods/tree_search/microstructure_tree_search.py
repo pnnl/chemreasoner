@@ -183,25 +183,15 @@ def microstructure_search(
     print(millers_choices)
     for i in range(len(nodes)):
         parent_node = nodes[i]
-        print(parent_node._id)
-        print(len(tree.get_children(parent_node._id)))
         these_millers = millers_choices[i]
-        print(i)
-        print(these_millers)
         # Generate child nodes and put them in the tree
         tree.set_children(parent_node._id, parent_node.set_millers(these_millers))
-        print(len(parent_node.children_ids))
 
     # set the surface
-    print(len(nodes))
     nodes = [tree.nodes[child] for n in nodes for child in tree.get_children(n._id)]
-    print(len(nodes))
-    for n in nodes:
-        print(list(n.computational_objects.keys()))
     surface_choices = [
         n.get_surfaces()[:1] for n in nodes
     ]  # ms_planner.run_millers_prompt(nodes)
-    print(surface_choices)
     for i in range(len(nodes)):
         parent_node = nodes[i]
 
@@ -214,7 +204,6 @@ def microstructure_search(
     site_placement_choices = [
         n.get_site_placements()[:3] for n in nodes
     ]  # ms_planner.run_site_placement_prompt(nodes)
-    print(site_placement_choices)
     for i in range(len(nodes)):
         parent_node = nodes[i]
 

@@ -45,7 +45,7 @@ print(oc_20_ads_structures["*CO"])
 prompts = {
     "bulk": {
         "prompt": (
-            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the following list of materials. \nReturn the index of the material that would be best suited for answering the $ROOT_PROMPT.\n\n{bulks_summaries}\nReturn your answer as a python list called 'final_answer' of your top {num_choices} choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
+            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the following list of materials. \nReturn the index of the material that would be best suited for answering the $ROOT_PROMPT.\n\n{bulks_summaries}\nReturn your answer as a python list called 'final_answer' of your top {num_choices} choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers. Remember to return a python list called final answer!"
         ),
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and can make accurate recommendations about bulk material structures based on their crystal structure and composition. You will consider factors such as catalytic performance and synthesizability in your analysis."
@@ -53,21 +53,21 @@ prompts = {
     },
     "millers": {
         "prompt": (
-            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material}. \nReturn a list of miller indices that would answer the $ROOT_PROMPT. You miller indices should be consistent with the information in $ANSWER\n\n\nReturn your answer as a python list called 'final_answer' of your top {num_choices} miller indices. Your miller indices should be python 3-tuples. Let's think step-by-step and provide justifications for your answers."
+            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material}. \nReturn a list of miller indices that would answer the $ROOT_PROMPT. You miller indices should be consistent with the information in $ANSWER\n\n\nReturn your answer as a python list called 'final_answer' of your top {num_choices} miller indices. Your miller indices should be python 3-tuples. Let's think step-by-step and provide justifications for your answers. Remember to return a python list called final answer!"
         ),
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about surface composition based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
         ),
     },
     "surface": {
-        r"prompt": "$ROOT_PROMPT = {root_prompt}\n\nConsider the material {material} with miller index {millers}. Return the index of the following surfaces which has the best configuration for accomplishing the $ROOT_PROMPT. You should target surfaces with binding sites that are consisten with the $ANSWER given above.\n\n{cell_shift_summaries}\n\nReturn your answer as a python list called 'final_answer' of your top {num_choices} choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers.",
+        r"prompt": "$ROOT_PROMPT = {root_prompt}\n\nConsider the material {material} with miller index {millers}. Return the index of the following surfaces which has the best configuration for accomplishing the $ROOT_PROMPT. You should target surfaces with binding sites that are consisten with the $ANSWER given above.\n\n{cell_shift_summaries}\n\nReturn your answer as a python list called 'final_answer' of your top {num_choices} choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers. Remember to return a python list called final answer!",
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about miller indices based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
         ),
     },
     "site_placement": {
         "prompt": (
-            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material} with miller index {millers}. Return the indices of the atomic environment of the best adsorbate placement sites.\n\n{atomic_environments}\nReturn your answer as a python list called 'final_answer' of your top {num_choices} choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers."
+            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material} with miller index {millers}. Return the indices of the atomic environment of the best adsorbate placement sites.\n\n{atomic_environments}\nReturn your answer as a python list called 'final_answer' of your top {num_choices} choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers. Remember to return a python list called final answer!"
         ),
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about adsorbate binding sites based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
