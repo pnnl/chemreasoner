@@ -50,25 +50,55 @@ class MicrostructureTree:
         return r / n
 
     def get_downstream_rewards_and_leaf_nodes(
-        self, node_id, reward_agg_func=sum, storage_dict: dict = None
+        self,
+        node_id,
+        reward_agg_func=sum,
+        storage_dict: dict = None,
+        uncertainty: bool = False,
     ):
         """Get the downstream rewards and leaf nodes of node_id returning as tuple."""
         node = self.nodes[node_id]
 
         if node.get_reward() is not None:
-            return_value = (node.get_reward(), 1)
+            if not uncertainty:
+                return_value = (node.get_reward(), 1)
+            else:
+                return_value = (node.get_reward(), 1, node.get_uncertainty())
 
         elif node.get_reward() is None and len(self.get_children(node_id)) > 0:
 
-            rewards, children = zip(
-                *[
-                    self.get_downstream_rewards_and_leaf_nodes(
-                        _id, reward_agg_func=reward_agg_func, storage_dict=storage_dict
-                    )
-                    for _id in node.children_ids
-                ]
-            )
-            return_value = (reward_agg_func(rewards), sum(children))
+            if not uncertainty:
+                rewards, children = zip(
+                    *[
+                        self.get_downstream_rewards_and_leaf_nodes(
+                            _id,
+                            reward_agg_func=reward_agg_func,
+                            storage_dict=storage_dict,
+                            uncertainty=uncertainty,
+                        )
+                        for _id in node.children_ids
+                    ]
+                )
+                return_value = (reward_agg_func(rewards), sum(children))
+            else:
+                rewards, children, uq = zip(
+                    *[
+                        self.get_downstream_rewards_and_leaf_nodes(
+                            _id,
+                            reward_agg_func=reward_agg_func,
+                            storage_dict=storage_dict,
+                            uncertainty=uncertainty,
+                        )
+                        for _id in node.children_ids
+                    ]
+                )
+                return_value = (
+                    reward_agg_func(rewards),
+                    sum(children),
+                    uncertainty_propogation_function(
+                        uq
+                    ),  # TODO: Square root of sum of squares?
+                )
         else:
             logging.warning(f"No simulations have been run for leaf node {node_id}.")
             return_value = None
@@ -217,6 +247,26 @@ def microstructure_search(
     return nodes
 
 
+def microstructure_finetune_selection(
+    tree: MicrostructureTree,
+    microstructure_planner: OCPMicrostructurePlanner,
+    top_k: int,
+    percentile_reward=0.75,
+):
+    """Run the search logic for the given tree."""
+    root_id = tree.root_id
+    leaf_nodes = tree.get_leaf_nodes(root_id)
+    percentile_r = np.percentile(
+        [n.get_reward() for n in leaf_nodes], 1 - percentile_reward
+    )
+    leaf_nodes = ([n for n in leaf_nodes if n.get_reward() > percentile_r],)
+
+    best_nodes = sorted(
+        [n for n in leaf_nodes], key=lambda n: n.get_reward() * n.get_uncertainty()
+    )[:-top_k]
+    return best_nodes
+
+
 def visualize_tree(tree: MicrostructureTree):
     """Visualize the given microstructure tree.
 
@@ -284,6 +334,7 @@ if __name__ == "__main__":
     reward_func = MicrostructureRewardFunction(
         pathways, calc, num_augmentations_per_site=1
     )
+    # uq_func = UQfunc()
 
     state = TestState()
 
@@ -292,8 +343,10 @@ if __name__ == "__main__":
     ms_planner.set_state(state)
     nodes = microstructure_search(tree, ms_planner)
     rewards = reward_func(nodes)
+    # uq = ruq_func(nodes)
     for r, n in zip(rewards, nodes):
         n.set_reward(r)
+        # n.set_uncertainty(u)
 
     print(rewards)
 
