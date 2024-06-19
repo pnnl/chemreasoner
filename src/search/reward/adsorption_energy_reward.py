@@ -11,7 +11,7 @@ import numpy as np
 
 from ase import Atoms
 import ase.build as build
-from ase.io import read
+from ase.io import read, Trajectory
 
 from ocdata.core import Adsorbate
 
@@ -73,21 +73,41 @@ class AdsorptionEnergyCalculator:
         all_structures = e_tot_structures + e_slab_structures
         all_names = e_tot_names + e_slab_names
 
-        relaxed_atoms = self.calc.batched_relax_atoms(
-            atoms=all_structures, atoms_names=all_names
-        )
+        # split into completed and incompleted calculations
+        complete_names, complete_structures = [], []
+        incomplete_names, incomplete_structures = [], []
+        for structure, n in (all_structures, all_names):
+            if self.check_complete(n):
+                complete_names.append(n)
+                complete_structures.append(self.fetch_complete_structure(n))
+            else:
+                incomplete_names.append(n)
+                incomplete_structures.append(structure)
 
-        print(
-            "****************\n" * 5 + "RUNNING AGAIN" * 10 + "****************\n" * 5
-        )
         relaxed_atoms = self.calc.batched_relax_atoms(
-            atoms=all_structures, atoms_names=all_names
+            atoms=incomplete_structures, atoms_names=incomplete_names
         )
-        results = self._unpack_results(relaxed_atoms, all_names, catalyst_names)
+        # Re-Combine complete/incomplete lists
+        all_names = complete_names + incomplete_names
+        all_structures = complete_structures + relaxed_atoms
+
+        results = self._unpack_results(all_structures, all_names, catalyst_names)
         print(results)
         with open("test_gnn_results.json", "w") as f:
             json.dump(results, f)
         return results
+
+    def check_complete(self, atoms_name):
+        """Fetch the trajectory associated with the given atoms_names."""
+        return (
+            self.data_dir / (atoms_name + ".traj").exists()
+        )  # TODO: Put trajectories in db and change this code
+
+    def fetch_complete_structure(self, atoms_name):
+        """Fetch the trajectory associated with the given atoms_names."""
+        return Trajectory(str(self.data_dir / (atoms_name + ".traj")))[
+            -1
+        ]  # TODO: Put trajectories in db and change this code
 
     def _unpack_results(self, relaxed_atoms, atoms_names, catalyst_names):
         """Unpack the results of the relaxation."""

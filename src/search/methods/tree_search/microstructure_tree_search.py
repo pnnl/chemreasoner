@@ -194,7 +194,7 @@ def microstructure_search(
     children = tree.get_children(root_id)
     if len(children) == 0:
         nodes = [tree.nodes[root_id]]
-        bulks_idxs = [[0, 1]] * len(nodes)  # ms_planner.run_bulk_prompt(nodes)
+        bulks_idxs = [[0, 2]] * len(nodes)  # ms_planner.run_bulk_prompt(nodes)
         for i in range(len(nodes)):
             parent_node = nodes[i]
 
