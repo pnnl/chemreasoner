@@ -73,7 +73,7 @@ class AdsorptionEnergyCalculator:
         all_structures = e_tot_structures + e_slab_structures
         all_names = e_tot_names + e_slab_names
 
-        # split into completed and incompleted calculations
+        # split into completed and incompleted calculations to avoid repeat work
         complete_names, complete_structures = [], []
         incomplete_names, incomplete_structures = [], []
         for structure, n in (all_structures, all_names):
