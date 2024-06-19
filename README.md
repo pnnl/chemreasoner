@@ -7,15 +7,25 @@ Installation assumes cuda version 12.0
 
 mamba env create -f chemreasoner.yml
 conda activate chemreasoner
+
 git clone https://github.com/pnnl/chemreasoner.git
+
 cd chemreasoner
+
 git submodule update --init --recursive
+
 cd ext/ocp/
+
 pip install -e .
+
 vi configs/oc22/s2ef/gemnet-oc/gemnet_oc_oc20_oc22_degen_edges.yml
+
 Modify the path in the second line to read ext/ocp/configs/oc22/s2ef/base_joint.yml
+
 cd ../Open-Catalyst-Dataset
+
 pip install -e .
+
 cd ../..
 
 To test the installation:
