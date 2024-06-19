@@ -6,6 +6,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+import pandas as pd
 
 from networkx.drawing.nx_pydot import graphviz_layout
 
@@ -175,6 +176,62 @@ class MicrostructureTree:
         G = nx.DiGraph()
         G.add_edges_from(edges)
         return G
+
+    def store_data(self) -> tuple[pd.DataFrame, list[tuple[str, str]]]:
+        """Save the data stored in self."""
+        node_data = []
+        edge_data = []
+        for n_id, n in self.nodes.items():
+            node_data.append(n.return_row())
+            edge_data += [(n_id, c) for c in n.children_ids]
+
+        return pd.DataFrame(node_data), edge_data
+
+    @classmethod
+    def from_data(
+        cls,
+        node_data: pd.DataFrame,
+        edge_data: list[tuple[str, str]],
+        node_constructor=CatalystDigitalTwin.from_row,
+    ) -> "MicrostructureTree":
+        """Return a microstructure tree from the given data."""
+        edge_data = edge_data.copy()
+        node_dict = {}
+        edge_dict = {}
+        for i, row in node_data.iterrows():
+            node = node_constructor(row)
+            node_dict[node._id] = node
+
+            j = 0
+            edge_dict[node._id] = []
+            root_node = True
+            while j < len(edge_data):
+                e = edge_data[j]
+                if e[1] == node._id:  # Check if this isn't the root node
+                    root_node = False
+
+                if e[0] == node._id:  # Check if this node is a parent to this edge
+                    edge_dict[node._id].append(e[1])
+                    edge_data.pop(j)
+                else:
+                    j += 1
+
+            if root_node:
+                root_id = node._id
+
+        tree = cls(root_node=node_dict[root_id])
+
+        # Add the children. Must be in order from root node so parent node is
+        # already in the tree.
+        def _recursive_add_children(tree, node_id):
+            children = [node_dict[c_id] for c_id in edge_dict[node_id]]
+            tree.add_children(node_id, children)
+            for c_id in edge_dict[node_id]:
+                _recursive_add_children(tree, c_id)
+
+        _recursive_add_children(tree, root_id)
+
+        return tree
 
 
 dt = CatalystDigitalTwin()

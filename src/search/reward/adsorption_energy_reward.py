@@ -121,8 +121,7 @@ class AdsorptionEnergyCalculator:
             results[catalyst_name] = {}
             for name, structure in zip(names, structures):
                 key = Path(name).stem.split("_")[-1]
-                key = "e_slab" if key == "slab" else key
-                print(key)
+                key = "e_slab" if key == "slab" else key  # e_slab key has _ in it
                 value = (
                     structure.get_potential_energy()
                     if not isinstance(structure.get_potential_energy(), list)

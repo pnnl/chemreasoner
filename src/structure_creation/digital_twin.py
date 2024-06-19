@@ -105,6 +105,18 @@ class CatalystDigitalTwin:
             info=info,
         )
 
+    @classmethod
+    def from_row(cls, row_data):
+        """Return CatalystDigitalTwin from the given row data."""
+        start_dt = cls()
+        dt = start_dt
+        for k in start_dt.available_statuses:
+            if row_data[k] is not None:
+                method = getattr(dt, f"set_{k}s", default=getattr(f"set_{k}"))
+                dt = method([row_data[k]])[0]
+        dt._id = row_data["id"]
+        return dt
+
     def return_row(self):
         """Return the data stored within the digital twin."""
         if not self.completed:
@@ -112,7 +124,7 @@ class CatalystDigitalTwin:
         else:
             row = deepcopy(self.computational_params)
             row["id"] = self._id
-            row["parent_twin_id"] = self._parent_twin_id
+            row.update({k: None for k in self.available_statuses if k not in row})
         return row
 
     def return_slab(self):
@@ -162,19 +174,16 @@ class CatalystDigitalTwin:
         """Return whether creation is completed."""
         return self.status == self.available_statuses[-1]
 
-    def set_answers(self, answers: list[str]):
+    def set_llm_aswers(self, answers: list[str]):
         """Set the answer for self, returning additional copies if needed."""
         if isinstance(answers, str):
             answers = [answers]
         return_values = []
         for i, ans in enumerate(answers):
-            if i == 0:
-                self.computational_params["llm_answer"] = ans
-                self.computational_objects["llm_answer"] = ans
-            else:
-                cpy = self.copy()
-                cpy.set_answers([ans])
-                return_values.append(cpy)
+            cpy = self.copy()
+            self.computational_params["llm_answer"] = ans
+            self.computational_objects["llm_answer"] = ans
+            return_values.append(cpy)
         return return_values
 
     def set_symbols(self, symbols: list[list[str]]):
@@ -183,13 +192,10 @@ class CatalystDigitalTwin:
             symbols = [symbols]
         return_values = []
         for i, syms in enumerate(symbols):
-            if i == 0:
-                self.computational_params["symbols"] = syms
-                self.computational_objects["symbols"] = syms
-            else:
-                cpy = self.copy()
-                cpy.set_symbols([syms])
-                return_values.append(cpy)
+            cpy = self.copy()
+            self.computational_params["symbols"] = syms
+            self.computational_objects["symbols"] = syms
+            return_values.append(cpy)
         return return_values
 
     def get_bulks(self, filter_theoretical=False):
