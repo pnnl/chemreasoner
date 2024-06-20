@@ -115,7 +115,7 @@ class CatalystDigitalTwin:
             print(k)
             print(row_data[k])
             if row_data[k] is not None and not (
-                isinstance(row_data[k], float) and not math.isnan(row_data[k])
+                isinstance(row_data[k], float) and math.isnan(row_data[k])
             ):
 
                 method = getattr(dt, f"set_{k}s", None)
