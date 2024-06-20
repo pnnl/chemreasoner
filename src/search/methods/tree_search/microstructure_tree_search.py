@@ -211,7 +211,6 @@ class MicrostructureTree:
             root_node = True
             while j < len(edge_data):
                 e = edge_data[j]
-                print(e)
                 if e[1] == node._id:  # Check if this isn't the root node
                     root_node = False
 
@@ -223,13 +222,13 @@ class MicrostructureTree:
 
             if root_node:
                 root_id = node._id
-        print(node_dict)
         tree = cls(root_node=node_dict[root_id])
 
         # Add the children. Must be in order from root node so parent node is
         # already in the tree.
         def _recursive_add_children(tree, node_id):
             children = [node_dict[c_id] for c_id in edge_dict[node_id]]
+            print(edge_dict[node_id])
             print(children)
             tree.set_children(node_id, children)
             for c_id in edge_dict[node_id]:
