@@ -286,6 +286,7 @@ class CatalystDigitalTwin:
         return_values = []
         for m in millers:
             print("here")
+            print(type(m))
             print(m)
             print(len(m))
             if len(m) != 3:
