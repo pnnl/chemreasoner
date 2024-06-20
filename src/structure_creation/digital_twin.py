@@ -189,8 +189,8 @@ class CatalystDigitalTwin:
         return_values = []
         for i, ans in enumerate(answers):
             cpy = self.copy()
-            self.computational_params["llm_answer"] = ans
-            self.computational_objects["llm_answer"] = ans
+            cpy.computational_params["llm_answer"] = ans
+            cpy.computational_objects["llm_answer"] = ans
             return_values.append(cpy)
         return return_values
 
@@ -201,8 +201,8 @@ class CatalystDigitalTwin:
         return_values = []
         for i, syms in enumerate(symbols):
             cpy = self.copy()
-            self.computational_params["symbols"] = syms
-            self.computational_objects["symbols"] = syms
+            cpy.computational_params["symbols"] = syms
+            cpy.computational_objects["symbols"] = syms
             return_values.append(cpy)
         return return_values
 
