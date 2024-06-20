@@ -171,7 +171,7 @@ class CatalystDigitalTwin:
         """Return whether creation is completed."""
         return self.status == self.available_statuses[-1]
 
-    def set_llm_aswers(self, answers: list[str]):
+    def set_llm_answers(self, answers: list[str]):
         """Set the answer for self, returning additional copies if needed."""
         if isinstance(answers, str):
             answers = [answers]
