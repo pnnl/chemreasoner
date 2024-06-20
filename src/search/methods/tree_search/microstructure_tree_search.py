@@ -214,7 +214,7 @@ class MicrostructureTree:
                 if e[1] == node._id:  # Check if this isn't the root node
                     root_node = False
 
-                print(e[0], node._id)
+                # print(e[0], node._id)
                 if e[0] == node._id:  # Check if this node is a parent to this edge
                     edge_dict[node._id].append(edge_data.pop(j)[1])
                     print(edge_dict[node._id])
