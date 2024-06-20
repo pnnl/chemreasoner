@@ -285,7 +285,9 @@ class CatalystDigitalTwin:
 
         return_values = []
         for m in millers:
+            print("here")
             print(m)
+            print(len(m))
             if len(m) != 3:
                 m = convert_miller_bravais_to_miller(m)
             cpy = self.copy()
