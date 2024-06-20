@@ -214,7 +214,7 @@ class MicrostructureTree:
                 e = edge_data[j]
                 print((e[0], e[1]), node._id)
                 if (
-                    root_id is not None and e[1] == node._id
+                    root_id is None and e[1] == node._id
                 ):  # Check if this isn't the root node
                     root_node = False
 
