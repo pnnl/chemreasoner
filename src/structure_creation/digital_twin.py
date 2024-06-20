@@ -114,7 +114,7 @@ class CatalystDigitalTwin:
         for k in start_dt.available_statuses:
             print(k)
             print(row_data[k])
-            if row_data[k] is not None and (
+            if row_data[k] is not None and not (
                 isinstance(row_data[k], float) and not math.isnan(row_data[k])
             ):
 
