@@ -5,6 +5,7 @@ import math
 import os
 import sys
 
+from ast import literal_eval
 from copy import deepcopy
 from typing import Union
 from uuid import uuid4
@@ -203,6 +204,8 @@ class CatalystDigitalTwin:
             symbols = [symbols]
         return_values = []
         for i, syms in enumerate(symbols):
+            if isinstance(syms, str):
+                syms = literal_eval(syms)
             cpy = self.copy()
             cpy.computational_params["symbols"] = syms
             cpy.computational_objects["symbols"] = syms
@@ -285,10 +288,8 @@ class CatalystDigitalTwin:
 
         return_values = []
         for m in millers:
-            print("here")
-            print(type(m))
-            print(m)
-            print(len(m))
+            if isinstance(m, str):
+                m = literal_eval(m)
             if len(m) != 3:
                 m = convert_miller_bravais_to_miller(m)
             cpy = self.copy()
@@ -318,6 +319,18 @@ class CatalystDigitalTwin:
 
         return_values = []
         for s in surfaces:
+            if isinstance(s, str):
+                s = literal_eval(s)
+            if isinstance(s, tuple):
+                s = Slab(
+                    slab_atoms=AseAtomsAdaptor().get_atoms(
+                        self.computational_objects["bulk"].structure
+                    ),
+                    millers=self.computational_params["millers"],
+                    shift=[0],
+                    top=s[1],
+                    min_ab=8.0,
+                )
             cpy = self.copy()
             cpy.computational_params["surface"] = (s.shift, s.top)
             cpy.computational_objects["surface"] = s
