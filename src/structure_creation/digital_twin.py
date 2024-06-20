@@ -322,16 +322,10 @@ class CatalystDigitalTwin:
             if isinstance(s, str):
                 s = literal_eval(s)
             if isinstance(s, tuple):
-                s = Slab(
-                    bulk=Bulk(
-                        bulk_atoms=AseAtomsAdaptor().get_atoms(
-                            self.computational_objects["bulk"].structure
-                        )
-                    ),
-                    millers=self.computational_params["millers"],
-                    shift=[0],
-                    top=s[1],
-                    min_ab=8.0,
+                s = min(
+                    self.computational_objects["millers"],
+                    key=lambda tup: abs(s[0] - tup[0])
+                    + (np.inf if s[1] != tup[1] else 0),  # Find the closes surface
                 )
             cpy = self.copy()
             cpy.computational_params["surface"] = (s.shift, s.top)
