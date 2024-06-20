@@ -413,6 +413,8 @@ if __name__ == "__main__":
         nodes = microstructure_search(tree, ms_planner)
 
         node_data, edge_data = tree.store_data()
+
+        # Save to disk
         node_data.to_csv("test_node_data.csv", index=False)
         with open("test_edge_data.json", "w") as f:
             json.dump(edge_data, f)
