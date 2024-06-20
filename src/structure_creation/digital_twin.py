@@ -245,6 +245,7 @@ class CatalystDigitalTwin:
 
         return_values = []
         for i, b in enumerate(bulks):
+            print(b)
             cpy = self.copy()
             cpy.computational_params["bulk"] = b.material_id
             cpy.computational_objects["bulk"] = b
