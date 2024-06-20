@@ -230,6 +230,7 @@ class MicrostructureTree:
         # already in the tree.
         def _recursive_add_children(tree, node_id):
             children = [node_dict[c_id] for c_id in edge_dict[node_id]]
+            print(children)
             tree.set_children(node_id, children)
             for c_id in edge_dict[node_id]:
                 _recursive_add_children(tree, c_id)
