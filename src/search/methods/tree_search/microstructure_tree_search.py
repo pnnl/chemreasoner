@@ -186,7 +186,7 @@ class MicrostructureTree:
         edge_data = []
         for n_id, n in self.nodes.items():
             node_data.append(n.return_row())
-            edge_data += [(n_id, c) for c in n.children_ids]
+            edge_data += {n_id: c for c in n.children_ids}
 
         return pd.DataFrame(node_data), edge_data
 
