@@ -183,10 +183,10 @@ class MicrostructureTree:
     def store_data(self) -> tuple[pd.DataFrame, list[tuple[str, str]]]:
         """Save the data stored in self."""
         node_data = []
-        edge_data = []
+        edge_data = {}
         for n_id, n in self.nodes.items():
             node_data.append(n.return_row())
-            edge_data += [(n_id, c) for c in n.children_ids]
+            edge_data.update({n_id: c for c in n.children_ids})
 
         return pd.DataFrame(node_data), edge_data
 
@@ -228,7 +228,7 @@ class MicrostructureTree:
         # already in the tree.
         def _recursive_add_children(tree, node_id):
             children = [node_dict[c_id] for c_id in edge_dict[node_id]]
-            tree.add_children(node_id, children)
+            tree.set_children(node_id, children)
             for c_id in edge_dict[node_id]:
                 _recursive_add_children(tree, c_id)
 
