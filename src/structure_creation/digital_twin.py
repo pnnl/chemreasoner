@@ -113,6 +113,7 @@ class CatalystDigitalTwin:
         dt = start_dt
         for k in start_dt.available_statuses:
             if row_data[k] is not None or math.isnan(row_data[k]):
+                print(math.isnan(row_data[k]))
                 method = getattr(dt, f"set_{k}s", None)
                 if method is None:
                     try:
