@@ -402,6 +402,8 @@ if __name__ == "__main__":
             edge_data = [item for item in edge_data.items()]
 
         tree = MicrostructureTree.from_data(node_data=node_data, edge_data=edge_data)
+        nodes = tree.get_leaf_nodes()
+        print(len(nodes))
 
     else:
         dt = CatalystDigitalTwin()
