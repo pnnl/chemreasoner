@@ -124,6 +124,7 @@ class CatalystDigitalTwin:
                         raise AttributeError(
                             f"Catalyst digital twin does not have method {f'set_{k}s'} or {f'set_{k}'}."
                         )
+                print(k)
                 dt = method([row_data[k]])[0]
         dt._id = row_data["id"]
         return dt
