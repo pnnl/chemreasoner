@@ -210,7 +210,7 @@ class MicrostructureTree:
             root_node = True
             while j < len(edge_data):
                 e = edge_data[j]
-                print(e[1], node._id)
+                print((e[0], e[1]), node._id)
                 if e[1] == node._id:  # Check if this isn't the root node
                     root_node = False
 
