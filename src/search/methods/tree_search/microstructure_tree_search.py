@@ -222,6 +222,7 @@ class MicrostructureTree:
                     j += 1
 
             if root_node:
+                print(f"{node._id} found*********")
                 root_id = node._id
         tree = cls(root_node=node_dict[root_id])
 
