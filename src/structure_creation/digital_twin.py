@@ -1,6 +1,7 @@
 """Code to handle a digital twin data structure."""
 
 import logging
+import math
 import os
 import sys
 
@@ -111,8 +112,7 @@ class CatalystDigitalTwin:
         start_dt = cls()
         dt = start_dt
         for k in start_dt.available_statuses:
-            if row_data[k] is not None:
-                print(row_data)
+            if row_data[k] is not None or math.isnan(row_data[k]):
                 method = getattr(dt, f"set_{k}s", None)
                 if method is None:
                     try:
