@@ -352,6 +352,8 @@ class CatalystDigitalTwin:
 
         return_values = []
         for site in binding_sites:
+            if isinstance(site, str):
+                site = literal_eval(site)
             cpy = self.copy()
             cpy.computational_params["site_placement"] = site
             cpy.computational_objects["site_placement"] = (
