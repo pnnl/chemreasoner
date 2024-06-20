@@ -209,6 +209,13 @@ class CatalystDigitalTwin:
             return_values.append(cpy)
         return return_values
 
+    @staticmethod
+    def get_bulks_id(mp_ids):
+        """Get the bulks associated with the given mp_ids."""
+        with MPRester(MP_API_KEY) as mpr:
+            docs = mpr.summary.search(material_ids=mp_ids)
+        return docs
+
     def get_bulks(self, filter_theoretical=False):
         """The the set of bulk available for self."""
         # Filter for materials with only the specified elements
@@ -250,10 +257,14 @@ class CatalystDigitalTwin:
         if isinstance(bulks, str):
             bulks = [bulks]
 
+        mp_id_idxs = [i for i in range(len(bulks)) if isinstance(bulks[i], str)]
+        if len(mp_id_idxs) > 0:
+            docs = self.get_bulks_id([bulks[i] for i in mp_id_idxs])
+            for i, j in enumerate(mp_id_idxs):
+                bulks[j] = docs[i]
+
         return_values = []
         for i, b in enumerate(bulks):
-            print("doing bulks")
-            print(b)
             cpy = self.copy()
             cpy.computational_params["bulk"] = b.material_id
             cpy.computational_objects["bulk"] = b
