@@ -324,8 +324,8 @@ class CatalystDigitalTwin:
             if isinstance(s, tuple):
                 s = min(
                     self.computational_objects["millers"],
-                    key=lambda tup: abs(s[0] - tup[0])
-                    + (np.inf if s[1] != tup[1] else 0),  # Find the closes surface
+                    key=lambda slab: abs(s[0] - slab.shift)
+                    + (np.inf if s[1] != slab.top else 0),  # Find the closes surface
                 )
             cpy = self.copy()
             cpy.computational_params["surface"] = (s.shift, s.top)
