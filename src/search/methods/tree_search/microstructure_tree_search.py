@@ -202,18 +202,19 @@ class MicrostructureTree:
         node_dict = {}
         edge_dict = {}
         root_node = False
+        root_id = None
         for i, row in node_data.iterrows():
             node = node_constructor(row)
             node_dict[node._id] = node
 
             j = 0
             edge_dict[node._id] = []
-            root_node = True if not root_node else None
+            root_node = True
             while j < len(edge_data):
                 e = edge_data[j]
                 print((e[0], e[1]), node._id)
                 if (
-                    root_node is not None and e[1] == node._id
+                    root_id is not None and e[1] == node._id
                 ):  # Check if this isn't the root node
                     root_node = False
 
@@ -225,7 +226,7 @@ class MicrostructureTree:
                 else:
                     j += 1
 
-            if root_node is not None and root_node:
+            if root_id is not None and root_node:
                 print(f"{node._id} found*********")
                 root_id = node._id
         tree = cls(root_node=node_dict[root_id])
