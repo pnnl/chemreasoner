@@ -112,7 +112,7 @@ class CatalystDigitalTwin:
         dt = start_dt
         for k in start_dt.available_statuses:
             if row_data[k] is not None:
-                method = getattr(dt, f"set_{k}s", default=None)
+                method = getattr(dt, f"set_{k}s", None)
                 if method is None:
                     try:
                         method = getattr(dt, f"set_{k}")
