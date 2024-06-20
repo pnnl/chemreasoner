@@ -112,6 +112,8 @@ class CatalystDigitalTwin:
         start_dt = cls()
         dt = start_dt
         for k in start_dt.available_statuses:
+            print(k)
+            print(row_data[k])
             if row_data[k] is not None and (
                 isinstance(row_data[k], float) and not math.isnan(row_data[k])
             ):
