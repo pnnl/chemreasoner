@@ -242,7 +242,7 @@ class MicrostructureTree:
                 _recursive_add_children(tree, c_id)
 
         _recursive_add_children(tree, root_id)
-
+        print(tree.nodes)
         return tree
 
 
