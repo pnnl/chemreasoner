@@ -119,12 +119,9 @@ class CatalystDigitalTwin:
 
     def return_row(self):  # TODO: Do something with LLM queries
         """Return the data stored within the digital twin."""
-        if not self.completed:
-            raise ValueError("Cannot return data from an incomplete digital twin.")
-        else:
-            row = deepcopy(self.computational_params)
-            row["id"] = self._id
-            row.update({k: None for k in self.available_statuses if k not in row})
+        row = deepcopy(self.computational_params)
+        row["id"] = self._id
+        row.update({k: None for k in self.available_statuses if k not in row})
         return row
 
     def return_slab(self):
