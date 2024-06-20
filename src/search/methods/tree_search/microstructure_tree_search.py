@@ -251,7 +251,7 @@ def microstructure_search(
     children = tree.get_children(root_id)
     if len(children) == 0:
         nodes = [tree.nodes[root_id]]
-        bulks_idxs = [[0, 2]] * len(nodes)  # ms_planner.run_bulk_prompt(nodes)
+        bulks_idxs = [[0, 1, 2]] * len(nodes)  # ms_planner.run_bulk_prompt(nodes)
         for i in range(len(nodes)):
             parent_node = nodes[i]
 
@@ -264,7 +264,7 @@ def microstructure_search(
     # set the millers
     nodes = [tree.nodes[child] for n in nodes for child in tree.get_children(n._id)]
 
-    millers_choices = [[(1, 1, 1), (1, 1, 0)]] * len(
+    millers_choices = [[(1, 1, 1), (1, 1, 0), (1, 0, 0)]] * len(
         nodes
     )  # ms_planner.run_millers_prompt(nodes)
     print(millers_choices)
@@ -289,7 +289,7 @@ def microstructure_search(
     # get the nodes
     nodes = [tree.nodes[child] for n in nodes for child in tree.get_children(n._id)]
     site_placement_choices = [
-        n.get_site_placements()[:2] for n in nodes
+        n.get_site_placements()[:10] for n in nodes
     ]  # ms_planner.run_site_placement_prompt(nodes)
     for i in range(len(nodes)):
         parent_node = nodes[i]
