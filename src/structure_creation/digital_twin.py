@@ -117,7 +117,7 @@ class CatalystDigitalTwin:
         dt._id = row_data["id"]
         return dt
 
-    def return_row(self):
+    def return_row(self):  # TODO: Do something with LLM queries
         """Return the data stored within the digital twin."""
         if not self.completed:
             raise ValueError("Cannot return data from an incomplete digital twin.")

@@ -1,3 +1,6 @@
+"""Code to """
+
+import json
 import logging
 import sys
 
@@ -234,14 +237,6 @@ class MicrostructureTree:
         return tree
 
 
-dt = CatalystDigitalTwin()
-syms = ["Cu", "Zn"]
-dt.computational_params["symbols"] = syms
-dt.computational_objects["symbols"] = syms
-
-tree = MicrostructureTree(root_node=dt)
-
-
 def microstructure_search(
     tree: MicrostructureTree,
     microstructure_planner: OCPMicrostructurePlanner,
@@ -373,6 +368,7 @@ if __name__ == "__main__":
     class TestState:
         root_prompt = "Propose a catalyst for the conversion of CO to methanol."
 
+    # Create the reward function
     pathways = [
         ["*CO", "*COH", "*CHOH", "*CH2OH", "*OHCH3"],
         ["*CO", "*CHO", "*CHOH", "*CH2OH", "*OHCH3"],
@@ -394,11 +390,33 @@ if __name__ == "__main__":
     # uq_func = UQfunc()
 
     state = TestState()
-
+    # Create the LLM and microstructure planner
     llm_function = AzureOpenaiInterface(dotenv_path=".env", model="gpt-4")
     ms_planner = OCPMicrostructurePlanner(llm_function=llm_function)
     ms_planner.set_state(state)
-    nodes = microstructure_search(tree, ms_planner)
+
+    if Path("test_node_data.csv").exists() and Path("test_edge_data.json").exists():
+        node_data = pd.read_csv("test_node_data.csv", index_col=False)
+        with open("test_edge_data.json", "r") as f:
+            edge_data = json.load(f)
+            edge_data = [item for item in edge_data.items()]
+
+        tree = MicrostructureTree.from_data(node_data=node_data, edge_data=edge_data)
+
+    else:
+        dt = CatalystDigitalTwin()
+        syms = ["Cu", "Zn"]
+        dt.computational_params["symbols"] = syms
+        dt.computational_objects["symbols"] = syms
+
+        tree = MicrostructureTree(root_node=dt)
+        nodes = microstructure_search(tree, ms_planner)
+
+        node_data, edge_data = tree.store_data()
+        node_data.to_csv("test_node_data.csv", index=False)
+        with open("test_edge_data.json", "w") as f:
+            json.dump(edge_data, f)
+
     rewards = reward_func(nodes)
     # uq = ruq_func(nodes)
     for r, n in zip(rewards, nodes):
