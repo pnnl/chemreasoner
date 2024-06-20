@@ -100,8 +100,8 @@ class AdsorptionEnergyCalculator:
     def check_complete(self, atoms_name):
         """Fetch the trajectory associated with the given atoms_names."""
         return (
-            self.data_dir / (atoms_name + ".traj").exists()
-        )  # TODO: Put trajectories in db and change this code
+            self.data_dir / (atoms_name + ".traj")
+        ).exists()  # TODO: Put trajectories in db and change this code
 
     def fetch_complete_structure(self, atoms_name):
         """Fetch the trajectory associated with the given atoms_names."""
