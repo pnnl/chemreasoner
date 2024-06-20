@@ -212,7 +212,6 @@ class MicrostructureTree:
             root_node = True
             while j < len(edge_data):
                 e = edge_data[j]
-                print((e[0], e[1]), node._id)
                 if (
                     root_id is None and e[1] == node._id
                 ):  # Check if this isn't the root node
@@ -235,14 +234,11 @@ class MicrostructureTree:
         # already in the tree.
         def _recursive_add_children(tree, node_id):
             children = [node_dict[c_id] for c_id in edge_dict[node_id]]
-            print(edge_dict[node_id])
-            print(children)
             tree.set_children(node_id, children)
             for c_id in edge_dict[node_id]:
                 _recursive_add_children(tree, c_id)
 
         _recursive_add_children(tree, root_id)
-        print(tree.nodes)
         return tree
 
 
@@ -410,7 +406,7 @@ if __name__ == "__main__":
             edge_data = json.load(f)
 
         tree = MicrostructureTree.from_data(node_data=node_data, edge_data=edge_data)
-        nodes = tree.get_leaf_nodes()
+        nodes = [tree.nodes[n] for n in tree.get_leaf_nodes()]
         print(len(nodes))
 
     else:
