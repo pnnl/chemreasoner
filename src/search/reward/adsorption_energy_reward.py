@@ -76,7 +76,7 @@ class AdsorptionEnergyCalculator:
         # split into completed and incompleted calculations to avoid repeat work
         complete_names, complete_structures = [], []
         incomplete_names, incomplete_structures = [], []
-        for structure, n in (all_structures, all_names):
+        for structure, n in zip(all_structures, all_names):
             if self.check_complete(n):
                 complete_names.append(n)
                 complete_structures.append(self.fetch_complete_structure(n))
