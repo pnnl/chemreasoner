@@ -323,8 +323,10 @@ class CatalystDigitalTwin:
                 s = literal_eval(s)
             if isinstance(s, tuple):
                 s = Slab(
-                    slab_atoms=AseAtomsAdaptor().get_atoms(
-                        self.computational_objects["bulk"].structure
+                    bulk=Bulk(
+                        bulk_atoms=AseAtomsAdaptor().get_atoms(
+                            self.computational_objects["bulk"].structure
+                        )
                     ),
                     millers=self.computational_params["millers"],
                     shift=[0],
