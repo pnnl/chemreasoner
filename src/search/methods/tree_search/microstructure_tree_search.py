@@ -203,6 +203,7 @@ class MicrostructureTree:
         edge_dict = {}
         for i, row in node_data.iterrows():
             node = node_constructor(row)
+            print(row)
             node_dict[node._id] = node
 
             j = 0
