@@ -28,6 +28,8 @@ logging.getLogger().setLevel(logging.INFO)
 
 MP_API_KEY = os.environ["MP_API_KEY"]
 
+retrieved_mp_docs = {}
+
 
 class CatalystDigitalTwin:
     """A class for a digital twin of a slab system."""
