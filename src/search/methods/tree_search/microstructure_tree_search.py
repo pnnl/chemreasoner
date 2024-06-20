@@ -183,10 +183,10 @@ class MicrostructureTree:
     def store_data(self) -> tuple[pd.DataFrame, list[tuple[str, str]]]:
         """Save the data stored in self."""
         node_data = []
-        edge_data = {}
+        edge_data = []
         for n_id, n in self.nodes.items():
             node_data.append(n.return_row())
-            edge_data.update({n_id: c for c in n.children_ids})
+            edge_data += [[n_id, c] for c in n.children_ids]
 
         return pd.DataFrame(node_data), edge_data
 
@@ -404,7 +404,6 @@ if __name__ == "__main__":
         node_data = pd.read_csv("test_node_data.csv", index_col=False)
         with open("test_edge_data.json", "r") as f:
             edge_data = json.load(f)
-            edge_data = [item for item in edge_data.items()]
 
         tree = MicrostructureTree.from_data(node_data=node_data, edge_data=edge_data)
         nodes = tree.get_leaf_nodes()
