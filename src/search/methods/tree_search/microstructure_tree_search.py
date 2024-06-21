@@ -158,7 +158,7 @@ class MicrostructureTree:
             storage_dict[node_id] = return_value
         return return_value
 
-    def get_leaf_nodes(self):
+    def get_leaf_nodes(self):  # TODO: Add root node parameter for downstream leaves
         """Return the list of leaf nodes for self."""
         leaf_nodes = []
         self._get_leaf_nodes_recurse(self.root_id, leaf_nodes_list=leaf_nodes)
@@ -315,8 +315,7 @@ def microstructure_finetune_selection(
     percentile_reward=0.75,
 ):
     """Run the search logic for the given tree."""
-    root_id = tree.root_id
-    leaf_nodes = tree.get_leaf_nodes(root_id)
+    leaf_nodes = tree.get_leaf_nodes()
     percentile_r = np.percentile(
         [n.get_reward() for n in leaf_nodes], 1 - percentile_reward
     )
