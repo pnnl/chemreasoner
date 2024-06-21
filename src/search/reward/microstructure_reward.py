@@ -8,8 +8,12 @@ import numpy as np
 
 sys.path.append("src")
 from nnp.oc import OCAdsorptionCalculator
+from nnp.uncertainty_prediction import UncertaintyCalculator
 from structure_creation.digital_twin import CatalystDigitalTwin
-from search.reward.adsorption_energy_reward import AdsorptionEnergyCalculator
+from search.reward.adsorption_energy_reward import (
+    AdsorptionEnergyCalculator,
+    AdsorptionEnergyUncertaintyCalculator,
+)
 
 logging.getLogger().setLevel(logging.INFO)
 
@@ -48,6 +52,70 @@ class MicrostructureRewardFunction:
             for k in reactant_energies.keys()
         }
         return [final_values[s._id] for s in structures]
+
+    def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
+        """Parse the energies of the reactants for the reaction pathways."""
+        symbols = list({p[0] for p in self.reaction_pathways})
+        if len(symbols) > 1:
+            logging.warning(f"Length of reactant symbols is {len(symbols)}, not 1.")
+        syms = symbols[0]
+        energies = {
+            catalyst: catalyst_results[syms]
+            - catalyst_results[self.ads_e_reward.reference_energy_key]
+            - self.ads_e_reward.adsorbate_reference_energy(syms)
+            for catalyst, catalyst_results in energy_results.items()
+        }
+        return energies
+
+    def _parse_energy_barriers(self, energy_results: dict[str, dict[str, float]]):
+        """Parse the reaction barriers for the reaction pathways."""
+        barriers = {}
+        for catalyst, catalyst_results in energy_results.items():
+            barriers[catalyst] = {}
+            for i, pathway in enumerate(self.reaction_pathways):
+                e = [
+                    catalyst_results[syms]
+                    - self.ads_e_reward.adsorbate_reference_energy(syms)
+                    for syms in pathway
+                ]
+                diffs = np.diff(e).tolist()
+                barriers[catalyst].update({f"pathway_{i}": max(diffs)})
+            barriers[catalyst].update({"best": min(barriers[catalyst].values())})
+
+        return barriers
+
+
+class MicrostructureUncertaintyFunction:
+
+    def __init__(
+        self,
+        reaction_pathways: list[list[str]],
+        calc: UncertaintyCalculator,
+    ):
+        """Return self, with the given reaction_pathways and calculator initialized."""
+        self.reaction_pathways = reaction_pathways
+        self._all_adsorbate_symbols = list(
+            {ads_sym for ads_list in self.reaction_pathways for ads_sym in ads_list}
+        )
+        self.calc = calc
+
+        self.ads_e_reward = AdsorptionEnergyUncertaintyCalculator(
+            atomistic_calc=self.calc,
+            adsorbates_syms=self._all_adsorbate_symbols,
+        )
+
+    def __call__(self, structures: list[CatalystDigitalTwin]):
+        """Call the reward values for the given list of structures."""
+        uncertainty_dictionary = self.ads_e_reward(
+            catalyst_structures=structures, catalyst_names=[s._id for s in structures]
+        )
+        # reactant_energies = self._parse_reactant_energies(energies)
+        # energy_barriers = self._parse_energy_barriers(energies)
+        # final_values = {  # TODO: Do a better calculation for these
+        #     k: -1 * (reactant_energies[k] / energy_barriers[k]["best"])
+        #     for k in reactant_energies.keys()
+        # }
+        return [uncertainty_dictionary[s._id] for s in structures]
 
     def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
         """Parse the energies of the reactants for the reaction pathways."""

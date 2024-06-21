@@ -30,6 +30,9 @@ MP_API_KEY = os.environ["MP_API_KEY"]
 
 retrieved_mp_docs = {}
 
+global _collected_mp_ids
+_collected_mp_ids = {}
+
 
 class CatalystDigitalTwin:
     """A class for a digital twin of a slab system."""
@@ -214,11 +217,23 @@ class CatalystDigitalTwin:
             return_values.append(cpy)
         return return_values
 
-    @staticmethod
-    def get_bulks_id(mp_ids):
+    @classmethod
+    def get_bulks_id(cls, mp_ids):
         """Get the bulks associated with the given mp_ids."""
+        docs = [
+            _collected_mp_ids[mp_id] if mp_id in cls._collected_mp_ids.keys() else None
+            for mp_id in mp_ids
+        ]
         with MPRester(MP_API_KEY) as mpr:
-            docs = mpr.summary.search(material_ids=mp_ids)
+            new_docs = mpr.summary.search(material_ids=mp_ids)
+            i, j = 0, 0
+            while i < len(docs):
+                if docs[i] is None:
+                    docs[i] = new_docs[j]
+                    j += 1
+                i += 1
+
+        cls._collected_mp_ids.update({mp_id: doc for mp_id, doc in zip(mp_ids, docs)})
         return docs
 
     def get_bulks(self, filter_theoretical=False):
