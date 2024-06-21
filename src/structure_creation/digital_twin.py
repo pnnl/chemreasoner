@@ -220,7 +220,11 @@ class CatalystDigitalTwin:
     def get_bulks_id(cls, mp_ids):
         """Get the bulks associated with the given mp_ids."""
         docs = [
-            _collected_mp_ids[mp_id] if mp_id in cls._collected_mp_ids.keys() else None
+            (
+                cls._collected_mp_ids[mp_id]
+                if mp_id in cls._collected_mp_ids.keys()
+                else None
+            )
             for mp_id in mp_ids
         ]
         with MPRester(MP_API_KEY) as mpr:
