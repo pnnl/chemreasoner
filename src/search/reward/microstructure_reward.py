@@ -97,7 +97,6 @@ class MicrostructureUncertaintyFunction:
         calc: UncertaintyCalculator,
     ):
         """Return self, with the given reaction_pathways and calculator initialized."""
-        self.data_dir = data_dir
         self.reaction_pathways = reaction_pathways
         self._all_adsorbate_symbols = list(
             {ads_sym for ads_list in self.reaction_pathways for ads_sym in ads_list}
