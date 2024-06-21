@@ -284,7 +284,7 @@ class AdsorptionEnergyUncertaintyCalculator:
             catalyst_structures, catalyst_names
         )
 
-        uncertainty_values = self.uncertainty_calc.batched_uncertainty_calculation(
+        uncertainty_values = self.calc.batched_uncertainty_calculation(
             atoms=all_structures, atoms_names=all_names
         )
 
