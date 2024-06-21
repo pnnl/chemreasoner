@@ -105,9 +105,7 @@ class MicrostructureTree:
                 return_value = (
                     reward_agg_func(rewards),
                     sum(children),
-                    uncertainty_propogation_function(
-                        uq
-                    ),  # TODO: Square root of sum of squares?
+                    np.sqrt(np.sum(np.array(uq) ** 2)),
                 )
         else:
             logging.warning(f"No simulations have been run for leaf node {node_id}.")
@@ -257,7 +255,7 @@ def microstructure_search(
     children = tree.get_children(root_id)
     if len(children) == 0:
         nodes = [tree.nodes[root_id]]
-        bulks_idxs = [[0, 1, 2]] * len(nodes)  # ms_planner.run_bulk_prompt(nodes)
+        bulks_idxs = [[0, 1]] * len(nodes)  # ms_planner.run_bulk_prompt(nodes)
         for i in range(len(nodes)):
             parent_node = nodes[i]
 
@@ -270,7 +268,7 @@ def microstructure_search(
     # set the millers
     nodes = [tree.nodes[child] for n in nodes for child in tree.get_children(n._id)]
 
-    millers_choices = [[(1, 1, 1), (1, 1, 0), (1, 0, 0)]] * len(
+    millers_choices = [[(1, 1, 1), (1, 1, 0)]] * len(
         nodes
     )  # ms_planner.run_millers_prompt(nodes)
     print(millers_choices)
@@ -295,7 +293,7 @@ def microstructure_search(
     # get the nodes
     nodes = [tree.nodes[child] for n in nodes for child in tree.get_children(n._id)]
     site_placement_choices = [
-        n.get_site_placements()[:10] for n in nodes
+        n.get_site_placements()[:3] for n in nodes
     ]  # ms_planner.run_site_placement_prompt(nodes)
     for i in range(len(nodes)):
         parent_node = nodes[i]
