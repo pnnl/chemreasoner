@@ -30,12 +30,11 @@ MP_API_KEY = os.environ["MP_API_KEY"]
 
 retrieved_mp_docs = {}
 
-global _collected_mp_ids
-_collected_mp_ids = {}
-
 
 class CatalystDigitalTwin:
     """A class for a digital twin of a slab system."""
+
+    _collected_mp_ids = {}
 
     dummy_adsorbate = Adsorbate(
         Atoms("H", positions=[[0, 0, 0]]), adsorbate_binding_indices=[0]
