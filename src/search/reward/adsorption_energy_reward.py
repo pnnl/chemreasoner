@@ -266,6 +266,7 @@ class AdsorptionEnergyUncertaintyCalculator:
         adsorbates_syms: list[str],
     ):
         """Initialize self, setting the data_dir."""
+        self.data_dir = uncertainty_calc.traj_dir
         self.e_tot_dir = self.data_dir / "e_tot"
         self.e_tot_dir = self.data_dir / "e_slab"
 
