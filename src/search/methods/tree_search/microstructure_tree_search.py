@@ -389,10 +389,10 @@ if __name__ == "__main__":
             "model": "gemnet-oc-22",
             "traj_dir": Path("pipeline_test_trajs"),
             "batch_size": 64,
-            "device": "cpu",
+            "device": "cuda",
             "ads_tag": 2,
             "fmax": 0.03,
-            "steps": 1,
+            "steps": 3,
         }
     )
     reward_func = MicrostructureRewardFunction(
@@ -410,7 +410,11 @@ if __name__ == "__main__":
     ms_planner = OCPMicrostructurePlanner(llm_function=llm_function)
     ms_planner.set_state(state)
 
-    if Path("test_node_data.csv").exists() and Path("test_edge_data.json").exists():
+    if (
+        Path("test_node_data.csv").exists()
+        and Path("test_edge_data.json").exists()
+        and False
+    ):
         node_data = pd.read_csv("test_node_data.csv", index_col=False)
         with open("test_edge_data.json", "r") as f:
             edge_data = json.load(f)
