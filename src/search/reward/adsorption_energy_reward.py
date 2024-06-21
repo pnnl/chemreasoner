@@ -279,6 +279,31 @@ class AdsorptionEnergyUncertaintyCalculator:
         catalyst_names: list[str] = None,
     ):
         """Return the adsorption energy reward for the given structures."""
+        all_structures, all_names = self.fetch_calculated_atoms(
+            catalyst_structures, catalyst_names
+        )
+
+        uncertainty_values = self.uncertainty_calc.batched_uncertainty_calculation(
+            atoms=all_structures, atoms_names=all_names
+        )
+
+        results = self._unpack_results(uncertainty_values, all_names, catalyst_names)
+        with open("test_gnn_results.json", "w") as f:
+            json.dump(results, f)
+        return results
+
+    def check_complete(self, atoms_name):
+        """Fetch the trajectory associated with the given atoms_names."""
+        return (
+            self.data_dir / (atoms_name + ".traj")
+        ).exists()  # TODO: Put trajectories in db and change this code
+
+    def fetch_calculated_atoms(
+        self,
+        catalyst_structures: list[CatalystDigitalTwin],
+        catalyst_names: list[str] = None,
+    ):
+        """Fetch the structures associated with the given structures."""
         if catalyst_names is None:
             catalyst_names = list(range(len(catalyst_structures)))
 
@@ -303,21 +328,7 @@ class AdsorptionEnergyUncertaintyCalculator:
                     f"The simulation had not completed for structure {n}"
                 )
             all_structures.append(self.fetch_complete_structure(n))
-
-        uncertainty_values = self.uncertainty_calc.batched_uncertainty_calculation(
-            atoms=all_structures, atoms_names=all_names
-        )
-
-        results = self._unpack_results(uncertainty_values, all_names, catalyst_names)
-        with open("test_gnn_results.json", "w") as f:
-            json.dump(results, f)
-        return results
-
-    def check_complete(self, atoms_name):
-        """Fetch the trajectory associated with the given atoms_names."""
-        return (
-            self.data_dir / (atoms_name + ".traj")
-        ).exists()  # TODO: Put trajectories in db and change this code
+        return all_structures, all_names
 
     def fetch_complete_structure(self, atoms_name):
         """Fetch the trajectory associated with the given atoms_names."""

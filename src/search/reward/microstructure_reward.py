@@ -6,6 +6,8 @@ import time
 
 import numpy as np
 
+from ase import Atoms
+
 sys.path.append("src")
 from nnp.oc import OCAdsorptionCalculator
 from nnp.uncertainty_prediction import UncertaintyCalculator
@@ -87,6 +89,8 @@ class MicrostructureRewardFunction:
 
 class MicrostructureUncertaintyFunction:
 
+    _cached_uncertainties = {}
+
     def __init__(
         self,
         reaction_pathways: list[list[str]],
@@ -109,13 +113,27 @@ class MicrostructureUncertaintyFunction:
         uncertainty_dictionary = self.ads_e_reward(
             catalyst_structures=structures, catalyst_names=[s._id for s in structures]
         )
-        # reactant_energies = self._parse_reactant_energies(energies)
-        # energy_barriers = self._parse_energy_barriers(energies)
-        # final_values = {  # TODO: Do a better calculation for these
-        #     k: -1 * (reactant_energies[k] / energy_barriers[k]["best"])
-        #     for k in reactant_energies.keys()
-        # }
-        return [uncertainty_dictionary[s._id] for s in structures]
+        uncertainty_arrays = {
+            k: np.sqrt(np.sum(np.array(list(v.values())) ** 2))
+            for k, v in uncertainty_dictionary.items()
+        }
+        return [uncertainty_arrays[s._id] for s in structures]
+
+    @classmethod
+    def store_uncertainty(cls, uncertainty_dictionary):
+        """Store the given uncertainty dictionary in class variable."""
+        cls._cached_uncertainties.update({uncertainty_dictionary})
+
+    @classmethod
+    def get_stored_uncertainties(cls):
+        """Get the uncertainties stored in class."""
+        return cls._cached_uncertainties
+
+    def fetch_calculated_atoms(self, structures) -> Atoms:
+        """Fetch the atoms associated with the given structures, filter by top_p uncertainty."""
+        all_structures, all_names = self.ads_e_reward.fetch_calculated_atoms(
+            catalyst_structures=structures, catalyst_names=[s._id for s in structures]
+        )
 
     def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
         """Parse the energies of the reactants for the reaction pathways."""

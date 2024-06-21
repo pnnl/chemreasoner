@@ -85,6 +85,14 @@ class CatalystDigitalTwin:
         """Return the reward associated with self for given reaction info."""
         return self.reward
 
+    def set_uncertainty(self, uncertainty: float):
+        """Set the value of the reward."""
+        self.uncertainty = uncertainty
+
+    def get_uncertainty(self):
+        """Return the reward associated with self for given reaction info."""
+        return self.uncertainty
+
     def update_info(self, status_key: str, updates: Union[dict, list]):
         """Update the info for the self with updates."""
         if status_key not in self.info:

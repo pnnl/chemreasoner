@@ -11,12 +11,18 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
+from ase.io import write
+
 from networkx.drawing.nx_pydot import graphviz_layout
 
 sys.path.append("src")
 from nnp.oc import OCAdsorptionCalculator
+from nnp.uncertainty_prediction import UncertaintyCalculator
 from llm.azure_open_ai_interface import AzureOpenaiInterface
-from search.reward.microstructure_reward import MicrostructureRewardFunction
+from search.reward.microstructure_reward import (
+    MicrostructureRewardFunction,
+    MicrostructureUncertaintyFunction,
+)
 from structure_creation.digital_twin import CatalystDigitalTwin
 from structure_creation.microstructure_planner import OCPMicrostructurePlanner
 
@@ -306,7 +312,7 @@ def microstructure_search(
 
 def microstructure_finetune_selection(
     tree: MicrostructureTree,
-    microstructure_planner: OCPMicrostructurePlanner,
+    # microstructure_planner: OCPMicrostructurePlanner,
     top_k: int,
     percentile_reward=0.75,
 ):
@@ -321,7 +327,7 @@ def microstructure_finetune_selection(
     best_nodes = sorted(
         [n for n in leaf_nodes], key=lambda n: n.get_reward() * n.get_uncertainty()
     )[:-top_k]
-    return best_nodes
+    return [n._id for n in best_nodes]
 
 
 def visualize_tree(tree: MicrostructureTree):
@@ -381,16 +387,20 @@ if __name__ == "__main__":
     calc = OCAdsorptionCalculator(
         **{
             "model": "gemnet-oc-22",
-            "traj_dir": Path("test_trajs"),
+            "traj_dir": Path("pipeline_test_trajs"),
             "batch_size": 64,
-            "device": "cuda",
+            "device": "cpu",
             "ads_tag": 2,
             "fmax": 0.03,
-            "steps": 250,
+            "steps": 1,
         }
     )
     reward_func = MicrostructureRewardFunction(
         pathways, calc, num_augmentations_per_site=1
+    )
+    uq_calc = UncertaintyCalculator(device="cpu", batch_size=40)
+    uq_func = MicrostructureUncertaintyFunction(
+        reaction_pathways=pathways, calc=uq_calc
     )
     # uq_func = UQfunc()
 
@@ -421,15 +431,28 @@ if __name__ == "__main__":
         node_data, edge_data = tree.store_data()
 
         # Save to disk
-        node_data.to_csv("test_node_data.csv", index=False)
-        with open("test_edge_data.json", "w") as f:
-            json.dump(edge_data, f)
+        # node_data.to_csv("test_node_data.csv", index=False)
+        # with open("test_edge_data.json", "w") as f:
+        #     json.dump(edge_data, f)
 
     rewards = reward_func(nodes)
-    # uq = ruq_func(nodes)
-    for r, n in zip(rewards, nodes):
+    uq_values = uq_func(nodes)
+    for r, u, n in zip(rewards, uq_values, nodes):
         n.set_reward(r)
-        # n.set_uncertainty(u)
+        n.set_uncertainty(u)
+
+    # Get which nodes to run DFT with
+    dft_nodes = microstructure_finetune_selection(
+        tree=tree, top_k=3, percentile_reward=0.75
+    )
+    dft_atoms, dft_names = uq_func.fetch_calculated_atoms(
+        [tree.nodes[n] for n in dft_nodes]
+    )
+    dft_dir = Path("structures_for_dft").mkdir(parents=True, exist_ok=True)
+    # Write nodes to disk
+    for ats, name in zip(dft_atoms, dft_names):
+        p = dft_dir / (name + ".xyz")
+        write(str(p), ats)
 
     print(rewards)
 
