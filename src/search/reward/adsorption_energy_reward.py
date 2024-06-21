@@ -308,12 +308,12 @@ class AdsorptionEnergyUncertaintyCalculator:
         if catalyst_names is None:
             catalyst_names = list(range(len(catalyst_structures)))
 
-        e_tot_structures, e_tot_names = self.gather_total_energy_names(
+        e_tot_structures, e_tot_names = self.gather_total_energy_structures(
             catalyst_structures, catalyst_names
         )
 
         e_slab_structures, e_slab_names = (
-            self.gather_slab_energy_names(  # TODO: Don't re-calculate slab reference energies
+            self.gather_slab_energy_structures(  # TODO: Don't re-calculate slab reference energies
                 catalyst_structures, catalyst_names
             )
         )
