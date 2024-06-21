@@ -399,7 +399,7 @@ if __name__ == "__main__":
     uq_calc = UncertaintyCalculator(device="cpu", batch_size=40)
     UncertaintyCalculator.traj_dir = Path("pipeline_test_trajs")
     uq_func = MicrostructureUncertaintyFunction(
-        reaction_pathways=pathways, calc=uq_calc, data_dir=Path("pipeline_test_trajs")
+        reaction_pathways=pathways, calc=uq_calc
     )
     # uq_func = UQfunc()
 
