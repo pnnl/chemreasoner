@@ -19,6 +19,7 @@ class UncertaintyCalculator:
             r_fixed=True,
             r_pbc=True,
         )
+        self.batch_size = batch_size
 
     def batched_uncertainty_calculation(
         self, atoms: list[Atoms], atoms_names: list[str], device: str = None
