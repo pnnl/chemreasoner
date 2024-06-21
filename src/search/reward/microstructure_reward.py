@@ -104,7 +104,7 @@ class MicrostructureUncertaintyFunction:
         self.calc = calc
 
         self.ads_e_reward = AdsorptionEnergyUncertaintyCalculator(
-            atomistic_calc=self.calc,
+            uncertainty_calc=self.calc,
             adsorbates_syms=self._all_adsorbate_symbols,
         )
 
