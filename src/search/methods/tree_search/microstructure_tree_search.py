@@ -315,7 +315,7 @@ def microstructure_finetune_selection(
     percentile_reward=0.75,
 ):
     """Run the search logic for the given tree."""
-    leaf_nodes = tree.get_leaf_nodes()
+    leaf_nodes = [tree.nodes[n] for n in tree.get_leaf_nodes()]
     percentile_r = np.percentile(
         [n.get_reward() for n in leaf_nodes], 1 - percentile_reward
     )
