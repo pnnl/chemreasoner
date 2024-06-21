@@ -365,21 +365,10 @@ class AdsorptionEnergyUncertaintyCalculator:
         e_tot_structures = []
         for n, struct in zip(names, structures):
             for ads_sym in self.adsorbates_syms:
-                adsorbate_atoms = self.get_adsorbate_atoms(ads_sym)
-                binding_atoms = adsorbate_atoms.info.get("binding_sites", np.array([0]))
-                adsorbate_object = Adsorbate(
-                    adsorbate_atoms, adsorbate_binding_indices=binding_atoms
-                )
-                adslab_config = struct.return_adslab_config(
-                    adsorbate=adsorbate_object,
-                    num_augmentations_per_site=self.num_augmentations_per_site,
-                )
-                ats = adslab_config.atoms_list[0]
-                ats.info.update(adslab_config.metadata_list[0])
                 e_tot_name = str(Path("trajectories_e_tot") / (n + f"_{ads_sym}"))
                 (self.data_dir / e_tot_name).parent.mkdir(parents=True, exist_ok=True)
                 e_tot_names.append(e_tot_name)
-                e_tot_structures.append(ats)
+                e_tot_structures.append(self.fetch_complete_structure(e_tot_name))
 
         return e_tot_structures, e_tot_names
 
@@ -392,11 +381,10 @@ class AdsorptionEnergyUncertaintyCalculator:
         e_slab_names = []
         e_slab_structures = []
         for n, struct in zip(names, structures):
-            slab_structure = struct.return_slab()
             e_slab_name = str(Path("trajectories_e_slab") / (n + "_slab"))
             (self.data_dir / e_slab_name).parent.mkdir(parents=True, exist_ok=True)
             e_slab_names.append(e_slab_name)
-            e_slab_structures.append(slab_structure)
+            e_slab_structures.append(self.fetch_complete_structure(e_slab_name))
 
         return e_slab_structures, e_slab_names
 
