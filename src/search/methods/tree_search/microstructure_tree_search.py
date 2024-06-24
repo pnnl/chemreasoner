@@ -450,7 +450,8 @@ if __name__ == "__main__":
     dft_atoms, dft_names = uq_func.fetch_calculated_atoms(
         [tree.nodes[n] for n in dft_nodes]
     )
-    dft_dir = Path("structures_for_dft").mkdir(parents=True, exist_ok=True)
+    dft_dir = Path("structures_for_dft")
+    dft_dir.mkdir(parents=True, exist_ok=True)
     # Write nodes to disk
     for ats, name in zip(dft_atoms, dft_names):
         p = dft_dir / (name + ".xyz")
