@@ -134,6 +134,7 @@ class MicrostructureUncertaintyFunction:
         all_structures, all_names = self.ads_e_reward.fetch_calculated_atoms(
             catalyst_structures=structures, catalyst_names=[s._id for s in structures]
         )
+        return all_structures, all_names
 
     def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
         """Parse the energies of the reactants for the reaction pathways."""
