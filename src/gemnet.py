@@ -627,7 +627,6 @@ class GemNetT(BaseModel):
                              "forces": F_t,
                              "hidden_h": h, 
                              "hidden_m": m, 
-                             'edge_index':edge_index
                             }
         return outputs
 

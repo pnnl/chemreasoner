@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 import torch
 import os
 import os.path as osp
@@ -20,13 +18,17 @@ import sys
 urls = {'200k': 'https://dl.fbaipublicfiles.com/opencatalystproject/data/s2ef_train_200K.tar',
         '2M': 'https://dl.fbaipublicfiles.com/opencatalystproject/data/s2ef_train_2M.tar',
         'val_id': 'https://dl.fbaipublicfiles.com/opencatalystproject/data/s2ef_val_id.tar',
-        'val_ood_ads': 'https://dl.fbaipublicfiles.com/opencatalystproject/data/s2ef_val_ood_ads.tar',
+        'val_ood_ads_traj': 'https://dl.fbaipublicfiles.com/opencatalystproject/data/is2res_val_ood_ads_trajectories.tar',
+        'val_ood_cat_traj': 'https://dl.fbaipublicfiles.com/opencatalystproject/data/is2res_val_ood_cat_trajectories.tar',
+        'val_ood_both_traj': 'https://dl.fbaipublicfiles.com/opencatalystproject/data/is2res_val_ood_both_trajectories.tar',
        }
 
 subdirs = {'200k': 's2ef_train_200K/s2ef_train_200K',
            '2M': 's2ef_train_2M/s2ef_train_2M',
            'val_id': 's2ef_val_id/s2ef_val_id',
-           'val_ood_ads': 's2ef_val_ood_ads/s2ef_val_ood_ads',
+           'val_ood_ads_traj': 'is2res_val_ood_ads_trajectories',
+           'val_ood_cat_traj': 'is2res_val_ood_cat_trajectories',
+           'val_ood_both_traj': 'is2res_val_ood_both_trajectories',
           }
 
 
@@ -42,15 +44,18 @@ class OC20(InMemoryDataset):
 
     def __init__(self, root: str, tag: str = '200k', n_preds: int = -1, total_energy: bool = False):
         # set up tag
+        self.total_energy = total_energy
         self.tag = tag
         if tag not in urls.keys():
             sys.exit(f"tag={tag} is not valid.")
 
-        if not total_energy:
-            self.tag += '-ref'
+
         
         self.download_url = urls[tag]
         self.raw_subdir = subdirs[tag]
+
+        if not total_energy:
+            self.tag += '-ref'
 
         
         super().__init__(root)
@@ -75,7 +80,7 @@ class OC20(InMemoryDataset):
     def processed_file_names(self) -> str:
         return f'OC20-{self.tag}.pt'
 
-    def _download(self):
+    def NO_download(self):
         if not osp.isdir(osp.join(self.root, self.raw_subdir)):  
             path = download_url(self.download_url, self.raw_dir)
             extract_tar(path, self.raw_dir, mode='r')
@@ -83,21 +88,35 @@ class OC20(InMemoryDataset):
 
     def _extract_properties(self, mol, i, ref):
         
-        rcell, _ = ase.geometry.minkowski_reduce(ase.geometry.complete_cell(mol.cell), pbc=mol.pbc)
-        y = mol.get_potential_energy()
+        #rcell, _ = ase.geometry.minkowski_reduce(ase.geometry.complete_cell(mol.cell), pbc=mol.pbc)
+        energy = mol.get_potential_energy()
+
+        if self.total_energy:
+            y = energy
+        else:
+            y = energy-ref['reference_energy']
+            
+
+        # set fixed atoms for relaxation
+        fixed = np.zeros(len(mol))
+        fixed[mol.constraints[0].todict()['kwargs']['indices']]=1
         
         data = Data(
-            z=torch.IntTensor(mol.get_atomic_numbers()),
             atomic_numbers=torch.IntTensor(mol.get_atomic_numbers()),
             pos=torch.Tensor(mol.get_positions()),
-            y=torch.Tensor([y-ref['reference_energy']]),
+            y=torch.Tensor([y]),
             f=torch.Tensor(mol.get_forces()),
             cell=torch.Tensor(np.array(mol.cell))[None,...],
-            e_total=torch.Tensor([y]),
+            tags=torch.IntTensor(mol.get_tags()),
+            fixed=torch.IntTensor(fixed),
+            e_total=torch.Tensor([energy]),
+            free_energy=torch.Tensor([mol.info['free_energy']]),
             e_ref=torch.Tensor([ref['reference_energy']]),
-            rcell=torch.Tensor(np.array(rcell)),
+            #rcell=torch.Tensor(np.array(rcell)),
             name=mol.symbols.get_chemical_formula(),
+            sid=ref['system_id'],
             system_id=ref['system_id'],
+            fid=torch.IntTensor([i]),
             idx=torch.IntTensor([i]),
             natoms=torch.IntTensor([len(mol)]),
             pbc=torch.Tensor(mol.pbc)
@@ -115,19 +134,35 @@ class OC20(InMemoryDataset):
         df = pd.DataFrame({'system_id':system_id, 'frame_number':frame_number, 'reference_energy':reference_energy})
         df['reference_energy']=pd.to_numeric(df['reference_energy'])
         return df
+
+    def _read_reference_energy_traj(self, txt_path):
+        df=pd.read_csv(txt_path, names=['system_id','reference_energy'], dtype={'system_id':'str', 'reference_energy':'float32'})
+
+        return df
+
+    def _process_traj(self):
+        # read in .xyz files and get properties
+
+        ref_energy = self._read_reference_energy_traj(os.path.join(self.raw_dir, self.raw_subdir ,'system.txt'))
+
+        m = 0
+        data_list = []        
+        for p in tqdm(self.xyz_paths):
+            system_id = p.split('/')[-1].replace('.extxyz.xz','')
+            refE = ref_energy.loc[ref_energy['system_id']==system_id].iloc[0]
+            # get properties
+            for r, mol in enumerate(iread(p, index=":")):
+                data_list.append(self._extract_properties(mol, m, refE))
+                m+=1
         
-    
-    def process(self):
-        # check if data has already been downloaded
-        self._download()
+        # collate and save as .pt file
+        torch.save(self.collate(data_list), self.processed_paths[0])
         
-        self.xyz_paths = glob.glob(self.raw_paths[0])
-        
+    def _process_sets(self):
         # read in .xyz files and get properties
         m = 0
         data_list = []
         for p in tqdm(self.xyz_paths):
-
             ref_energy = self._read_reference_energy(p.replace('.extxyz.xz','.txt.xz'))
             
             # get properties
@@ -137,6 +172,18 @@ class OC20(InMemoryDataset):
         
         # collate and save as .pt file
         torch.save(self.collate(data_list), self.processed_paths[0])
+        
+    def process(self):
+        # check if data has already been downloaded
+        #self._download()
+        
+        self.xyz_paths = glob.glob(self.raw_paths[0])
+
+        if 'traj' in self.tag:
+            self._process_traj()
+        else:
+            self._process_sets()
+            
 
     def _generate_split(self, n_preds=-1):
         # arbitrary 80:10:10 train:val:test split
@@ -164,3 +211,4 @@ class OC20(InMemoryDataset):
                  mean=data[0]['y'].mean().numpy(),
                  stddev=data[0]['y'].std().numpy(),
                 )
+
