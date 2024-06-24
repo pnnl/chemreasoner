@@ -319,11 +319,11 @@ def microstructure_finetune_selection(
     percentile_r = np.percentile(
         [n.get_reward() for n in leaf_nodes], 1 - percentile_reward
     )
-    leaf_nodes = ([n for n in leaf_nodes if n.get_reward() > percentile_r],)
+    leaf_nodes = [n for n in leaf_nodes if n.get_reward() > percentile_r]
 
-    best_nodes = sorted(
-        [n for n in leaf_nodes], key=lambda n: n.get_reward() * n.get_uncertainty()
-    )[:-top_k]
+    best_nodes = sorted(leaf_nodes, key=lambda n: n.get_reward() * n.get_uncertainty())[
+        :-top_k
+    ]
     return [n._id for n in best_nodes]
 
 
