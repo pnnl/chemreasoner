@@ -445,7 +445,7 @@ if __name__ == "__main__":
 
     # Get which nodes to run DFT with
     dft_nodes = microstructure_finetune_selection(
-        tree=tree, top_k=3, percentile_reward=0.75
+        tree=tree, top_k=4, percentile_reward=0.75
     )
     dft_atoms, dft_names = uq_func.fetch_calculated_atoms(
         [tree.nodes[n] for n in dft_nodes]
