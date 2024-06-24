@@ -455,6 +455,7 @@ if __name__ == "__main__":
     # Write nodes to disk
     for ats, name in zip(dft_atoms, dft_names):
         p = dft_dir / (name + ".xyz")
+        p.parent.mkdir(parents=True, exist_ok=True)
         write(str(p), ats)
 
     print(rewards)
