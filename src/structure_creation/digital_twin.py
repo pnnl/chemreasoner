@@ -309,7 +309,7 @@ class CatalystDigitalTwin:
     @classmethod
     def fetch_slab_cache(cls, mp_id: str, millers: tuple):
         """Return the calculated slabs for the given bulk+millers."""
-        return cls._collected_slabs.get([f"{mp_id}+{millers}"], None)
+        return cls._collected_slabs.get(f"{mp_id}+{millers}", None)
 
     @classmethod
     def update_slab_cache(cls, mp_id: str, millers: tuple, slabs: list):
