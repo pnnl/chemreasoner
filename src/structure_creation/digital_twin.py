@@ -314,6 +314,7 @@ class CatalystDigitalTwin:
     @classmethod
     def update_slab_cache(cls, mp_id: str, millers: tuple, slabs: list):
         """Return the calculated slabs for the given bulk+millers."""
+        print(cls._collected_slabs)
         return cls._collected_slabs.update({f"{mp_id}+{millers}": slabs})
 
     def set_millers(self, millers: list[tuple[int]]):
@@ -336,6 +337,7 @@ class CatalystDigitalTwin:
             slabs = self.fetch_slab_cache(
                 cpy.computational_params["bulk"], cpy.computational_params["millers"]
             )
+            print(slabs)
             cpy.computational_objects["millers"] = (
                 slabs
                 if slabs is not None
