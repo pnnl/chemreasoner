@@ -289,7 +289,7 @@ class AdsorptionEnergyUncertaintyCalculator:
         )
 
         results = self._unpack_results(uncertainty_values, all_names, catalyst_names)
-        with open("test_gnn_results.json", "w") as f:
+        with open("test_uq_results.json", "w") as f:
             json.dump(results, f)
         return results
 
