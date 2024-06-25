@@ -354,7 +354,7 @@ class CatalystDigitalTwin:
             self.update_slab_cache(
                 cpy.computational_params["bulk"],
                 cpy.computational_params["millers"],
-                slabs,
+                cpy.computational_objects["millers"],
             )
             return_values.append(cpy)
         return return_values
