@@ -35,6 +35,7 @@ class CatalystDigitalTwin:
     """A class for a digital twin of a slab system."""
 
     _collected_mp_ids = {}
+    _collected_slabs = {}
 
     dummy_adsorbate = Adsorbate(
         Atoms("H", positions=[[0, 0, 0]]), adsorbate_binding_indices=[0]
@@ -305,6 +306,16 @@ class CatalystDigitalTwin:
 
     #### No function for get Millers #### noqa:E266
 
+    @classmethod
+    def fetch_slab_cache(cls, mp_id: str, millers: tuple):
+        """Return the calculated slabs for the given bulk+millers."""
+        return cls._collected_slabs.get([f"{mp_id}+{millers}"], default=None)
+
+    @classmethod
+    def update_slab_cache(cls, mp_id: str, millers: tuple, slabs: list):
+        """Return the calculated slabs for the given bulk+millers."""
+        return cls._collected_slabs.update({f"{mp_id}+{millers}": slabs})
+
     def set_millers(self, millers: list[tuple[int]]):
         """Set the miller indices given in the list, returning copies if necessary.
 
@@ -322,14 +333,26 @@ class CatalystDigitalTwin:
                 m = convert_miller_bravais_to_miller(m)
             cpy = self.copy()
             cpy.computational_params["millers"] = m
-            cpy.computational_objects["millers"] = Slab.from_bulk_get_specific_millers(
-                m,
-                Bulk(
-                    bulk_atoms=AseAtomsAdaptor().get_atoms(
-                        cpy.computational_objects["bulk"].structure
-                    )
-                ),
-                min_ab=8.0,  # TODO: consider reducing this before site placement?
+            slabs = self.fetch_slab_cache(
+                self.computational_params["bulk"], self.computational_params[""]
+            )
+            cpy.computational_objects["millers"] = (
+                slabs
+                if slabs is not None
+                else Slab.from_bulk_get_specific_millers(
+                    m,
+                    Bulk(
+                        bulk_atoms=AseAtomsAdaptor().get_atoms(
+                            cpy.computational_objects["bulk"].structure
+                        )
+                    ),
+                    min_ab=8.0,  # TODO: consider reducing this before site placement?
+                )
+            )
+            self.update_slab_cache(
+                self.computational_params["bulk"],
+                self.computational_params["millers"],
+                slabs,
             )
             return_values.append(cpy)
         return return_values
