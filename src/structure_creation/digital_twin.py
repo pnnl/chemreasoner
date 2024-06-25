@@ -334,7 +334,7 @@ class CatalystDigitalTwin:
             cpy = self.copy()
             cpy.computational_params["millers"] = m
             slabs = self.fetch_slab_cache(
-                self.computational_params["bulk"], self.computational_params[""]
+                self.computational_params["bulk"], self.computational_params["millers"]
             )
             cpy.computational_objects["millers"] = (
                 slabs
