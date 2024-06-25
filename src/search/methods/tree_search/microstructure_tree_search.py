@@ -409,11 +409,7 @@ if __name__ == "__main__":
     ms_planner = OCPMicrostructurePlanner(llm_function=llm_function)
     ms_planner.set_state(state)
 
-    if (
-        Path("test_node_data.csv").exists()
-        and Path("test_edge_data.json").exists()
-        and False
-    ):
+    if Path("test_node_data.csv").exists() and Path("test_edge_data.json").exists():
         node_data = pd.read_csv("test_node_data.csv", index_col=False)
         with open("test_edge_data.json", "r") as f:
             edge_data = json.load(f)
