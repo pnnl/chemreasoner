@@ -185,15 +185,25 @@ class MicrostructureTree:
         G.add_edges_from(edges)
         return G
 
-    def store_data(self) -> tuple[pd.DataFrame, list[tuple[str, str]]]:
+    def store_data(
+        self, metadata: bool = False
+    ) -> tuple[pd.DataFrame, list[tuple[str, str]]]:
         """Save the data stored in self."""
+        metadata_dict = {} if metadata else None
         node_data = []
         edge_data = []
         for n_id, n in self.nodes.items():
-            node_data.append(n.return_row())
+            if metadata:
+                data, info = n.return_row()
+                metadata_dict.update({n._id: info})
+            else:
+                data = n.return_row()
+            node_data.append(data)
             edge_data += [[n_id, c] for c in n.children_ids]
-
-        return pd.DataFrame(node_data), edge_data
+        if metadata:
+            return pd.DataFrame(node_data), edge_data, metadata_dict
+        else:
+            return pd.DataFrame(node_data), edge_data
 
     @classmethod
     def from_data(
