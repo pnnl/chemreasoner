@@ -126,8 +126,6 @@ class CatalystDigitalTwin:
         start_dt = cls()
         dt = start_dt
         for k in start_dt.available_statuses:
-            print(k)
-            print(row_data[k])
             if row_data[k] is not None and not (
                 isinstance(row_data[k], float) and math.isnan(row_data[k])
             ):
@@ -140,7 +138,6 @@ class CatalystDigitalTwin:
                         raise AttributeError(
                             f"Catalyst digital twin does not have method {f'set_{k}s'} or {f'set_{k}'}."
                         )
-                print(k)
                 dt = method([row_data[k]])[0]
         dt._id = row_data["id"]
         return dt
@@ -236,16 +233,25 @@ class CatalystDigitalTwin:
             )
             for mp_id in mp_ids
         ]
-        with MPRester(MP_API_KEY) as mpr:
-            new_docs = mpr.summary.search(material_ids=mp_ids)
-            i, j = 0, 0
-            while i < len(docs):
-                if docs[i] is None:
-                    docs[i] = new_docs[j]
-                    j += 1
-                i += 1
+        if any([d is None for d in docs]):
+            with MPRester(MP_API_KEY) as mpr:
+                new_docs = mpr.summary.search(
+                    material_ids=[
+                        mp_id
+                        for mp_id in mp_ids
+                        if mp_id not in cls._collected_mp_ids.keys()
+                    ]
+                )
+                i, j = 0, 0
+                while i < len(docs):
+                    if docs[i] is None:
+                        docs[i] = new_docs[j]
+                        j += 1
+                    i += 1
 
-        cls._collected_mp_ids.update({mp_id: doc for mp_id, doc in zip(mp_ids, docs)})
+            cls._collected_mp_ids.update(
+                {mp_id: doc for mp_id, doc in zip(mp_ids, docs)}
+            )
         return docs
 
     def get_bulks(self, filter_theoretical=False):
@@ -314,7 +320,6 @@ class CatalystDigitalTwin:
     @classmethod
     def update_slab_cache(cls, mp_id: str, millers: tuple, slabs: list):
         """Return the calculated slabs for the given bulk+millers."""
-        print(cls._collected_slabs)
         return cls._collected_slabs.update({f"{mp_id}+{millers}": slabs})
 
     def set_millers(self, millers: list[tuple[int]]):
@@ -337,7 +342,6 @@ class CatalystDigitalTwin:
             slabs = self.fetch_slab_cache(
                 cpy.computational_params["bulk"], cpy.computational_params["millers"]
             )
-            print(slabs)
             cpy.computational_objects["millers"] = (
                 slabs
                 if slabs is not None
@@ -378,10 +382,7 @@ class CatalystDigitalTwin:
                 s = min(
                     self.computational_objects["millers"],
                     key=lambda slab: abs(s[0] - slab.shift)
-                    + (np.inf if s[1] != slab.top else 0)
-                    + (
-                        0 if print(abs(s[0] - slab.shift)) is None else 0
-                    ),  # Find the closes surface
+                    + (np.inf if s[1] != slab.top else 0),  # Find the closest surface
                 )
             cpy = self.copy()
             cpy.computational_params["surface"] = (s.shift, s.top)

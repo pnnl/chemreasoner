@@ -225,13 +225,12 @@ class MicrostructureTree:
                 # print(e[0], node._id)
                 if e[0] == node._id:  # Check if this node is a parent to this edge
                     edge_dict[node._id].append(edge_data.pop(j)[1])
-                    print(edge_dict[node._id])
                     # edge_data.pop(j)
                 else:
                     j += 1
 
             if root_id is None and root_node:
-                print(f"{node._id} found*********")
+                print(f"{node._id} found root node *********")
                 root_id = node._id
         tree = cls(root_node=node_dict[root_id])
 
@@ -370,6 +369,30 @@ def simplify_float_values(tuple_data: tuple):
         "{:.2f}".format(element) if isinstance(element, float) else element
         for element in tuple_data
     )
+
+
+class _PlaceholderAtomisticCalc:
+    """A placehodler class for an atomistic calculator."""
+    def __init__(self, traj_dir:Path):
+        """"""
+
+
+class MicrostructureRewardAnalyzer:
+    """Class to anaylze microstructure reward values from a tree."""
+
+    def __init__(
+        self, tree: MicrostructureTree, pathways: list[list[str]], traj_dir: Path
+    ):
+        """Microstructure tree search."""
+        self.tree = tree
+        self.pathways = pathways
+        self.traj_dir = traj_dir
+
+        self.calc = 
+
+    def colllect_calculated_values(self):
+        """Collect the values of adsorption energies collected for each node."""
+        nodes = tree.get_leaf_nodes()
 
 
 if __name__ == "__main__":
