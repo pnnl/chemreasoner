@@ -142,11 +142,13 @@ class CatalystDigitalTwin:
         dt._id = row_data["id"]
         return dt
 
-    def return_row(self):  # TODO: Do something with LLM queries
+    def return_row(self, metadata: bool = False):  # TODO: Do something with LLM queries
         """Return the data stored within the digital twin."""
         row = deepcopy(self.computational_params)
         row["id"] = self._id
         row.update({k: None for k in self.available_statuses if k not in row})
+        if metadata:
+            return row, self.info
         return row
 
     def return_slab(self):
