@@ -373,8 +373,10 @@ def simplify_float_values(tuple_data: tuple):
 
 class _PlaceholderAtomisticCalc:
     """A placehodler class for an atomistic calculator."""
-    def __init__(self, traj_dir:Path):
-        """"""
+
+    def __init__(self, traj_dir: Path):
+        """Initialize self with the given traj_dir"""
+        self.data = traj_dir
 
 
 class MicrostructureRewardAnalyzer:
@@ -388,7 +390,7 @@ class MicrostructureRewardAnalyzer:
         self.pathways = pathways
         self.traj_dir = traj_dir
 
-        self.calc = 
+        self.calc = _PlaceholderAtomisticCalc(traj_dir=traj_dir)
 
     def colllect_calculated_values(self):
         """Collect the values of adsorption energies collected for each node."""
