@@ -148,7 +148,7 @@ class CatalystDigitalTwin:
         row["id"] = self._id
         row.update({k: None for k in self.available_statuses if k not in row})
         if metadata:
-            return row, self.info
+            return row, deepcopy(self.info)
         return row
 
     def return_slab(self):
