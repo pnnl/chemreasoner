@@ -4,9 +4,10 @@ import logging
 import sys
 import time
 
-import numpy as np
+from copy import deepcopy
 
 from ase import Atoms
+import numpy as np
 
 sys.path.append("src")
 from nnp.oc import OCAdsorptionCalculator
@@ -29,6 +30,7 @@ class MicrostructureRewardFunction:
         num_augmentations_per_site: int = 1,
     ):
         """Return self, with the given reaction_pathways and calculator initialized."""
+        self._cached_calculations = {}
         self.reaction_pathways = reaction_pathways
         self._all_adsorbate_symbols = list(
             {ads_sym for ads_list in self.reaction_pathways for ads_sym in ads_list}
@@ -47,13 +49,32 @@ class MicrostructureRewardFunction:
         energies = self.ads_e_reward(
             catalyst_structures=structures, catalyst_names=[s._id for s in structures]
         )
+
+        final_values = self.calculate_final_reward(energies=energies)
+        return [final_values[s._id] for s in structures]
+
+    def _calculate_final_reward(self, energies: dict[str, float]):
+        """Calculate the final reward associated with the given energies."""
         reactant_energies = self._parse_reactant_energies(energies)
         energy_barriers = self._parse_energy_barriers(energies)
-        final_values = {  # TODO: Do a better calculation for these
+        rewards = {  # TODO: Do a better calculation for these
             k: -1 * (reactant_energies[k] / energy_barriers[k]["best"])
             for k in reactant_energies.keys()
         }
-        return [final_values[s._id] for s in structures]
+        for k, row in energies.items():
+            row.update(
+                {
+                    "reward_1": reactant_energies[k],
+                    "reward_2": energy_barriers[k],
+                    "combined_reward": rewards[k],
+                }
+            )
+        self._cached_calculations.update(energies)
+        return rewards
+
+    def fetch_energy_results(self, structures: list[CatalystDigitalTwin]):
+        """Fetch the energies associated with the given structures."""
+        return deepcopy({s._id: self._cached_calculations[s._id] for s in structures})
 
     def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
         """Parse the energies of the reactants for the reaction pathways."""
