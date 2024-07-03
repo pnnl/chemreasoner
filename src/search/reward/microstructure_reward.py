@@ -38,7 +38,7 @@ class MicrostructureRewardFunction:
         self.calc = calc
         self.num_augmentations_per_site = num_augmentations_per_site
 
-        self.ads_e_reward = AdsorptionEnergyCalculator(
+        self.ads_e_calc = AdsorptionEnergyCalculator(
             atomistic_calc=self.calc,
             adsorbates_syms=self._all_adsorbate_symbols,
             num_augmentations_per_site=self.num_augmentations_per_site,
@@ -46,7 +46,7 @@ class MicrostructureRewardFunction:
 
     def __call__(self, structures: list[CatalystDigitalTwin]):
         """Call the reward values for the given list of structures."""
-        energies = self.ads_e_reward(
+        energies = self.ads_e_calc(
             catalyst_structures=structures, catalyst_names=[s._id for s in structures]
         )
 
@@ -72,9 +72,28 @@ class MicrostructureRewardFunction:
         self._cached_calculations.update(energies)
         return rewards
 
-    def fetch_energy_results(self, structures: list[CatalystDigitalTwin]):
+    def fetch_adsorption_energy_results(self, structures: list[CatalystDigitalTwin]):
         """Fetch the energies associated with the given structures."""
-        return deepcopy({s._id: self._cached_calculations[s._id] for s in structures})
+        results = {}
+        for s in structures:
+            row = self._cached_calculations[s._id]
+            results[s._id] = {
+                ads_key: (
+                    e_tot
+                    - row[self.ads_e_calc.reference_energy_key]
+                    - self.ads_e_calc.adsorbate_reference_energy(ads_key)
+                    if ads_key != self.ads_e_calc.reference_energy_key
+                    else e_tot
+                )
+                for ads_key, e_tot in row.keys()
+            }
+        return deepcopy(results)
+
+    def fetch_reward_results(self, structures: list[CatalystDigitalTwin]):
+        """Fetch the rewards associated with the given structures."""
+        energies = self.fetch_adsorption_energy_results(structures)
+        final_values = self.calculate_final_reward(energies=energies)
+        return {s._id: final_values[s._id] for s in structures}
 
     def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
         """Parse the energies of the reactants for the reaction pathways."""
@@ -84,8 +103,8 @@ class MicrostructureRewardFunction:
         syms = symbols[0]
         energies = {
             catalyst: catalyst_results[syms]
-            - catalyst_results[self.ads_e_reward.reference_energy_key]
-            - self.ads_e_reward.adsorbate_reference_energy(syms)
+            - catalyst_results[self.ads_e_calc.reference_energy_key]
+            - self.ads_e_calc.adsorbate_reference_energy(syms)
             for catalyst, catalyst_results in energy_results.items()
         }
         return energies
@@ -98,7 +117,7 @@ class MicrostructureRewardFunction:
             for i, pathway in enumerate(self.reaction_pathways):
                 e = [
                     catalyst_results[syms]
-                    - self.ads_e_reward.adsorbate_reference_energy(syms)
+                    - self.ads_e_calc.adsorbate_reference_energy(syms)
                     for syms in pathway
                 ]
                 diffs = np.diff(e).tolist()
@@ -110,49 +129,39 @@ class MicrostructureRewardFunction:
 
 class MicrostructureUncertaintyFunction:
 
-    _cached_uncertainties = {}
-
     def __init__(
         self,
         reaction_pathways: list[list[str]],
         calc: UncertaintyCalculator,
     ):
         """Return self, with the given reaction_pathways and calculator initialized."""
+        self._cached_calculations = {}
         self.reaction_pathways = reaction_pathways
         self._all_adsorbate_symbols = list(
             {ads_sym for ads_list in self.reaction_pathways for ads_sym in ads_list}
         )
         self.calc = calc
 
-        self.ads_e_reward = AdsorptionEnergyUncertaintyCalculator(
+        self.ads_e_calc = AdsorptionEnergyUncertaintyCalculator(
             uncertainty_calc=self.calc,
             adsorbates_syms=self._all_adsorbate_symbols,
         )
 
     def __call__(self, structures: list[CatalystDigitalTwin]):
         """Call the reward values for the given list of structures."""
-        uncertainty_dictionary = self.ads_e_reward(
+        uncertainty_dictionary = self.ads_e_calc(
             catalyst_structures=structures, catalyst_names=[s._id for s in structures]
         )
+        self._cached_calculations.update(uncertainty_dictionary)
         uncertainty_arrays = {
             k: np.sqrt(np.sum(np.array(list(v.values())) ** 2))
             for k, v in uncertainty_dictionary.items()
         }
         return [uncertainty_arrays[s._id] for s in structures]
 
-    @classmethod
-    def store_uncertainty(cls, uncertainty_dictionary):
-        """Store the given uncertainty dictionary in class variable."""
-        cls._cached_uncertainties.update({uncertainty_dictionary})
-
-    @classmethod
-    def get_stored_uncertainties(cls):
-        """Get the uncertainties stored in class."""
-        return cls._cached_uncertainties
-
-    def fetch_calculated_atoms(self, structures) -> Atoms:
+    def fetch_calculated_atoms(self, structures: list[CatalystDigitalTwin]) -> Atoms:
         """Fetch the atoms associated with the given structures, filter by top_p uncertainty."""
-        all_structures, all_names = self.ads_e_reward.fetch_calculated_atoms(
+        all_structures, all_names = self.ads_e_calc.fetch_calculated_atoms(
             catalyst_structures=structures, catalyst_names=[s._id for s in structures]
         )
         return all_structures, all_names
@@ -165,11 +174,19 @@ class MicrostructureUncertaintyFunction:
         syms = symbols[0]
         energies = {
             catalyst: catalyst_results[syms]
-            - catalyst_results[self.ads_e_reward.reference_energy_key]
-            - self.ads_e_reward.adsorbate_reference_energy(syms)
+            - catalyst_results[self.ads_e_calc.reference_energy_key]
+            - self.ads_e_calc.adsorbate_reference_energy(syms)
             for catalyst, catalyst_results in energy_results.items()
         }
         return energies
+
+    def fetch_uncertainty_results(self, structures: list[CatalystDigitalTwin]):
+        """Fetch the uncertainty results from the given structures."""
+        results = {}
+        for s in structures:
+            row = self._cached_calculations[s._id]
+            results[s._id] = row  # TODO: is there agregation to do?
+        return deepcopy(results)
 
     def _parse_energy_barriers(self, energy_results: dict[str, dict[str, float]]):
         """Parse the reaction barriers for the reaction pathways."""
@@ -179,7 +196,7 @@ class MicrostructureUncertaintyFunction:
             for i, pathway in enumerate(self.reaction_pathways):
                 e = [
                     catalyst_results[syms]
-                    - self.ads_e_reward.adsorbate_reference_energy(syms)
+                    - self.ads_e_calc.adsorbate_reference_energy(syms)
                     for syms in pathway
                 ]
                 diffs = np.diff(e).tolist()

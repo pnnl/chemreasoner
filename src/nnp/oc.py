@@ -828,3 +828,4 @@ if __name__ == "__main__":
             "steps": 0,
         }
     )
+    print(type(calc.get_torch_model.model))

@@ -407,6 +407,37 @@ class MicrostructureRewardAnalyzer:
         nodes = tree.get_leaf_nodes()
 
 
+def get_reward_data(
+    tree: MicrostructureTree,
+    reward_func: MicrostructureRewardFunction,
+    uq_func: MicrostructureUncertaintyFunction,
+) -> pd.DataFrame:
+    """Get the reward data for the nodes in the given tree as dataframe."""
+    nodes = [tree.nodes[n] for n in tree.get_leaf_nodes()]
+    df = []
+
+    reward_values = reward_func(structures=nodes)
+    reward_values = {n._id: reward_values[i] for i, n in enumerate(nodes)}
+    reward_data = reward_func.fetch_energy_results(nodes)
+    uncertainty_data = reward_func.fetch_uncertainty_results(nodes)
+    for n in nodes:
+        row = n.return_row()
+        row["bulk_composition"] = n.computational_objects["bulk"].formula_pretty
+        row["bulk_symmetry"] = n.computational_objects[
+            "bulk"
+        ].symmetry.crystal_system.value.lower()
+
+        reward_row = reward_data[n._id]
+        uq_row = uncertainty_data[n._id]
+        row.update(reward_row)
+        row.update(uq_row)
+
+        row.update({"reward": reward_values[n._id]})
+
+        df.append(row)
+    return pd.DataFrame(df)
+
+
 if __name__ == "__main__":
 
     class TestState:
