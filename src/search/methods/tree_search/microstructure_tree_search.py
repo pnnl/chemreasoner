@@ -1,6 +1,6 @@
 """Code to """
 
-import inspect
+import argparse
 import json
 import logging
 import sys
@@ -440,6 +440,23 @@ def get_reward_data(
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--savedir", type=str, default=None)
+
+    parser.add_argument("--gnn-model", type=str, default=None)
+    parser.add_argument("--gnn-batch-size", type=int, default=None)
+    parser.add_argument("--gnn-device", type=str, default=None)
+    parser.add_argument("--gnn-ads-tag", type=int, default=None)
+    parser.add_argument("--gnn-fmax", type=float, default=None)
+    parser.add_argument("--gnn-steps", type=int, default=None)
+    parser.add_argument("--gnn-port", type=int, default=None)
+
+    args = parser.parse_args()
+
+    save_path = Path(args.save_dir)
+    save_path.mkdir(parents=True, exist_ok=True)
+
     class TestState:
         root_prompt = "Propose a catalyst for the conversion of CO to methanol."
 
@@ -450,20 +467,20 @@ if __name__ == "__main__":
     ]
     calc = OCAdsorptionCalculator(
         **{
-            "model": "gemnet-oc-22",
-            "traj_dir": Path("pipeline_test_trajs"),
-            "batch_size": 64,
-            "device": "cuda",
-            "ads_tag": 2,
-            "fmax": 0.03,
-            "steps": 250,
+            "model": args.gnn_model,
+            "traj_dir": save_path / "trajectories",
+            "batch_size": args.gnn_batch_size,
+            "device": args.gnn_device,
+            "ads_tag": args.gnn_ads_tag,
+            "fmax": args.gnn_fmax,
+            "steps": args.gnn_steps,
         }
     )
     reward_func = MicrostructureRewardFunction(
         pathways, calc, num_augmentations_per_site=1
     )
     uq_calc = UncertaintyCalculator(device="cpu", batch_size=40)
-    UncertaintyCalculator.traj_dir = Path("pipeline_test_trajs")
+    UncertaintyCalculator.traj_dir = save_path / "trajectories"
     uq_func = MicrostructureUncertaintyFunction(
         reaction_pathways=pathways, calc=uq_calc
     )
@@ -475,7 +492,9 @@ if __name__ == "__main__":
     ms_planner = OCPMicrostructurePlanner(llm_function=llm_function)
     ms_planner.set_state(state)
 
-    if Path("test_node_data.csv").exists() and Path("test_edge_data.json").exists():
+    if (save_path / "test_node_data.csv").exists() and (
+        save_path / "test_edge_data.json"
+    ).exists():
         node_data = pd.read_csv("test_node_data.csv", index_col=False)
         with open("test_edge_data.json", "r") as f:
             edge_data = json.load(f)
@@ -493,12 +512,15 @@ if __name__ == "__main__":
         tree = MicrostructureTree(root_node=dt)
         nodes = microstructure_search(tree, ms_planner)
 
-        node_data, edge_data = tree.store_data()
+        node_data, edge_data, llm_data = tree.store_data(metadata=True)
 
         # Save to disk
-        node_data.to_csv("test_node_data.csv", index=False)
-        with open("test_edge_data.json", "w") as f:
+        node_data.to_csv(save_path / "test_node_data.csv", index=False)
+        with open(save_path / "test_edge_data.json", "w") as f:
             json.dump(edge_data, f)
+
+        with open(save_path / "llm_answers.json", "w") as f:
+            json.dump(llm_data, llm_data)
 
     rewards = reward_func(nodes)
     uq_values = uq_func(nodes)
@@ -513,7 +535,7 @@ if __name__ == "__main__":
     dft_atoms, dft_names = uq_func.fetch_calculated_atoms(
         [tree.nodes[n] for n in dft_nodes]
     )
-    dft_dir = Path("structures_for_dft")
+    dft_dir = save_path / "structures_for_dft"
     dft_dir.mkdir(parents=True, exist_ok=True)
     # Write nodes to disk
     for ats, name in zip(dft_atoms, dft_names):
