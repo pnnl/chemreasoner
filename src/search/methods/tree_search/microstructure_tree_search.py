@@ -194,7 +194,7 @@ class MicrostructureTree:
         edge_data = []
         for n_id, n in self.nodes.items():
             if metadata:
-                data, info = n.return_row()
+                data, info = n.return_row(metadata=metadata)
                 metadata_dict.update({n._id: info})
             else:
                 data = n.return_row()
