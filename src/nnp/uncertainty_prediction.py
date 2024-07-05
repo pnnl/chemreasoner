@@ -37,5 +37,5 @@ class UncertaintyCalculator:
             batch = Batch.from_data_list(data_list)
             batch = batch.to(device if device is not None else self.device)
 
-            uncertainties += [random.random() for _ in range(len(data_list))]
+            uncertainties += [0.0 for _ in range(len(data_list))]
         return uncertainties
