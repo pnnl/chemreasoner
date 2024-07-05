@@ -61,14 +61,6 @@ class MicrostructureRewardFunction:
             k: -1 * (reactant_energies[k] / energy_barriers[k]["best"])
             for k in reactant_energies.keys()
         }
-        for k, row in energies.items():
-            row.update(
-                {
-                    "reward_1": reactant_energies[k],
-                    "reward_2": energy_barriers[k],
-                    "combined_reward": rewards[k],
-                }
-            )
         self._cached_calculations.update(energies)
         return rewards
 
@@ -185,7 +177,7 @@ class MicrostructureUncertaintyFunction:
         results = {}
         for s in structures:
             row = self._cached_calculations[s._id]
-            results[s._id] = row  # TODO: is there agregation to do?
+            results[s._id] = row  # TODO: Is there aggregation to do?
         return deepcopy(results)
 
     def _parse_energy_barriers(self, energy_results: dict[str, dict[str, float]]):

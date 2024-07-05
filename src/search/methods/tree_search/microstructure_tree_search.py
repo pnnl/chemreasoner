@@ -532,16 +532,31 @@ if __name__ == "__main__":
     dft_nodes = microstructure_finetune_selection(
         tree=tree, top_k=4, percentile_reward=0.75
     )
+
     dft_atoms, dft_names = uq_func.fetch_calculated_atoms(
         [tree.nodes[n] for n in dft_nodes]
     )
-    dft_dir = save_path / "structures_for_dft"
+    with open(save_path / "structures_for_dft.json", "w") as f:
+        json.dump(f, dft_names)
+    all_atoms, all_names = uq_func.fetch_calculated_atoms(
+        [tree.nodes[n] for n in tree.nodes.keys()]
+    )
+    dft_dir = save_path / "relaxed_structures"
     dft_dir.mkdir(parents=True, exist_ok=True)
     # Write nodes to disk
-    for ats, name in zip(dft_atoms, dft_names):
+    for ats, name in zip(all_atoms, all_names):
         p = dft_dir / (name + ".xyz")
         p.parent.mkdir(parents=True, exist_ok=True)
         write(str(p), ats)
+
+    # Save reward and energy information to disk
+
+    dataframe = get_reward_data(
+        tree=tree,
+        reward_func=reward_func,
+        uq_func=uq_func,
+    )
+    dataframe.to_csv(save_path / "reward_values.csv")
 
     print(rewards)
 
