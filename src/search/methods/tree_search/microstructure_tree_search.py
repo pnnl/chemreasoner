@@ -520,7 +520,7 @@ if __name__ == "__main__":
             json.dump(edge_data, f)
 
         with open(save_path / "llm_answers.json", "w") as f:
-            json.dump(llm_data, llm_data)
+            json.dump(llm_data, f)
 
     rewards = reward_func(nodes)
     uq_values = uq_func(nodes)
@@ -537,7 +537,7 @@ if __name__ == "__main__":
         [tree.nodes[n] for n in dft_nodes]
     )
     with open(save_path / "structures_for_dft.json", "w") as f:
-        json.dump(f, dft_names)
+        json.dump(dft_names, f)
     all_atoms, all_names = uq_func.fetch_calculated_atoms(
         [tree.nodes[n] for n in tree.nodes.keys()]
     )
