@@ -442,7 +442,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--savedir", type=str, default=None)
+    parser.add_argument("--save-dir", type=str, default=None)
 
     parser.add_argument("--gnn-model", type=str, default=None)
     parser.add_argument("--gnn-batch-size", type=int, default=None)
