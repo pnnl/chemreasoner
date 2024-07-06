@@ -418,7 +418,8 @@ def get_reward_data(
 
     reward_values = reward_func(structures=nodes)
     reward_values = {n._id: reward_values[i] for i, n in enumerate(nodes)}
-    reward_data = reward_func.fetch_energy_results(nodes)
+    energy_data = reward_func.fetch_adsorption_energy_results(nodes)
+    reward_data = reward_func.fetch_adsorption_energy_results(nodes)
     uncertainty_data = reward_func.fetch_uncertainty_results(nodes)
     for n in nodes:
         row = n.return_row()
@@ -428,8 +429,11 @@ def get_reward_data(
         ].symmetry.crystal_system.value.lower()
 
         reward_row = reward_data[n._id]
+        energy_row = energy_data[n._id]
         uq_row = uncertainty_data[n._id]
+
         row.update(reward_row)
+        row.update(energy_row)
         row.update(uq_row)
 
         row.update({"reward": reward_values[n._id]})

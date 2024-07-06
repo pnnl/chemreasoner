@@ -49,7 +49,7 @@ class MicrostructureRewardFunction:
         energies = self.ads_e_calc(
             catalyst_structures=structures, catalyst_names=[s._id for s in structures]
         )
-
+        self._cached_calculations.update(energies)
         final_values = self._calculate_final_reward(energies=energies)
         return [final_values[s._id] for s in structures]
 
@@ -61,7 +61,7 @@ class MicrostructureRewardFunction:
             k: -1 * (reactant_energies[k] / energy_barriers[k]["best"])
             for k in reactant_energies.keys()
         }
-        self._cached_calculations.update(energies)
+
         return rewards
 
     def fetch_adsorption_energy_results(self, structures: list[CatalystDigitalTwin]):
@@ -84,8 +84,17 @@ class MicrostructureRewardFunction:
     def fetch_reward_results(self, structures: list[CatalystDigitalTwin]):
         """Fetch the rewards associated with the given structures."""
         energies = self.fetch_adsorption_energy_results(structures)
-        final_values = self._calculate_final_reward(energies=energies)
-        return {s._id: final_values[s._id] for s in structures}
+        reactant_energies = self._parse_reactant_energies(energies)
+        energy_barriers = self._parse_energy_barriers(energies)
+        return {
+            s._id: {
+                "reward_function_1": reactant_energies[s._id],
+                "reward_function_2": energy_barriers[s._id]["best"],
+                "reward": -1
+                * (reactant_energies[s._id] / energy_barriers[s._id]["best"]),
+            }
+            for s in structures
+        }
 
     def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
         """Parse the energies of the reactants for the reaction pathways."""
