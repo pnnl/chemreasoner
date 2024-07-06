@@ -420,7 +420,7 @@ def get_reward_data(
     reward_values = {n._id: reward_values[i] for i, n in enumerate(nodes)}
     energy_data = reward_func.fetch_adsorption_energy_results(nodes)
     reward_data = reward_func.fetch_adsorption_energy_results(nodes)
-    uncertainty_data = reward_func.fetch_uncertainty_results(nodes)
+    uncertainty_data = uq_func.fetch_uncertainty_results(nodes)
     for n in nodes:
         row = n.return_row()
         row["bulk_composition"] = n.computational_objects["bulk"].formula_pretty
