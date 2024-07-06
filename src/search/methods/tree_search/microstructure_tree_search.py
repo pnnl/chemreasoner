@@ -495,8 +495,8 @@ if __name__ == "__main__":
     if (save_path / "test_node_data.csv").exists() and (
         save_path / "test_edge_data.json"
     ).exists():
-        node_data = pd.read_csv("test_node_data.csv", index_col=False)
-        with open("test_edge_data.json", "r") as f:
+        node_data = pd.read_csv(save_path / "test_node_data.csv", index_col=False)
+        with open(save_path / "test_edge_data.json", "r") as f:
             edge_data = json.load(f)
 
         tree = MicrostructureTree.from_data(node_data=node_data, edge_data=edge_data)
