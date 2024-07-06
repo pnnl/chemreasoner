@@ -30,3 +30,4 @@ dependencies:
   - wget
   - python-dotenv
   - pydot
+  - matplotlib
