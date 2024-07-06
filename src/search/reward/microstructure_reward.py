@@ -50,7 +50,7 @@ class MicrostructureRewardFunction:
             catalyst_structures=structures, catalyst_names=[s._id for s in structures]
         )
 
-        final_values = self.calculate_final_reward(energies=energies)
+        final_values = self._calculate_final_reward(energies=energies)
         return [final_values[s._id] for s in structures]
 
     def _calculate_final_reward(self, energies: dict[str, float]):
@@ -84,7 +84,7 @@ class MicrostructureRewardFunction:
     def fetch_reward_results(self, structures: list[CatalystDigitalTwin]):
         """Fetch the rewards associated with the given structures."""
         energies = self.fetch_adsorption_energy_results(structures)
-        final_values = self.calculate_final_reward(energies=energies)
+        final_values = self._calculate_final_reward(energies=energies)
         return {s._id: final_values[s._id] for s in structures}
 
     def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
