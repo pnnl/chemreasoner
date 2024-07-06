@@ -539,7 +539,7 @@ if __name__ == "__main__":
     with open(save_path / "structures_for_dft.json", "w") as f:
         json.dump(dft_names, f)
     all_atoms, all_names = uq_func.fetch_calculated_atoms(
-        [tree.nodes[n] for n in tree.nodes.keys()]
+        [tree.nodes[n] for n in tree.leaf_nodes()]
     )
     dft_dir = save_path / "relaxed_structures"
     dft_dir.mkdir(parents=True, exist_ok=True)
