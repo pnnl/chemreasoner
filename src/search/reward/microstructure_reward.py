@@ -77,7 +77,7 @@ class MicrostructureRewardFunction:
                     if ads_key != self.ads_e_calc.reference_energy_key
                     else e_tot
                 )
-                for ads_key, e_tot in row.keys()
+                for ads_key, e_tot in row.items()
             }
         return deepcopy(results)
 
