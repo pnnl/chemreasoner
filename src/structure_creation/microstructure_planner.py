@@ -53,14 +53,14 @@ prompts = {
     },
     "millers": {
         "prompt": (
-            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material}. \nReturn a list of miller indices that would answer the $ROOT_PROMPT. You miller indices should be consistent with the information in $ANSWER\n\n\nReturn your answer as a python list called 'final_answer' of your top {num_choices} miller indices. Your miller indices should be python 3-tuples. Let's think step-by-step and provide justifications for your answers. Remember to return a python list called final answer!"
+            r"$ROOT_PROMPT = '{root_prompt}'\n\nConsider the material {material}. \nReturn a list of miller indices that would answer the $ROOT_PROMPT. You may consider high as well as low index planes. \n\n\nReturn your answer as a python list called 'final_answer' of your top {num_choices} miller indices. Your miller indices should be python 3-tuples. Let's think step-by-step and provide justifications for your answers. Remember to return a python list called final answer!"
         ),
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about surface composition based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
         ),
     },
     "surface": {
-        r"prompt": "$ROOT_PROMPT = {root_prompt}\n\nConsider the material {material} with miller index {millers}. Return the index of the following surfaces which has the best configuration for accomplishing the $ROOT_PROMPT. You should target surfaces with binding sites that are consisten with the $ANSWER given above.\n\n{cell_shift_summaries}\n\nReturn your answer as a python list called 'final_answer' of your top {num_choices} choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers. Remember to return a python list called final answer!",
+        r"prompt": "$ROOT_PROMPT = {root_prompt}\n\nConsider the material {material} with miller index {millers}. Return the index of the following surfaces which has the best configuration for accomplishing the $ROOT_PROMPT. \n\n{cell_shift_summaries}\n\nReturn your answer as a python list called 'final_answer' of your top {num_choices} choices, using the indices given in the () above. Let's think step-by-step and provide justifications for your answers. Remember to return a python list called final answer!",
         "system_prompt": (
             "You are an AI assistant that has knowledge about materials science and catalysis and can make accurate recommendations about miller indices based on surface chemistry. You will consider factors such as catalytic performance and binding sites."
         ),
@@ -88,9 +88,9 @@ class OCPMicrostructurePlanner:
         "__default__": 1,
     }
     num_choices = {
-        "bulk": 3,
-        "millers": 3,
-        "site_placement": 3,
+        "bulk": 5,
+        "millers": 5,
+        "site_placement": 5,
     }
 
     def __init__(self, llm_function=callable, debug: bool = False):
