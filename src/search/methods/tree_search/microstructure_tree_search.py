@@ -265,7 +265,8 @@ def microstructure_search(
     children = tree.get_children(root_id)
     if len(children) == 0:
         nodes = [tree.nodes[root_id]]
-        bulks_idxs = [[0, 1, 2]] * len(nodes)  # ms_planner.run_bulk_prompt(nodes)
+        # bulks_idxs = [[0, 1, 2]] * len(nodes)
+        bulks_idxs = ms_planner.run_bulk_prompt(nodes)
         for i in range(len(nodes)):
             parent_node = nodes[i]
 
@@ -278,9 +279,10 @@ def microstructure_search(
     # set the millers
     nodes = [tree.nodes[child] for n in nodes for child in tree.get_children(n._id)]
 
-    millers_choices = [[(1, 1, 1), (1, 1, 0), (1, 1, 1), (2, 1, 1)]] * len(
-        nodes
-    )  # ms_planner.run_millers_prompt(nodes)
+    # millers_choices = [[(1, 1, 1), (1, 1, 0), (1, 1, 1), (2, 1, 1)]] * len(
+    #     nodes
+    # )
+    millers_choices = ms_planner.run_millers_prompt(nodes)
     print(millers_choices)
     for i in range(len(nodes)):
         parent_node = nodes[i]
@@ -288,11 +290,9 @@ def microstructure_search(
         # Generate child nodes and put them in the tree
         tree.set_children(parent_node._id, parent_node.set_millers(these_millers))
 
-    # set the surface
+    # set the surface (Use the first surface that shows up in each case)
     nodes = [tree.nodes[child] for n in nodes for child in tree.get_children(n._id)]
-    surface_choices = [
-        n.get_surfaces()[:1] for n in nodes
-    ]  # ms_planner.run_millers_prompt(nodes)
+    surface_choices = [n.get_surfaces()[:1] for n in nodes]
     for i in range(len(nodes)):
         parent_node = nodes[i]
 
@@ -302,9 +302,8 @@ def microstructure_search(
 
     # get the nodes
     nodes = [tree.nodes[child] for n in nodes for child in tree.get_children(n._id)]
-    site_placement_choices = [
-        n.get_site_placements()[:8] for n in nodes
-    ]  # ms_planner.run_site_placement_prompt(nodes)
+    # site_placement_choices = [n.get_site_placements()[:8] for n in nodes]
+    site_placement_choices = ms_planner.run_site_placement_prompt(nodes)
     for i in range(len(nodes)):
         parent_node = nodes[i]
 
@@ -525,6 +524,9 @@ if __name__ == "__main__":
 
         with open(save_path / "llm_answers.json", "w") as f:
             json.dump(llm_data, f)
+
+    print(10 * "" + "finished!" + "*" * 10)
+    exit()
 
     rewards = reward_func(nodes)
     uq_values = uq_func(nodes)

@@ -335,6 +335,9 @@ class CatalystDigitalTwin:
 
         return_values = []
         for m in millers:
+            if isinstance(m, int):
+                # convert to tuple, i.e. 111 -> (1,1,1)
+                m = tuple([int(a) for a in list(str(m))])
             if isinstance(m, str):
                 m = literal_eval(m)
             if len(m) != 3:

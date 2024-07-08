@@ -90,12 +90,13 @@ class OCPMicrostructurePlanner:
     num_choices = {
         "bulk": 3,
         "millers": 3,
-        "site_placement": 10,
+        "site_placement": 3,
     }
 
     def __init__(self, llm_function=callable, debug: bool = False):
         """Init self."""
         self.llm_function = llm_function
+        self._site_placements_indices = {}
 
     def update_num_choices(self, num_choices: dict[str, int]):
         """Update the num_choices in self with given dictionary."""
@@ -290,7 +291,7 @@ class OCPMicrostructurePlanner:
             "root_prompt": state.root_prompt,
             # "answer": state.answer,
             "material": f"{doc.formula_pretty} in the {doc.symmetry.crystal_system.value.lower()} {doc.symmetry.symbol} space group.\n",
-            "num_choices": self.num_choices["bulk"],
+            "num_choices": self.num_choices["millers"],
         }
         prompt = fstr(prompts["millers"]["prompt"], values)
         twin.update_info("millers", {"prompt": prompt})
@@ -335,12 +336,27 @@ class OCPMicrostructurePlanner:
         """Create the prompt for site_placement."""
         twin, state = twin_state
         site_placements = twin.get_site_placements()
+        _identified_sites = []
+        self._site_placements_indices[twin._id] = {}
         if len(site_placements) > 0:
             site_placements_summaries = []
+            j = 0
             for i, site in enumerate(site_placements):
-                site_placements_summaries.append(
-                    f"({i}) {describe_site_placement(twin.computational_objects['surface'], site)}"
+                description = describe_site_placement(
+                    twin.computational_objects["surface"], site
                 )
+                if description not in _identified_sites:
+                    _identified_sites.append(description)
+                    self._site_placements_indices[twin._id][j] = [i]
+                    j += 1
+                else:
+                    j_idx = _identified_sites.index(description)
+                    self._site_placements_indices[twin._id][j_idx].append(i)
+
+            for j, desc in enumerate(_identified_sites):
+                site_placements_summaries.append(
+                    f"({j}) {desc}"
+                )  # TODO: include {len(self._site_placements_indices[j])}
         else:
             return None
         doc = twin.computational_objects["bulk"]
@@ -349,7 +365,7 @@ class OCPMicrostructurePlanner:
             "material": f"{doc.formula_pretty} in the {doc.symmetry.crystal_system.value.lower()} {doc.symmetry.symbol} space group.\n",
             "millers": f"{twin.computational_params['millers']}",
             "atomic_environments": "\n".join(site_placements_summaries),
-            "num_choices": self.num_choices["bulk"],
+            "num_choices": self.num_choices["site_placement"],
         }
         prompt = fstr(prompts["site_placement"]["prompt"], values)
         twin.update_info("site_placement", {"prompt": prompt})
@@ -386,7 +402,21 @@ class OCPMicrostructurePlanner:
             self.create_site_placement_system_prompt,
             # TODO: LLM function kwargs
         )
+        site_choices = self.get_site_indices(digital_twins, site_choices)
         return site_choices
+
+    def get_site_indices(
+        self, digital_twins: CatalystDigitalTwin, site_choices: CatalystDigitalTwin
+    ):
+        """Get the actual indices of chosen sites."""
+        new_site_choices = []
+        for twin, site_choice in zip(digital_twins, site_choices):
+            chosen_indices = []
+            for s in site_choice:
+                chosen_indices += self._site_placements_indices[twin._id][s]
+            new_site_choices.append(chosen_indices)
+
+        return new_site_choices
 
 
 def get_neighbors_site(surface: Slab, site: tuple, cutoff=2.5):
