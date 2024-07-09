@@ -156,12 +156,17 @@ class AdsorptionEnergyCalculator:
         # TODO: Put trajectories in db and change this code
         if (self.data_dir / (atoms_name + ".traj")).exists():
             traj = Trajectory(str(self.data_dir / (atoms_name + ".traj")))
+            if len(traj) == 0:
+                return False
             ats = traj[-1]
+            print(ats.get_forces().shape)
             fmax = np.max(np.sqrt(np.sum(ats.get_forces() ** 2)))
             steps = len(traj)
             if fmax <= self.calc.fmax or steps == self.calc.steps:
                 return True
             else:
+                "FOUND Incomplete trajectory"
+                exit()
                 return False
         else:
             return False
