@@ -526,7 +526,6 @@ if __name__ == "__main__":
             json.dump(llm_data, f)
 
     print(10 * "" + "finished!" + "*" * 10)
-    exit()
 
     rewards = reward_func(nodes)
     uq_values = uq_func(nodes)
