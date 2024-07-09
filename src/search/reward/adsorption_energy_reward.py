@@ -164,13 +164,18 @@ class AdsorptionEnergyCalculator:
         if (self.data_dir / (atoms_name + ".traj")).exists():
             traj = Trajectory(str(self.data_dir / (atoms_name + ".traj")))
             if len(traj) == 0:
+                print("not started")
                 return False
+
             ats = traj[-1]
             fmax = np.max(np.sqrt(np.sum(ats.get_forces() ** 2, axis=1)))
             steps = len(traj)
+            print(fmax)
+            print(steps)
             if fmax <= self.calc.fmax or steps >= self.calc.steps:
                 return True
             else:
+
                 return False
         else:
             return False
