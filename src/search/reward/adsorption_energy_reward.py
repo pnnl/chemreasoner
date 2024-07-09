@@ -79,14 +79,19 @@ class AdsorptionEnergyCalculator:
         incomplete_names, incomplete_structures = [], []
         for structure, n in zip(all_structures, all_names):
             if self.check_complete(n):
+                print(n)
                 complete_names.append(n)
                 complete_structures.append(self.fetch_complete_structure(n))
             else:
                 incomplete_names.append(n)
                 incomplete_structures.append(structure)
 
-        relaxed_atoms = self.calc.batched_relax_atoms(
-            atoms=incomplete_structures, atoms_names=incomplete_names
+        relaxed_atoms = (
+            self.calc.batched_relax_atoms(
+                atoms=incomplete_structures, atoms_names=incomplete_names
+            )
+            if len(incomplete_structures) > 0
+            else []
         )
         # Re-Combine complete/incomplete lists
         all_names = complete_names + incomplete_names
@@ -154,9 +159,8 @@ class AdsorptionEnergyCalculator:
 
     def fetch_complete_structure(self, atoms_name):
         """Fetch the trajectory associated with the given atoms_names."""
-        return Trajectory(str(self.data_dir / (atoms_name + ".traj")))[
-            -1
-        ]  # TODO: Put trajectories in db and change this code
+        # TODO: Put trajectories in db and change this code
+        return Trajectory(str(self.data_dir / (atoms_name + ".traj")))[-1]
 
     def _unpack_results(self, relaxed_atoms, atoms_names, catalyst_names):
         """Unpack the results of the relaxation."""
@@ -216,7 +220,7 @@ class AdsorptionEnergyCalculator:
                 adslab_config = struct.return_adslab_config(
                     adsorbate=adsorbate_object,
                     num_augmentations_per_site=self.num_augmentations_per_site,
-                )
+                )  # TODO: Fix this to allow augmentations
                 ats = adslab_config.atoms_list[0]
                 ats.info.update(adslab_config.metadata_list[0])
                 e_tot_name = str(Path("trajectories_e_tot") / (n + f"_{ads_sym}"))
