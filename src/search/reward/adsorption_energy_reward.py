@@ -79,13 +79,16 @@ class AdsorptionEnergyCalculator:
         incomplete_names, incomplete_structures = [], []
         for structure, n in zip(all_structures, all_names):
             if self.check_complete(n):
+                print("complete")
                 print(n)
                 complete_names.append(n)
                 complete_structures.append(self.fetch_complete_structure(n))
             else:
+                print("incomplete")
+                print(n)
                 incomplete_names.append(n)
                 incomplete_structures.append(structure)
-
+        print(f"#complete: {len(complete_names)}\t#incomplete: {len(incomplete_names)}")
         relaxed_atoms = (
             self.calc.batched_relax_atoms(
                 atoms=incomplete_structures, atoms_names=incomplete_names
@@ -130,9 +133,13 @@ class AdsorptionEnergyCalculator:
         incomplete_names, incomplete_structures = [], []
         for structure, n in zip(all_structures, all_names):
             if self.check_complete(n):
+                print("complete")
+                print(n)
                 complete_names.append(n)
                 complete_structures.append(self.fetch_complete_structure(n))
             else:
+                print("incomplete")
+                print(n)
                 incomplete_names.append(n)
                 incomplete_structures.append(structure)
 
