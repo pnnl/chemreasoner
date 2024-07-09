@@ -161,6 +161,7 @@ class AdsorptionEnergyCalculator:
             ats = traj[-1]
             print(ats.get_forces().shape)
             fmax = np.max(np.sqrt(np.sum(ats.get_forces() ** 2)))
+            print(np.sum(ats.get_forces() ** 2).shape)
             steps = len(traj)
             if fmax <= self.calc.fmax or steps >= self.calc.steps:
                 return True
