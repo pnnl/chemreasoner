@@ -88,9 +88,9 @@ class OCPMicrostructurePlanner:
         "__default__": 1,
     }
     num_choices = {
-        "bulk": 5,
-        "millers": 5,
-        "site_placement": 5,
+        "bulk": 4,
+        "millers": 4,
+        "site_placement": 4,
     }
 
     def __init__(self, llm_function=callable, debug: bool = False):
