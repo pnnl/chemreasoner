@@ -153,9 +153,18 @@ class AdsorptionEnergyCalculator:
 
     def check_complete(self, atoms_name):
         """Fetch the trajectory associated with the given atoms_names."""
-        return (
-            self.data_dir / (atoms_name + ".traj")
-        ).exists()  # TODO: Put trajectories in db and change this code
+        # TODO: Put trajectories in db and change this code
+        if (self.data_dir / (atoms_name + ".traj")).exists():
+            traj = Trajectory(str(self.data_dir / (atoms_name + ".traj")))
+            ats = traj[-1]
+            fmax = np.max(np.sqrt(np.sum(ats.get_forces() ** 2)))
+            steps = len(traj)
+            if fmax <= self.calc.fmax or steps == self.calc.steps:
+                return True
+            else:
+                return False
+        else:
+            return False
 
     def fetch_complete_structure(self, atoms_name):
         """Fetch the trajectory associated with the given atoms_names."""
