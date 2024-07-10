@@ -453,6 +453,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--save-dir", type=str, default=None)
+    parser.add_argument("--attempts", type=int, default=25)
 
     parser.add_argument("--gnn-model", type=str, default=None)
     parser.add_argument("--gnn-batch-size", type=int, default=None)
@@ -514,13 +515,22 @@ if __name__ == "__main__":
         print(len(nodes))
 
     else:
-        dt = CatalystDigitalTwin()
-        syms = ["Cu", "Zn"]
-        dt.computational_params["symbols"] = syms
-        dt.computational_objects["symbols"] = syms
+        attempts = 0
+        complete = False
+        while not complete:
+            try:
+                dt = CatalystDigitalTwin()
+                syms = ["Cu", "Zn"]
+                dt.computational_params["symbols"] = syms
+                dt.computational_objects["symbols"] = syms
 
-        tree = MicrostructureTree(root_node=dt)
-        nodes = microstructure_search(tree, ms_planner)
+                tree = MicrostructureTree(root_node=dt)
+                nodes = microstructure_search(tree, ms_planner)
+                complete = True
+            except Exception as err:
+                attempts += 1
+                if attempts > 25:
+                    raise err
 
         node_data, edge_data, llm_data = tree.store_data(metadata=True)
 
