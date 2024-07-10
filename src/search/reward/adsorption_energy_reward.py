@@ -12,6 +12,7 @@ import numpy as np
 from ase import Atoms
 import ase.build as build
 from ase.io import read, Trajectory
+from ase.io.trajectory import TrajectoryWriter
 
 from ocdata.core import Adsorbate
 
@@ -89,13 +90,12 @@ class AdsorptionEnergyCalculator:
                 incomplete_names.append(n)
                 incomplete_structures.append(structure)
         print(f"#complete: {len(complete_names)}\t#incomplete: {len(incomplete_names)}")
-        relaxed_atoms = (
-            self.calc.batched_relax_atoms(
+        if len(incomplete_structures) > 0:
+            relaxed_atoms = self.calc.batched_relax_atoms(
                 atoms=incomplete_structures, atoms_names=incomplete_names
             )
-            if len(incomplete_structures) > 0
-            else []
-        )
+            for atoms, name in zip(relaxed_atoms, incomplete_names):
+                self.save_complete_structure(atoms, name)
         # Re-Combine complete/incomplete lists
         all_names = complete_names + incomplete_names
         all_structures = complete_structures + relaxed_atoms
@@ -143,9 +143,12 @@ class AdsorptionEnergyCalculator:
                 incomplete_names.append(n)
                 incomplete_structures.append(structure)
 
-        relaxed_atoms = self.calc.batched_relax_atoms(
-            atoms=incomplete_structures, atoms_names=incomplete_names
-        )
+        if len(incomplete_structures) > 0:
+            relaxed_atoms = self.calc.batched_relax_atoms(
+                atoms=incomplete_structures, atoms_names=incomplete_names
+            )
+            for atoms, name in zip(relaxed_atoms, incomplete_names):
+                self.save_complete_structure(atoms, name)
         # Re-Combine complete/incomplete lists
         all_names = complete_names + incomplete_names
         all_structures = complete_structures + relaxed_atoms
@@ -184,6 +187,17 @@ class AdsorptionEnergyCalculator:
         """Fetch the trajectory associated with the given atoms_names."""
         # TODO: Put trajectories in db and change this code
         return Trajectory(str(self.data_dir / (atoms_name + ".traj")))[-1]
+
+    def save_complete_structure(self, structure, atoms_name):
+        """Fetch the trajectory associated with the given atoms_names."""
+        fmax = np.max(np.sqrt(np.sum(structure.get_forces() ** 2, axis=1)))
+        if fmax <= self.calc.fmax:
+            # Only need to save if forces are converged, not steps
+            traj_writer = TrajectoryWriter(
+                str(self.data_dir / (atoms_name + ".traj")), mode="a"
+            )
+            traj_writer.write(atoms_name)
+            # TODO: Put trajectories in db and change this code
 
     def _unpack_results(self, relaxed_atoms, atoms_names, catalyst_names):
         """Unpack the results of the relaxation."""
