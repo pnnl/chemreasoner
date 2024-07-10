@@ -168,14 +168,21 @@ class AdsorptionEnergyCalculator:
                 print("not started")
                 return False
 
-            ats = traj[-1]
-            fmax = np.max(np.sqrt(np.sum(ats.get_forces() ** 2, axis=1)))
-            steps = len(traj)
-            if fmax <= self.calc.fmax or steps >= self.calc.steps:
-                return True
-            else:
+            try:
+                ats = traj[-1]
+                fmax = np.max(np.sqrt(np.sum(ats.get_forces() ** 2, axis=1)))
+                steps = len(traj)
+                if fmax <= self.calc.fmax or steps >= self.calc.steps:
+                    return True
+                else:
 
+                    return False
+            except Exception as err:
+                logging.warning(
+                    f"Could not read file {self.data_dir / (atoms_name + '.traj')} with error {err}."
+                )
                 return False
+
         else:
             return False
 
