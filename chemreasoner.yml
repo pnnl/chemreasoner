@@ -30,3 +30,5 @@ dependencies:
   - wget
   - python-dotenv
   - pydot
+  - mp-api
+  - crystal-toolkit
