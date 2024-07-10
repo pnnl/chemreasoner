@@ -1,6 +1,7 @@
 """Calculate the reward for a set of structures from the microstructure planner."""
 
 import json
+import logging
 import pickle
 import random
 import sys
@@ -20,6 +21,8 @@ sys.path.append("src")
 from nnp.oc import OCAdsorptionCalculator
 from nnp.uncertainty_prediction import UncertaintyCalculator
 from structure_creation.digital_twin import CatalystDigitalTwin
+
+logging.getLogger().setLevel(logging.INFO)
 
 with open(Path("data", "input_data", "oc", "oc_20_adsorbates.pkl"), "rb") as f:
     oc_20_ads_structures = pickle.load(f)
@@ -76,20 +79,19 @@ class AdsorptionEnergyCalculator:
         all_names = e_tot_names + e_slab_names
 
         # split into completed and incompleted calculations to avoid repeat work
+        logging.info("Checking for completed relaxations...")
         complete_names, complete_structures = [], []
         incomplete_names, incomplete_structures = [], []
         for structure, n in zip(all_structures, all_names):
             if self.check_complete(n):
-                print("complete")
-                print(n)
                 complete_names.append(n)
                 complete_structures.append(self.fetch_complete_structure(n))
             else:
-                print("incomplete")
-                print(n)
                 incomplete_names.append(n)
                 incomplete_structures.append(structure)
-        print(f"#complete: {len(complete_names)}\t#incomplete: {len(incomplete_names)}")
+        logging.info(
+            f"#complete: {len(complete_names)}\t#incomplete: {len(incomplete_names)}"
+        )
         if len(incomplete_structures) > 0:
             relaxed_atoms = self.calc.batched_relax_atoms(
                 atoms=incomplete_structures, atoms_names=incomplete_names
@@ -133,13 +135,9 @@ class AdsorptionEnergyCalculator:
         incomplete_names, incomplete_structures = [], []
         for structure, n in zip(all_structures, all_names):
             if self.check_complete(n):
-                print("complete")
-                print(n)
                 complete_names.append(n)
                 complete_structures.append(self.fetch_complete_structure(n))
             else:
-                print("incomplete")
-                print(n)
                 incomplete_names.append(n)
                 incomplete_structures.append(structure)
 
