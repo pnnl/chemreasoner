@@ -35,10 +35,10 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 class MicrostructureTree:
-    nodes = {}
 
     def __init__(self, root_node: CatalystDigitalTwin):
         """Initialize self with given root_node."""
+        self.nodes = {}
         self.nodes[root_node._id] = root_node
         self.root_id = root_node._id
 
