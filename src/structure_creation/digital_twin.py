@@ -77,6 +77,7 @@ class CatalystDigitalTwin:
         self.children_ids = children_ids if children_ids is not None else []
         self.canceled = canceled
         self.reward = reward
+        self._site_placements = None
 
     def set_reward(self, reward: float):
         """Set the value of the reward."""
@@ -397,19 +398,22 @@ class CatalystDigitalTwin:
 
     def get_site_placements(self):
         """Get the binding sites associated with self."""
-
-        adslab_config = AdsorbateSlabConfig(
-            slab=self.computational_objects["surface"],
-            adsorbate=self.dummy_adsorbate,
-            mode="heuristic",
-        )
-        return [tuple(s) for s in adslab_config.sites]
+        if self._site_placements is None:
+            adslab_config = AdsorbateSlabConfig(
+                slab=self.computational_objects["surface"],
+                adsorbate=self.dummy_adsorbate,
+                mode="heuristic",
+            )
+            self._site_placements = [tuple(s) for s in adslab_config.sites]
+        return self._site_placements
 
     def set_site_placements(self, binding_sites: list[tuple[float]]):
         """Set the binding sites given in the list, returning copies if necessary.
 
         Binding sites should be lists of Slab objects."""
         if isinstance(binding_sites, tuple):
+            binding_sites = [binding_sites]
+        if isinstance(binding_sites[0], float):
             binding_sites = [binding_sites]
 
         return_values = []

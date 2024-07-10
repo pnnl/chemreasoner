@@ -414,7 +414,8 @@ class OCPMicrostructurePlanner:
             chosen_indices = []
             for s in site_choice:
                 chosen_indices += self._site_placements_indices[twin._id][s]
-            new_site_choices.append(chosen_indices)
+            these_sites = twin.get_site_placements()
+            new_site_choices.append([these_sites[idx] for idx in chosen_indices])
 
         return new_site_choices
 
