@@ -65,6 +65,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         fmax=0.005,
         steps=150,
         adsorbed_structure_checker=None,
+        num_gpus=1,
     ):
         """Create object from model class (gemnet or equiformer).
 
@@ -224,6 +225,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         if self.torch_calc is None:
             ase_calc = self.get_ase_calculator
             self.torch_calc = ase_calc.trainer
+            self.torch_calc.model = torch.nn.DataParallel(self.torch_calc.model)
         return self.torch_calc
 
     def relax_atoms_ase(
@@ -822,10 +824,16 @@ if __name__ == "__main__":
             "model": "gemnet-oc-22",
             "traj_dir": Path("data", "output_data"),
             "batch_size": 75,
-            "device": "cuda",
+            "device": "cpu",
             "ads_tag": 2,
             "fmax": 0.05,
             "steps": 0,
         }
     )
-    print(type(calc.get_torch_model.model))
+    # print(type(calc.get_torch_model))
+    print((calc.get_torch_model.model))
+    # print(torch.nn.DataParallel(calc.get_torch_model))
+    # print(torch.nn.DataParallel(calc.get_torch_model.model))
+
+    # print(dir(calc.get_torch_model))
+    # print(dir(calc.get_torch_model.model))
