@@ -25,7 +25,10 @@ from search.reward.microstructure_reward import (
     MicrostructureUncertaintyFunction,
 )
 from structure_creation.digital_twin import CatalystDigitalTwin
-from structure_creation.microstructure_planner import OCPMicrostructurePlanner
+from structure_creation.microstructure_planner import (
+    OCPMicrostructurePlanner,
+    describe_site_placement,
+)
 
 
 logging.getLogger().setLevel(logging.INFO)
@@ -426,6 +429,10 @@ def get_reward_data(
         row["bulk_symmetry"] = n.computational_objects[
             "bulk"
         ].symmetry.crystal_system.value.lower()
+        row["site_composition"] = describe_site_placement(
+            n.computational_objects["surface"],
+            n.computational_params["site_placement"],
+        )
 
         reward_row = reward_data[n._id]
         energy_row = energy_data[n._id]
