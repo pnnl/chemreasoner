@@ -159,7 +159,7 @@ class AdsorptionEnergyCalculator:
             all_structures, all_names, catalyst_names
         )
         print(results)
-        with openW("test_gnn_results.json", "w") as f:
+        with open("test_gnn_results.json", "w") as f:
             json.dump(results, f)
         return results
 
