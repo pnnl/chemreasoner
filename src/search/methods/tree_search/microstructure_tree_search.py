@@ -421,7 +421,7 @@ def get_reward_data(
     reward_values = reward_func(structures=nodes)
     reward_values = {n._id: reward_values[i] for i, n in enumerate(nodes)}
     energy_data = reward_func.fetch_adsorption_energy_results(nodes)
-    reward_data = reward_func.fetch_adsorption_energy_results(nodes)
+    reward_data = reward_func.fetch_reward_results(nodes)
     uncertainty_data = uq_func.fetch_uncertainty_results(nodes)
     for n in nodes:
         row = n.return_row()

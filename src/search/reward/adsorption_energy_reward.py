@@ -98,6 +98,8 @@ class AdsorptionEnergyCalculator:
             )
             for atoms, name in zip(relaxed_atoms, incomplete_names):
                 self.save_complete_structure(atoms, name)
+        else:
+            relaxed_atoms = []
         # Re-Combine complete/incomplete lists
         all_names = complete_names + incomplete_names
         all_structures = complete_structures + relaxed_atoms
@@ -147,6 +149,8 @@ class AdsorptionEnergyCalculator:
             )
             for atoms, name in zip(relaxed_atoms, incomplete_names):
                 self.save_complete_structure(atoms, name)
+        else:
+            relaxed_atoms = []
         # Re-Combine complete/incomplete lists
         all_names = complete_names + incomplete_names
         all_structures = complete_structures + relaxed_atoms
