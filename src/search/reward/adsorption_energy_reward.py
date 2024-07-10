@@ -155,7 +155,7 @@ class AdsorptionEnergyCalculator:
             all_structures, all_names, catalyst_names
         )
         print(results)
-        with open("test_gnn_results.json", "w") as f:
+        with openW("test_gnn_results.json", "w") as f:
             json.dump(results, f)
         return results
 
@@ -171,8 +171,6 @@ class AdsorptionEnergyCalculator:
             ats = traj[-1]
             fmax = np.max(np.sqrt(np.sum(ats.get_forces() ** 2, axis=1)))
             steps = len(traj)
-            print(fmax)
-            print(steps)
             if fmax <= self.calc.fmax or steps >= self.calc.steps:
                 return True
             else:
@@ -194,7 +192,7 @@ class AdsorptionEnergyCalculator:
             traj_writer = TrajectoryWriter(
                 str(self.data_dir / (atoms_name + ".traj")), mode="a"
             )
-            traj_writer.write(atoms_name)
+            traj_writer.write(structure)
             # TODO: Put trajectories in db and change this code
 
     def _unpack_results(self, relaxed_atoms, atoms_names, catalyst_names):
