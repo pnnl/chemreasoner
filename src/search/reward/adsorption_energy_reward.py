@@ -179,7 +179,6 @@ class AdsorptionEnergyCalculator:
                 if fmax <= self.calc.fmax or steps >= self.calc.steps:
                     return True
                 else:
-
                     return False
             except Exception as err:
                 logging.warning(

@@ -18,7 +18,7 @@ import numpy as np
 
 from ase import Atoms
 from ase.constraints import FixAtoms
-from ase.io import Trajectory, write
+from ase.io import Trajectory, read, write
 from ase.neighborlist import build_neighbor_list
 from ase.optimize import BFGS
 
@@ -819,6 +819,17 @@ def break_trajectory(traj_path: Path, dirname: str = None):
 
 
 if __name__ == "__main__":
+    example_structure = read(
+        str(
+            Path(
+                "test",
+                "gnn_test_structures",
+                "0b7c2e76-aa78-4c17-911d-cd6c9fc67d2a.xyz",
+            )
+        )
+    )
+    example_structures = [example_structure.copy() for _ in range(96)]
+
     calc = OCAdsorptionCalculator(
         **{
             "model": "gemnet-oc-22",
@@ -830,6 +841,7 @@ if __name__ == "__main__":
             "steps": 0,
         }
     )
+    calc.relax_atoms_ase(example_structure)
     # print(type(calc.get_torch_model))
     print((calc.get_torch_model.model))
     # print(torch.nn.DataParallel(calc.get_torch_model))
