@@ -225,7 +225,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         if self.torch_calc is None:
             ase_calc = self.get_ase_calculator
             self.torch_calc = ase_calc.trainer
-            self.torch_calc.model = torch.nn.DataParallel(self.torch_calc.model)
+            self.torch_calc.model = torch.nn.DataParallelPassthrough(
+                self.torch_calc.model
+            )
         return self.torch_calc
 
     def relax_atoms_ase(
@@ -269,8 +271,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         fmax = fmax if fmax is not None else self.fmax
         steps = steps if steps is not None else self.steps
         # Set up calculation for oc
-        self.prepare_atoms_list(atoms, constraints=constraints)
-        data_list = self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
+        self.prepare_atoms_list(
+            atoms, constraints=constraints
+        )  # list[ase] -> list[Data]
         for i, d in enumerate(data_list):
             d.pbc = d.pbc[None, :]
             d.sid = atoms_names[i]
@@ -796,6 +799,21 @@ class AdsorbedStructureChecker:
         return np.all(conn_matrix)
 
 
+class DataParallelPassthrough(torch.nn.DataParallel):
+    """A class to allow the passthrough of custom methods for nn modules in DataParallel.
+
+    Suggested by github user dniku:
+    https://github.com/pytorch/pytorch/issues/16885#issuecomment-551779897
+    """
+
+    def __getattr__(self, name):
+        """Try using DataParallel methods, which to stored module if failed."""
+        try:
+            return super().__getattr__(name)
+        except AttributeError:
+            return getattr(self.module, name)
+
+
 def order_of_magnitude(number):
     """Get order of magnitude of a number."""
     return int(np.log10(number))
@@ -841,9 +859,10 @@ if __name__ == "__main__":
             "steps": 0,
         }
     )
-    calc.relax_atoms_ase(example_structure)
-    # print(type(calc.get_torch_model))
-    print((calc.get_torch_model.model))
+    # calc.relax_atoms_ase(example_structure)
+    print(type(calc.get_torch_model))
+    print(type(calc.get_torch_model.model))
+    # print((calc.get_torch_model.model))
     # print(torch.nn.DataParallel(calc.get_torch_model))
     # print(torch.nn.DataParallel(calc.get_torch_model.model))
 
