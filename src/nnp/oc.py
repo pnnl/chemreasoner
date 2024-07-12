@@ -799,7 +799,7 @@ class AdsorbedStructureChecker:
         return np.all(conn_matrix)
 
 
-class BatchDataParallel(torch_geometric.nn.data_parallel):
+class BatchDataParallel(torch_geometric.nn.data_parallel.DataParallel):
     """Torch geometric DataParallel class for models with batch inputs."""
 
     def forward(self, batch: Batch):
