@@ -798,7 +798,7 @@ class AdsorbedStructureChecker:
         return np.all(conn_matrix)
 
 
-class DataParallelPassthrough(torch.nn.DataParallel):
+class DataParallelPassthrough(torch.nn.DistributedDataParallel):
     """A class to allow the passthrough of custom methods for nn modules in DataParallel.
 
     Suggested by github user dniku:
