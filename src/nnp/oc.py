@@ -862,13 +862,13 @@ if __name__ == "__main__":
             "model": "gemnet-oc-22",
             "traj_dir": Path("data", "output_data"),
             "batch_size": 75,
-            "device": "cpu",
+            "device": "cuda",
             "ads_tag": 2,
             "fmax": 0.05,
             "steps": 0,
         }
     )
-    # calc.relax_atoms_ase(example_structure)
+    calc.relax_atoms_ase(example_structure)
     print(type(calc.get_torch_model))
     print(type(calc.get_torch_model.model))
     # print((calc.get_torch_model.model))
