@@ -876,7 +876,7 @@ if __name__ == "__main__":
             "steps": 250,
         }
     )
-    start = time.tim()
+    start = time.time()
     calc.batched_relax_atoms(
         example_structures,
         atoms_names=[f"{i}" for i, _ in enumerate(example_structures)],
