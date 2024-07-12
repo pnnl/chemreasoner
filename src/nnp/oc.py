@@ -30,6 +30,7 @@ from ocpmodels.preprocessing.atoms_to_graphs import AtomsToGraphs
 
 
 import torch
+import torch_geometric
 from torch_geometric.data import Batch
 from torch_geometric.loader.data_list_loader import DataListLoader
 
@@ -798,7 +799,16 @@ class AdsorbedStructureChecker:
         return np.all(conn_matrix)
 
 
-class DataParallelPassthrough(torch.nn.DistributedDataParallel):
+class BatchDataParallel(torch_geometric.nn.data_parallel):
+    """Torch geometric DataParallel class for models with batch inputs."""
+
+    def forward(self, batch: Batch):
+        """Convert batch to datalist and perform the usual forward call."""
+        data_list = batch.to_data_list()
+        return super().forward(data_list)
+
+
+class BatchDataParallelPassthrough(torch_geometric.nn.data_parallel):
     """A class to allow the passthrough of custom methods for nn modules in DataParallel.
 
     Suggested by github user dniku:
