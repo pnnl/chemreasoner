@@ -855,13 +855,13 @@ if __name__ == "__main__":
             )
         )
     )
-    example_structures = [example_structure.copy() for _ in range(96)]
+    example_structures = [example_structure.copy() for _ in range(257)]
 
     calc = OCAdsorptionCalculator(
         **{
             "model": "gemnet-oc-22",
             "traj_dir": Path("data", "output_data"),
-            "batch_size": 75,
+            "batch_size": 256,
             "device": "cuda",
             "ads_tag": 2,
             "fmax": 0.05,
