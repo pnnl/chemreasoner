@@ -805,6 +805,7 @@ class BatchDataParallel(torch_geometric.nn.data_parallel.DataParallel):
     def forward(self, batch: Batch):
         """Convert batch to datalist and perform the usual forward call."""
         data_list = batch.to_data_list()
+        print(data_list)
         return super().forward(data_list)
 
 
