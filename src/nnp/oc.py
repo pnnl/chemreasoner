@@ -805,6 +805,14 @@ class BatchDataParallel(torch_geometric.nn.data_parallel.DataParallel):
     def forward(self, batch: Batch):
         """Convert batch to datalist and perform the usual forward call."""
         data_list = batch.to_data_list()
+        if self.device_ids and len(data_list) < len(self.device_ids):
+            # if len(batch) <  len(gpus), run batch on first gpu
+            data = Batch.from_data_list(
+                data_list,
+                follow_batch=self.follow_batch,
+                exclude_keys=self.exclude_keys,
+            ).to(self.src_device)
+            return self.module(data)
         return super().forward(data_list)
 
 
@@ -855,7 +863,7 @@ if __name__ == "__main__":
             )
         )
     )
-    example_structures = [example_structure.copy() for _ in range(260)]
+    example_structures = [example_structure.copy() for _ in range(257)]
 
     calc = OCAdsorptionCalculator(
         **{
