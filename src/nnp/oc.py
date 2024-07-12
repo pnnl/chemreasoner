@@ -855,7 +855,7 @@ if __name__ == "__main__":
             )
         )
     )
-    example_structures = [example_structure.copy() for _ in range(257)]
+    example_structures = [example_structure.copy() for _ in range(260)]
 
     calc = OCAdsorptionCalculator(
         **{
