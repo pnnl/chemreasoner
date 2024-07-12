@@ -868,7 +868,7 @@ if __name__ == "__main__":
             "steps": 250,
         }
     )
-    calc.relax_atoms_ase(example_structure)
+    calc.batched_relax_atoms(example_structure)
     print(type(calc.get_torch_model))
     print(type(calc.get_torch_model.model))
     # print((calc.get_torch_model.model))
