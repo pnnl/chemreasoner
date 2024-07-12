@@ -869,7 +869,7 @@ if __name__ == "__main__":
         }
     )
     calc.batched_relax_atoms(
-        example_structure,
+        example_structures,
         atoms_names=[f"{i}" for i, _ in enumerate(example_structure)],
     )
     print(type(calc.get_torch_model))
