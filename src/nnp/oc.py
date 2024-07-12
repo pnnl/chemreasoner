@@ -808,7 +808,7 @@ class BatchDataParallel(torch_geometric.nn.data_parallel.DataParallel):
         return super().forward(data_list)
 
 
-class BatchDataParallelPassthrough(torch_geometric.nn.data_parallel):
+class BatchDataParallelPassthrough(torch_geometric.nn.data_parallel.DataParallel):
     """A class to allow the passthrough of custom methods for nn modules in DataParallel.
 
     Suggested by github user dniku:
