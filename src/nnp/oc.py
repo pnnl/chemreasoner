@@ -274,6 +274,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         self.prepare_atoms_list(
             atoms, constraints=constraints
         )  # list[ase] -> list[Data]
+        data_list = self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
         for i, d in enumerate(data_list):
             d.pbc = d.pbc[None, :]
             d.sid = atoms_names[i]
