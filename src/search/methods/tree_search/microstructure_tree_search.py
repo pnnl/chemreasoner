@@ -520,7 +520,7 @@ if __name__ == "__main__":
         while not complete:
             try:
                 dt = CatalystDigitalTwin()
-                syms = ["Cu", "Zn"]
+                syms = ["Pd", "Ag"]
                 dt.computational_params["symbols"] = syms
                 dt.computational_objects["symbols"] = syms
 
