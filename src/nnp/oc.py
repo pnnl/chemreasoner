@@ -294,16 +294,17 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             relax_opt["traj_dir"] = self.traj_dir
             # assume 100 steps every time
             start = time.time()
-            final_batch = ml_relax(
-                batch=batch,  # ml_relax always uses batch[0]
-                model=trainer,
-                steps=steps,
-                fmax=fmax,
-                relax_opt=relax_opt,
-                save_full_traj=True,
-                device=trainer.device,
-                # device="cuda:1",
-            )
+            with torch.no_grad():
+                final_batch = ml_relax(
+                    batch=batch,  # ml_relax always uses batch[0]
+                    model=trainer,
+                    steps=steps,
+                    fmax=fmax,
+                    relax_opt=relax_opt,
+                    save_full_traj=True,
+                    device=trainer.device,
+                    # device="cuda:1",
+                )
             end = time.time()
             self.gnn_calls += self.steps
             self.gnn_relaxed += len(atoms)
