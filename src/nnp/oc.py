@@ -865,7 +865,7 @@ if __name__ == "__main__":
             "device": "cuda",
             "ads_tag": 2,
             "fmax": 0.05,
-            "steps": 0,
+            "steps": 250,
         }
     )
     calc.relax_atoms_ase(example_structure)
