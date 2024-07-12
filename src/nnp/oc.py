@@ -873,15 +873,16 @@ if __name__ == "__main__":
             "device": "cuda",
             "ads_tag": 2,
             "fmax": 0.05,
-            "steps": 25,
+            "steps": 250,
         }
     )
+    start = time.tim()
     calc.batched_relax_atoms(
         example_structures,
         atoms_names=[f"{i}" for i, _ in enumerate(example_structures)],
     )
-    print(type(calc.get_torch_model))
-    print(type(calc.get_torch_model.model))
+    end = time.time()
+    print(end - start)
     # print((calc.get_torch_model.model))
     # print(torch.nn.DataParallel(calc.get_torch_model))
     # print(torch.nn.DataParallel(calc.get_torch_model.model))
