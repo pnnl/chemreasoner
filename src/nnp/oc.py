@@ -860,7 +860,7 @@ if __name__ == "__main__":
     calc = OCAdsorptionCalculator(
         **{
             "model": "gemnet-oc-22",
-            "traj_dir": Path("data", "output_data"),
+            "traj_dir": Path("data_parallel_benchmark"),
             "batch_size": 256,
             "device": "cuda",
             "ads_tag": 2,
@@ -868,7 +868,10 @@ if __name__ == "__main__":
             "steps": 250,
         }
     )
-    calc.batched_relax_atoms(example_structure)
+    calc.batched_relax_atoms(
+        example_structure,
+        atoms_names=[f"{i}" for i, _ in enumerate(example_structure)],
+    )
     print(type(calc.get_torch_model))
     print(type(calc.get_torch_model.model))
     # print((calc.get_torch_model.model))
