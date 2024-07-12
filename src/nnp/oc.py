@@ -869,7 +869,7 @@ if __name__ == "__main__":
         **{
             "model": "gemnet-oc-22",
             "traj_dir": Path("data_parallel_benchmark"),
-            "batch_size": 256,
+            "batch_size": 64,
             "device": "cuda",
             "ads_tag": 2,
             "fmax": 0.05,
