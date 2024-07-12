@@ -225,9 +225,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         if self.torch_calc is None:
             ase_calc = self.get_ase_calculator
             self.torch_calc = ase_calc.trainer
-            self.torch_calc.model = torch.nn.DataParallelPassthrough(
-                self.torch_calc.model
-            )
+            self.torch_calc.model = DataParallelPassthrough(self.torch_calc.model)
         return self.torch_calc
 
     def relax_atoms_ase(
