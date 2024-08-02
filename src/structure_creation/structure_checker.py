@@ -49,13 +49,8 @@ if __name__ == "__main__":
             )
         ):
             bad_counter += 1
-            ats = traj[0].copy()
-            res = traj[0].calc.results
-            res["energy"] = np.nan
-            ats.calc = SinglePointCalculator(traj[0], **res)
-            print(ats.get_potential_energy())
         else:
-            good_counter += 1 if 2 in traj[0].get_tags() else 0
+            good_counter += 1
 
 print(
     f"bad_trajectories: {bad_counter}, good_trajectories: {good_counter} with {bad_counter + good_counter} total structures"
