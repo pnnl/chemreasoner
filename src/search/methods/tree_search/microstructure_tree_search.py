@@ -465,6 +465,7 @@ if __name__ == "__main__":
     parser.add_argument("--gnn-fmax", type=float, default=None)
     parser.add_argument("--gnn-steps", type=int, default=None)
     parser.add_argument("--gnn-port", type=int, default=None)
+    parser.add_argument("-n", "--catalyst-elements", nargs="+", type=list)
 
     args = parser.parse_args()
 
@@ -523,7 +524,7 @@ if __name__ == "__main__":
         while not complete:
             try:
                 dt = CatalystDigitalTwin()
-                syms = ["Pd", "Au"]
+                syms = ["Cu", "Zn"]
                 dt.computational_params["symbols"] = syms
                 dt.computational_objects["symbols"] = syms
 
