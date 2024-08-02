@@ -12,6 +12,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
+from ase.data import chemical_symbols
 from ase.io import write
 
 from networkx.drawing.nx_pydot import graphviz_layout
@@ -465,12 +466,16 @@ if __name__ == "__main__":
     parser.add_argument("--gnn-fmax", type=float, default=None)
     parser.add_argument("--gnn-steps", type=int, default=None)
     parser.add_argument("--gnn-port", type=int, default=None)
-    parser.add_argument("-n", "--catalyst-elements", nargs="+", type=list)
+    parser.add_argument("--catalyst-symbols", nargs="+", type=list)
 
     args = parser.parse_args()
 
     save_path = Path(args.save_dir)
     save_path.mkdir(parents=True, exist_ok=True)
+
+    for syms in args.catalyst_symbols:
+        if syms not in chemical_symbols:
+            raise ValueError(f"Unkown chemical symbol {syms}.")
 
     class TestState:
         root_prompt = "Propose a catalyst for the conversion of CO to methanol."
