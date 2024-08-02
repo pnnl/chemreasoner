@@ -12,10 +12,12 @@ import numpy as np
 
 from ase import Atoms
 import ase.build as build
-from ase.io import read, Trajectory
+from ase.calculators.singlepoint import SinglePointCalculator
+from ase.io import Trajectory
 from ase.io.trajectory import TrajectoryWriter
 
 from ocdata.core import Adsorbate
+from ocdata.utils.flag_anomaly import DetectTrajAnomaly
 
 sys.path.append("src")
 from nnp.oc import OCAdsorptionCalculator
@@ -100,6 +102,16 @@ class AdsorptionEnergyCalculator:
                 self.save_complete_structure(atoms, name)
         else:
             relaxed_atoms = []
+
+        # Check the relaxed structures
+        for i in range(len(incomplete_structures)):
+            init_struct = incomplete_structures[i]
+            final_struct = relaxed_atoms[i]
+
+            good_structure = self.check_relaxed_structure(init_struct, final_struct)
+            if not good_structure:
+                relaxed_atoms[i] = self.nan_energy(relaxed_atoms[i])
+
         # Re-Combine complete/incomplete lists
         all_names = complete_names + incomplete_names
         all_structures = complete_structures + relaxed_atoms
@@ -151,6 +163,16 @@ class AdsorptionEnergyCalculator:
                 self.save_complete_structure(atoms, name)
         else:
             relaxed_atoms = []
+
+        # Check the relaxed structures
+        for i in range(len(incomplete_structures)):
+            init_struct = incomplete_structures[i]
+            final_struct = relaxed_atoms[i]
+
+            good_structure = self.check_relaxed_structure(init_struct, final_struct)
+            if not good_structure:
+                relaxed_atoms[i] = self.nan_energy(relaxed_atoms[i])
+
         # Re-Combine complete/incomplete lists
         all_names = complete_names + incomplete_names
         all_structures = complete_structures + relaxed_atoms
@@ -192,7 +214,72 @@ class AdsorptionEnergyCalculator:
     def fetch_complete_structure(self, atoms_name):
         """Fetch the trajectory associated with the given atoms_names."""
         # TODO: Put trajectories in db and change this code
-        return Trajectory(str(self.data_dir / (atoms_name + ".traj")))[-1]
+        traj = Trajectory(str(self.data_dir / (atoms_name + ".traj")))[-1]
+        good_structure = self.check_relaxed_structure(traj[0], traj[-1])
+        if not good_structure:
+            return self.nan_energy(traj[-1])
+        else:
+            return traj[-1]
+
+    def check_structure(self, initial_structure: Atoms, final_structure: Atoms):
+        """Check the given structure for good convergence, using criteria from OpenCatalyst Project."""
+        anomaly_detector = DetectTrajAnomaly(
+            init_atoms=initial_structure,
+            final_atoms=final_structure,
+            atoms_tag=initial_structure.get_tags(),
+        )
+        fmax = np.max(np.sqrt(np.sum(final_structure.get_forces() ** 2, axis=1)))
+
+        if (
+            anomaly_detector.has_surface_changed()
+            or fmax > self.calc.fmax
+            or (
+                2 in initial_structure.tags()
+                and any(
+                    [
+                        anomaly_detector.is_adsorbate_dissociated(),  # adsorbate is dissociated
+                        anomaly_detector.is_adsorbate_desorbed(),  # flying off the surfgace
+                        anomaly_detector.is_adsorbate_intercalated(),  # interacting with frozen atom
+                    ]
+                )
+            )
+        ):
+            return False
+        else:
+            return True
+
+    def get_convergence_error_code(self, initial_structure, final_structure):
+        """Check the given structure for convergence error code, using criteria from OpenCatalyst Project."""
+        anomaly_detector = DetectTrajAnomaly(
+            init_atoms=initial_structure,
+            final_atoms=final_structure,
+            atoms_tag=initial_structure.get_tags(),
+        )
+        fmax = np.max(np.sqrt(np.sum(final_structure.get_forces() ** 2, axis=1)))
+        if anomaly_detector.has_surface_changed():
+            return 3
+        elif 2 in initial_structure.tags():
+            if anomaly_detector.is_adsorbate_dissociated():
+                return 1
+            elif anomaly_detector.is_adsorbate_desorbed():
+                return 2
+            elif anomaly_detector.is_adsorbate_intercalated():
+                return 5
+            # No value for 4. This was used for incorrect CHCOH placement in OCP dataset
+            elif fmax > self.calc.fmax:
+                return 6
+            else:
+                return 0
+        else:
+            return 0
+
+    def nan_energy(self, structure: Atoms) -> Atoms:
+        """Return copy of given structure with potential_energy of nan."""
+        ats = structure.copy()
+        res = structure.calc.results
+        res["energy"] = np.nan if not isinstance(res["energy"], list) else [np.nan]
+        ats.calc = SinglePointCalculator(structure, **res)
+        return ats
 
     def save_complete_structure(self, structure, atoms_name):
         """Fetch the trajectory associated with the given atoms_names."""
