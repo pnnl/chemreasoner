@@ -27,20 +27,25 @@ if __name__ == "__main__":
             final_atoms=traj[-1],
             atoms_tag=traj[0].get_tags(),
         )
-        if anomaly_detector.has_surface_changed() or (
-            2 in traj[0].get_tags()
-            and any(
-                [
-                    (
-                        anomaly_detector.is_adsorbate_dissociated()  # adsorbate is dissociated
-                    ),
-                    (
-                        anomaly_detector.is_adsorbate_desorbed()  # flying off the surfgace
-                    ),
-                    (
-                        anomaly_detector.is_adsorbate_intercalated()  # interacting with bulk atom
-                    ),
-                ]
+        fmax = np.max(np.sqrt(np.sum(traj[-1].get_forces() ** 2, axis=1)))
+        if (
+            anomaly_detector.has_surface_changed()
+            or fmax > 0.03
+            or (
+                2 in traj[0].get_tags()
+                and any(
+                    [
+                        (
+                            anomaly_detector.is_adsorbate_dissociated()  # adsorbate is dissociated
+                        ),
+                        (
+                            anomaly_detector.is_adsorbate_desorbed()  # flying off the surfgace
+                        ),
+                        (
+                            anomaly_detector.is_adsorbate_intercalated()  # interacting with bulk atom
+                        ),
+                    ]
+                )
             )
         ):
             bad_counter += 1
