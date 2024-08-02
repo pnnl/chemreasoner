@@ -81,6 +81,14 @@ class MicrostructureRewardFunction:
             }
         return deepcopy(results)
 
+    def fetch_error_codes(self, structures: list[CatalystDigitalTwin]):
+        """Fetch the energies associated with the given structures."""
+        results = {}
+        for s in structures:
+            error_codes = self.calc.get_error_codes_catalyst(s._id)
+            results[s._id] = error_codes
+        return deepcopy(results)
+
     def fetch_reward_results(self, structures: list[CatalystDigitalTwin]):
         """Fetch the rewards associated with the given structures."""
         energies = self.fetch_adsorption_energy_results(structures)

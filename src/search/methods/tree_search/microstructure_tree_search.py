@@ -421,6 +421,7 @@ def get_reward_data(
     reward_values = reward_func(structures=nodes)
     reward_values = {n._id: reward_values[i] for i, n in enumerate(nodes)}
     energy_data = reward_func.fetch_adsorption_energy_results(nodes)
+    relaxation_error_code = reward_func.fetch_error_codes(nodes)
     reward_data = reward_func.fetch_reward_results(nodes)
     uncertainty_data = uq_func.fetch_uncertainty_results(nodes)
     for n in nodes:
@@ -436,10 +437,12 @@ def get_reward_data(
 
         reward_row = reward_data[n._id]
         energy_row = energy_data[n._id]
+        error_code_row = relaxation_error_code[n._id]
         uq_row = uncertainty_data[n._id]
 
         row.update(reward_row)
         row.update(energy_row)
+        row.update(error_code_row)
         row.update(uq_row)
 
         row.update({"reward": reward_values[n._id]})

@@ -52,7 +52,7 @@ class AdsorptionEnergyCalculator:
         self.num_augmentations_per_site = num_augmentations_per_site
 
         self.e_tot_dir = self.data_dir / "e_tot"
-        self.e_tot_dir = self.data_dir / "e_slab"
+        self.e_tot_dir = self.data_dir / self.reference_energy_key
 
         self.calc = atomistic_calc
 
@@ -273,6 +273,26 @@ class AdsorptionEnergyCalculator:
         else:
             return 0
 
+    def fetch_error_code(self, atoms_name):
+        """Fetch the trajectory associated with the given atoms_names."""
+        # TODO: Put trajectories in db and change this code
+        traj = Trajectory(str(self.data_dir / (atoms_name + ".traj")))[-1]
+        good_structure = self.check_relaxed_structure(traj[0], traj[-1])
+        if not good_structure:
+            return self.nan_energy(traj[-1])
+        else:
+            return traj[-1]
+
+    def get_error_codes_name(self, catalyst_name: str):
+        """Check the given structure for convergence error code, using criteria from OpenCatalyst Project."""
+        codes = {}
+        for ads in self.adsorbates_syms:
+            codes[ads] = self.fetch_error_code(f"{catalyst_name}_{ads}")
+        codes[self.reference_energy_key] = self.fetch_error_code(
+            f"{catalyst_name}_{self.reference_energy_key}"
+        )
+        return codes
+
     def nan_energy(self, structure: Atoms) -> Atoms:
         """Return copy of given structure with potential_energy of nan."""
         ats = structure.copy()
@@ -304,7 +324,9 @@ class AdsorptionEnergyCalculator:
             results[catalyst_name] = {}
             for name, structure in zip(names, structures):
                 key = Path(name).stem.split("_")[-1]
-                key = "e_slab" if key == "slab" else key  # e_slab key has _ in it
+                key = (
+                    self.reference_energy_key if key == "slab" else key
+                )  # e_slab key has _ in it
                 value = (
                     structure.get_potential_energy()
                     if not isinstance(structure.get_potential_energy(), list)
@@ -326,7 +348,9 @@ class AdsorptionEnergyCalculator:
             results[catalyst_name] = {}
             for name, structure in zip(names, structures):
                 key = Path(name).stem.split("_")[-1]
-                key = "e_slab" if key == "slab" else key  # e_slab key has _ in it
+                key = (
+                    self.reference_energy_key if key == "slab" else key
+                )  # e_slab key has _ in it
                 value = structure
 
                 results[catalyst_name].update({key: value})
@@ -370,7 +394,10 @@ class AdsorptionEnergyCalculator:
         e_slab_structures = []
         for n, struct in zip(names, structures):
             slab_structure = struct.return_slab()
-            e_slab_name = str(Path("trajectories_e_slab") / (n + "_slab"))
+            e_slab_name = str(
+                Path(f"trajectories_{self.reference_energy_key}")
+                / (n + self.reference_energy_key)
+            )
             (self.data_dir / e_slab_name).parent.mkdir(parents=True, exist_ok=True)
             e_slab_names.append(e_slab_name)
             e_slab_structures.append(slab_structure)
@@ -402,7 +429,7 @@ class AdsorptionEnergyUncertaintyCalculator:
         """Initialize self, setting the data_dir."""
         self.data_dir = uncertainty_calc.traj_dir
         self.e_tot_dir = self.data_dir / "e_tot"
-        self.e_tot_dir = self.data_dir / "e_slab"
+        self.e_tot_dir = self.data_dir / self.reference_energy_key
 
         self.calc = uncertainty_calc
 
@@ -483,7 +510,9 @@ class AdsorptionEnergyUncertaintyCalculator:
             results[catalyst_name] = {}
             for name, uncertainty in zip(names, these_uncertainties):
                 key = Path(name).stem.split("_")[-1]
-                key = "e_slab" if key == "slab" else key  # e_slab key has _ in it
+                key = (
+                    self.reference_energy_key if key == "slab" else key
+                )  # e_slab key has _ in it
                 value = uncertainty
 
                 results[catalyst_name].update({key: value})
@@ -515,7 +544,10 @@ class AdsorptionEnergyUncertaintyCalculator:
         e_slab_names = []
         e_slab_structures = []
         for n, struct in zip(names, structures):
-            e_slab_name = str(Path("trajectories_e_slab") / (n + "_slab"))
+            e_slab_name = str(
+                Path(f"trajectories_{self.reference_energy_key}")
+                / (n + self.reference_energy_key)
+            )
             (self.data_dir / e_slab_name).parent.mkdir(parents=True, exist_ok=True)
             e_slab_names.append(e_slab_name)
             e_slab_structures.append(self.fetch_complete_structure(e_slab_name))
