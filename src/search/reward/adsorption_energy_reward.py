@@ -223,30 +223,8 @@ class AdsorptionEnergyCalculator:
 
     def check_structure(self, initial_structure: Atoms, final_structure: Atoms):
         """Check the given structure for good convergence, using criteria from OpenCatalyst Project."""
-        anomaly_detector = DetectTrajAnomaly(
-            init_atoms=initial_structure,
-            final_atoms=final_structure,
-            atoms_tag=initial_structure.get_tags(),
-        )
-        fmax = np.max(np.sqrt(np.sum(final_structure.get_forces() ** 2, axis=1)))
-
-        if (
-            anomaly_detector.has_surface_changed()
-            or fmax > self.calc.fmax
-            or (
-                2 in initial_structure.tags()
-                and any(
-                    [
-                        anomaly_detector.is_adsorbate_dissociated(),  # adsorbate is dissociated
-                        anomaly_detector.is_adsorbate_desorbed(),  # flying off the surfgace
-                        anomaly_detector.is_adsorbate_intercalated(),  # interacting with frozen atom
-                    ]
-                )
-            )
-        ):
-            return False
-        else:
-            return True
+        error_code = self.get_convergence_error_code(initial_structure, final_structure)
+        return error_code == 0
 
     def get_convergence_error_code(self, initial_structure, final_structure):
         """Check the given structure for convergence error code, using criteria from OpenCatalyst Project."""
@@ -265,7 +243,7 @@ class AdsorptionEnergyCalculator:
                 return 2
             elif anomaly_detector.is_adsorbate_intercalated():
                 return 5
-            # No value for 4. This was used for incorrect CHCOH placement in OCP dataset
+            # No value for 4. This was used for incorrect CHCOH placement in OCP dataset and is not measured here
             elif fmax > self.calc.fmax:
                 return 6
             else:
