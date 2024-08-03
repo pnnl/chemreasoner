@@ -226,7 +226,10 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         if self.torch_calc is None:
             ase_calc = self.get_ase_calculator
             self.torch_calc = ase_calc.trainer
-            self.torch_calc.model = BatchDataParallelPassthrough(self.torch_calc.model)
+            if self.device != "cpu":
+                self.torch_calc.model = BatchDataParallelPassthrough(
+                    self.torch_calc.model
+                )
         return self.torch_calc
 
     def relax_atoms_ase(
@@ -433,6 +436,104 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         batch.y = energy
         batch.force = forces
         return batch
+
+    def hessian_jacobian_f(self, atoms: Atoms, constraints=True, device: str = None):
+        """Compute the hessian matrix for the given set of structures by taking jacobian of F."""
+        atoms = self.copy_atoms_list(atoms)
+        self.prepare_atoms_list(
+            atoms, constraints=constraints
+        )  # list[ase] -> list[Data]
+        data_list = self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
+        for i, d in enumerate(data_list):
+            d.pbc = d.pbc[None, :]
+            # d.sid = i
+        # convert to torch geometric batch
+        dl = DataListLoader(data_list, batch_size=self.batch_size, shuffle=False)
+        hessians = []
+        for data_list in dl:
+            batch = Batch.from_data_list(data_list)
+            batch = batch.to(device if device is not None else self.device)
+
+            def _batch_wrapper(pos: torch.Tensor):
+                # batch.pos = torch.autograd.Variable(pos, requires_grad=True)
+                batch.pos.requires_grad_(True)
+                batch.pos = pos
+                f = -self.get_torch_model.model.forward(
+                    batch,
+                )["forces"]
+                print(f.requires_grad)
+                print(f)
+                print(f.shape)
+                print(type(f))
+                return f
+
+            def _hessian_wrapper(b: Batch):
+                H = torch.autograd.functional.jacobian(
+                    _batch_wrapper,
+                    inputs=b.pos,
+                    vectorize=True,
+                    outer_jacobian_strategy="forward-mode",
+                )
+                print(H.shape)
+                b.hessian = H
+                return b
+
+            hessians.append(
+                self.eval_with_oom_logic(
+                    batch,
+                    _hessian_wrapper,
+                )
+            )
+        return hessians
+
+    def hessian_grad_sqr_e(self, atoms: Atoms, constraints=True, device: str = None):
+        """Compute the hessian matrix for the given set of structures by taking Hess of E."""
+        atoms = self.copy_atoms_list(atoms)
+        self.prepare_atoms_list(
+            atoms, constraints=constraints
+        )  # list[ase] -> list[Data]
+        data_list = self.ats_to_graphs.convert_all(atoms, disable_tqdm=True)
+        for i, d in enumerate(data_list):
+            d.pbc = d.pbc[None, :]
+            # d.sid = i
+        # convert to torch geometric batch
+        dl = DataListLoader(data_list, batch_size=self.batch_size, shuffle=False)
+        hessians = []
+        for data_list in dl:
+            batch = Batch.from_data_list(data_list)
+            batch = batch.to(device if device is not None else self.device)
+
+            def _batch_wrapper(pos: torch.Tensor):
+                # batch.pos = torch.autograd.Variable(pos, requires_grad=True)
+                batch.pos.requires_grad_(True)
+                batch.pos = pos
+                e = -self.get_torch_model.model.forward(
+                    batch,
+                )["energy"]
+                print(e.requires_grad)
+                print(e)
+                print(e.shape)
+                print(type(e))
+                return e
+
+            def _hessian_wrapper(b: Batch):
+                H = torch.autograd.functional.hessian(
+                    _batch_wrapper,
+                    inputs=b.pos,
+                    vectorize=True,
+                    outer_jacobian_strategy="forward-mode",
+                )
+                print(H.shape)
+                b.hessian = H
+                return b
+
+            hessians.append(
+                self.eval_with_oom_logic(
+                    batch,
+                    _hessian_wrapper,
+                )
+            )
+        return hessians
 
     @staticmethod
     def eval_with_oom_logic(batch: Batch, method: callable, **kwargs):
@@ -863,24 +964,34 @@ if __name__ == "__main__":
             )
         )
     )
-    example_structures = [example_structure.copy() for _ in range(512)]
+    example_structures = [example_structure]
 
     calc = OCAdsorptionCalculator(
         **{
             "model": "gemnet-oc-22",
             "traj_dir": Path("data_parallel_benchmark"),
             "batch_size": 64,
-            "device": "cuda",
+            "device": "cpu",
             "ads_tag": 2,
             "fmax": 0.05,
             "steps": 250,
         }
     )
     start = time.time()
-    calc.batched_relax_atoms(
+    b = calc.hessian_grad_sqr_e(
         example_structures,
-        atoms_names=[f"{i}" for i, _ in enumerate(example_structures)],
-    )
+    )[0]
+
+    # print(b.hessian.shape)
+    # # print(b.hessian.reshape(-1, 198)[b.hessian.reshape(-1, 198) != 0])
+    # end = time.time()
+    # print(end - start)
+
+    start = time.time()
+    b = calc.hessian_jacobian_f(
+        example_structures,
+    )[0]
+
     end = time.time()
     print(end - start)
     # print((calc.get_torch_model.model))
