@@ -983,7 +983,7 @@ if __name__ == "__main__":
     # print(b.hessian.reshape(-1, 198)[b.hessian.reshape(-1, 198) != 0])
     end = time.time()
     torch.save(b.hessian.detach(), "hessian_e.pt")
-    torch.save(torch.Tensor([end - start]), "hessian_e.pt")
+    torch.save(torch.Tensor([end - start]), "hessian_e_time.pt")
     print(end - start)
 
     start = time.time()
@@ -993,7 +993,7 @@ if __name__ == "__main__":
 
     end = time.time()
     torch.save(b.hessian, "hessian_f.pt")
-    torch.save(torch.Tensor([end - start]), "hessian_f.pt")
+    torch.save(torch.Tensor([end - start]), "hessian_f_time.pt")
     print(end - start)
     # print((calc.get_torch_model.model))
     # print(torch.nn.DataParallel(calc.get_torch_model))
