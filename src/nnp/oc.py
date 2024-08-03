@@ -520,8 +520,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 H = torch.autograd.functional.hessian(
                     _batch_wrapper,
                     inputs=b.pos,
-                    vectorize=True,
-                    outer_jacobian_strategy="forward-mode",
                 )
                 print(H.shape)
                 b.hessian = H
