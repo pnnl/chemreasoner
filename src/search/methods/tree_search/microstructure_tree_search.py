@@ -466,7 +466,7 @@ if __name__ == "__main__":
     parser.add_argument("--gnn-fmax", type=float, default=None)
     parser.add_argument("--gnn-steps", type=int, default=None)
     parser.add_argument("--gnn-port", type=int, default=None)
-    parser.add_argument("--catalyst-symbols", nargs="+", type=list)
+    parser.add_argument("--catalyst-symbols", nargs="*", type=list)
 
     args = parser.parse_args()
 
