@@ -471,8 +471,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 H = torch.autograd.functional.jacobian(
                     _batch_wrapper,
                     inputs=b.pos,
-                    vectorize=True,
-                    outer_jacobian_strategy="forward-mode",
                 )
                 print(H.shape)
                 b.hessian = H
@@ -980,10 +978,10 @@ if __name__ == "__main__":
         example_structures,
     )[0]
 
-    # print(b.hessian.shape)
-    # # print(b.hessian.reshape(-1, 198)[b.hessian.reshape(-1, 198) != 0])
-    # end = time.time()
-    # print(end - start)
+    print(b.hessian.shape)
+    # print(b.hessian.reshape(-1, 198)[b.hessian.reshape(-1, 198) != 0])
+    end = time.time()
+    print(end - start)
 
     start = time.time()
     b = calc.hessian_jacobian_f(
