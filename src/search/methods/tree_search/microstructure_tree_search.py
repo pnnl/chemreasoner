@@ -454,6 +454,9 @@ def get_reward_data(
 
 if __name__ == "__main__":
 
+    def list_of_strings(arg):
+        return arg.split(",")
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--save-dir", type=str, default=None)
@@ -466,7 +469,7 @@ if __name__ == "__main__":
     parser.add_argument("--gnn-fmax", type=float, default=None)
     parser.add_argument("--gnn-steps", type=int, default=None)
     parser.add_argument("--gnn-port", type=int, default=None)
-    parser.add_argument("--catalyst-symbols", nargs="*", type=list)
+    parser.add_argument("--catalyst-symbols", type=list_of_strings)
 
     args = parser.parse_args()
 
