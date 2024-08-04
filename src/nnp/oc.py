@@ -967,23 +967,35 @@ if __name__ == "__main__":
             "model": "gemnet-oc-22",
             "traj_dir": Path("data_parallel_benchmark"),
             "batch_size": 64,
+            "device": "cuda",
+            "ads_tag": 2,
+            "fmax": 0.05,
+            "steps": 250,
+        }
+    )
+    example_structure = calc.batched_relax_atoms(example_structures)
+    calc = OCAdsorptionCalculator(
+        **{
+            "model": "gemnet-oc-22",
+            "traj_dir": Path("data_parallel_benchmark"),
+            "batch_size": 64,
             "device": "cpu",
             "ads_tag": 2,
             "fmax": 0.05,
             "steps": 250,
         }
     )
-    start = time.time()
-    b = calc.hessian_grad_sqr_e(
-        example_structures,
-    )[0]
+    # start = time.time()
+    # b = calc.hessian_grad_sqr_e(
+    #     example_structures,
+    # )[0]
 
-    print(b.hessian.shape)
+    # print(b.hessian.shape)
 
-    # print(b.hessian.reshape(-1, 198)[b.hessian.reshape(-1, 198) != 0])
-    end = time.time()
-    torch.save(b.hessian.detach(), "hessian_e.pt")
-    torch.save(torch.Tensor([end - start]), "hessian_e_time.pt")
+    # # print(b.hessian.reshape(-1, 198)[b.hessian.reshape(-1, 198) != 0])
+    # end = time.time()
+    # torch.save(b.hessian.detach(), "hessian_e.pt")
+    # torch.save(torch.Tensor([end - start]), "hessian_e_time.pt")
     print(end - start)
 
     start = time.time()
