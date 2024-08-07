@@ -973,31 +973,62 @@ if __name__ == "__main__":
     #         "steps": 250,
     #     }
     # )
-    directory_of_relaxed_structures = Path("cu_zn_check_relaxation", "relaxed_structures")
-    for p in directory_of_relaxed_structures.
-    example_structure = calc.batched_relax_atoms(example_structures)
     gpu_calc = OCAdsorptionCalculator(
-        **{
-            "model": "gemnet-oc-22",
-            "traj_dir": Path("data_parallel_benchmark"),
-            "batch_size": 1,
-            "device": "cuda",
-            "ads_tag": 2,
-            "fmax": 0.05,
-            "steps": 250,
-        }
+            **{
+                "model": "gemnet-oc-22",
+                "traj_dir": Path("data_parallel_benchmark"),
+                "batch_size": 1,
+                "device": "cuda",
+                "ads_tag": 2,
+                "fmax": 0.05,
+                "steps": 250,
+            }
+        )
+        cpu_calc = OCAdsorptionCalculator(
+            **{
+                "model": "gemnet-oc-22",
+                "traj_dir": Path("data_parallel_benchmark"),
+                "batch_size": 1,
+                "device": "cpu",
+                "ads_tag": 2,
+                "fmax": 0.05,
+                "steps": 250,
+            }
+        )
+    hessians_dir = Path("cu_zn_check_relaxation", "hessians").mkdir(
+        parents=True, exist_ok=True
     )
-    cpu_calc = OCAdsorptionCalculator(
-        **{
-            "model": "gemnet-oc-22",
-            "traj_dir": Path("data_parallel_benchmark"),
-            "batch_size": 1,
-            "device": "cpu",
-            "ads_tag": 2,
-            "fmax": 0.05,
-            "steps": 250,
-        }
-    )
+    traj_dir = Path("cu_zn_check_relaxation", "trajectories")
+    for p in directory_of_relaxed_structures.rglob("*.traj"):
+        traj = Trajectory(str(p))
+        example_structures = [traj[-1]]
+        
+    
+        try:
+            print(end - start)
+
+            start = time.time()
+            b = calc.hessian_jacobian_f(
+                example_structures,
+            )[0]
+
+            end = time.time()
+            torch.save(b.hessian, str(p.parent / (p.stem + ".pt")))
+            torch.save(torch.Tensor([end - start]), "cuda_time.pt")
+            print(end - start)
+        except:
+            print(end - start)
+
+            start = time.time()
+            b = calc.hessian_jacobian_f(
+                example_structures,
+            )[0]
+
+            end = time.time()
+            torch.save(b.hessian, str(p.parent / (p.stem + ".pt")))
+            torch.save(torch.Tensor([end - start]), str(p.parent / (p.stem + "cpu_time.pt")))
+            print(end - start)
+
     # start = time.time()
     # b = calc.hessian_grad_sqr_e(
     #     example_structures,
@@ -1009,17 +1040,6 @@ if __name__ == "__main__":
     # end = time.time()
     # torch.save(b.hessian.detach(), "hessian_e.pt")
     # torch.save(torch.Tensor([end - start]), "hessian_e_time.pt")
-    print(end - start)
-
-    start = time.time()
-    b = calc.hessian_jacobian_f(
-        example_structures,
-    )[0]
-
-    end = time.time()
-    torch.save(b.hessian, "hessian_f.pt")
-    torch.save(torch.Tensor([end - start]), "hessian_f_time.pt")
-    print(end - start)
     # print((calc.get_torch_model.model))
     # print(torch.nn.DataParallel(calc.get_torch_model))
     # print(torch.nn.DataParallel(calc.get_torch_model.model))
