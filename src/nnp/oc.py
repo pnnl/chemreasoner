@@ -951,34 +951,47 @@ def break_trajectory(traj_path: Path, dirname: str = None):
 
 
 if __name__ == "__main__":
-    example_structure = read(
-        str(
-            Path(
-                "test",
-                "gnn_test_structures",
-                "0b7c2e76-aa78-4c17-911d-cd6c9fc67d2a.xyz",
-            )
-        )
-    )
-    example_structures = [example_structure]
+    # example_structure = read(
+    #     str(
+    #         Path(
+    #             "test",
+    #             "gnn_test_structures",
+    #             "0b7c2e76-aa78-4c17-911d-cd6c9fc67d2a.xyz",
+    #         )
+    #     )
+    # )
+    # example_structures = [example_structure]
 
-    calc = OCAdsorptionCalculator(
+    # calc = OCAdsorptionCalculator(
+    #     **{
+    #         "model": "gemnet-oc-22",
+    #         "traj_dir": Path("data_parallel_benchmark"),
+    #         "batch_size": 64,
+    #         "device": "cuda",
+    #         "ads_tag": 2,
+    #         "fmax": 0.05,
+    #         "steps": 250,
+    #     }
+    # )
+    directory_of_relaxed_structures = Path("cu_zn_check_relaxation", "relaxed_structures")
+    for p in directory_of_relaxed_structures.
+    example_structure = calc.batched_relax_atoms(example_structures)
+    gpu_calc = OCAdsorptionCalculator(
         **{
             "model": "gemnet-oc-22",
             "traj_dir": Path("data_parallel_benchmark"),
-            "batch_size": 64,
+            "batch_size": 1,
             "device": "cuda",
             "ads_tag": 2,
             "fmax": 0.05,
             "steps": 250,
         }
     )
-    example_structure = calc.batched_relax_atoms(example_structures)
-    calc = OCAdsorptionCalculator(
+    cpu_calc = OCAdsorptionCalculator(
         **{
             "model": "gemnet-oc-22",
             "traj_dir": Path("data_parallel_benchmark"),
-            "batch_size": 64,
+            "batch_size": 1,
             "device": "cpu",
             "ads_tag": 2,
             "fmax": 0.05,

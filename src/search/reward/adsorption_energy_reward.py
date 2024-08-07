@@ -108,7 +108,7 @@ class AdsorptionEnergyCalculator:
             init_struct = incomplete_structures[i]
             final_struct = relaxed_atoms[i]
 
-            good_structure = self.check_relaxed_structure(init_struct, final_struct)
+            good_structure = self.check_structure(init_struct, final_struct)
             if not good_structure:
                 relaxed_atoms[i] = self.nan_energy(relaxed_atoms[i])
 
@@ -169,7 +169,7 @@ class AdsorptionEnergyCalculator:
             init_struct = incomplete_structures[i]
             final_struct = relaxed_atoms[i]
 
-            good_structure = self.check_relaxed_structure(init_struct, final_struct)
+            good_structure = self.check_structure(init_struct, final_struct)
             if not good_structure:
                 relaxed_atoms[i] = self.nan_energy(relaxed_atoms[i])
 
@@ -215,7 +215,7 @@ class AdsorptionEnergyCalculator:
         """Fetch the trajectory associated with the given atoms_names."""
         # TODO: Put trajectories in db and change this code
         traj = Trajectory(str(self.data_dir / (atoms_name + ".traj")))[-1]
-        good_structure = self.check_relaxed_structure(traj[0], traj[-1])
+        good_structure = self.check_structure(traj[0], traj[-1])
         if not good_structure:
             return self.nan_energy(traj[-1])
         else:
@@ -255,7 +255,7 @@ class AdsorptionEnergyCalculator:
         """Fetch the trajectory associated with the given atoms_names."""
         # TODO: Put trajectories in db and change this code
         traj = Trajectory(str(self.data_dir / (atoms_name + ".traj")))[-1]
-        good_structure = self.check_relaxed_structure(traj[0], traj[-1])
+        good_structure = self.check_structure(traj[0], traj[-1])
         if not good_structure:
             return self.nan_energy(traj[-1])
         else:
