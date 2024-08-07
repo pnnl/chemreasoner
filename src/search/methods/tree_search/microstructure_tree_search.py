@@ -266,8 +266,10 @@ def microstructure_search(
 ):
     """Run the search logic for the given tree."""
     root_id = tree.root_id
-    children = tree.get_children(root_id)
-    if len(children) == 0:
+    if (
+        len(tree.nodes[root_id].get_bulks())
+        > microstructure_planner.num_choices["bulk"]
+    ):
         nodes = [tree.nodes[root_id]]
         # bulks_idxs = [[0, 1, 2]] * len(nodes)
         bulks_idxs = ms_planner.run_bulk_prompt(nodes)
@@ -278,7 +280,9 @@ def microstructure_search(
             available_bulks = parent_node.get_bulks()
             selected_bulks = [available_bulks[j] for j in these_bulks]
             # Generate child nodes and put them in the tree
-            tree.set_children(parent_node._id, parent_node.set_bulk(selected_bulks))
+    else:
+        selected_bulks = parent_node.get_bulks()
+    tree.set_children(parent_node._id, parent_node.set_bulk(selected_bulks))
 
     # set the millers
     nodes = [tree.nodes[child] for n in nodes for child in tree.get_children(n._id)]
