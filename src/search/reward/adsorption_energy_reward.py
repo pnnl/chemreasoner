@@ -230,7 +230,14 @@ class AdsorptionEnergyCalculator:
 
     def get_convergence_error_code(self, initial_structure, final_structure):
         """Check the given structure for convergence error code, using criteria from OpenCatalyst Project."""
-        assert initial_structure.get_tags() == final_structure.get_tags()
+        assert all(
+            [
+                t1 == t2
+                for t1, t2 in zip(
+                    initial_structure.get_tags(), final_structure.get_tags()
+                )
+            ]
+        )
         anomaly_detector = DetectTrajAnomaly(
             init_atoms=initial_structure,
             final_atoms=final_structure,
