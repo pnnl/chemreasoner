@@ -223,6 +223,8 @@ class AdsorptionEnergyCalculator:
 
     def check_structure(self, initial_structure: Atoms, final_structure: Atoms):
         """Check the given structure for good convergence, using criteria from OpenCatalyst Project."""
+        logging.info(len(initial_structure))
+        logging.info(len(final_structure))
         error_code = self.get_convergence_error_code(initial_structure, final_structure)
         return error_code == 0
 
