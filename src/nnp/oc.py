@@ -974,27 +974,27 @@ if __name__ == "__main__":
     #     }
     # )
     gpu_calc = OCAdsorptionCalculator(
-            **{
-                "model": "gemnet-oc-22",
-                "traj_dir": Path("data_parallel_benchmark"),
-                "batch_size": 1,
-                "device": "cuda",
-                "ads_tag": 2,
-                "fmax": 0.05,
-                "steps": 250,
-            }
-        )
-        cpu_calc = OCAdsorptionCalculator(
-            **{
-                "model": "gemnet-oc-22",
-                "traj_dir": Path("data_parallel_benchmark"),
-                "batch_size": 1,
-                "device": "cpu",
-                "ads_tag": 2,
-                "fmax": 0.05,
-                "steps": 250,
-            }
-        )
+        **{
+            "model": "gemnet-oc-22",
+            "traj_dir": Path("data_parallel_benchmark"),
+            "batch_size": 1,
+            "device": "cuda",
+            "ads_tag": 2,
+            "fmax": 0.05,
+            "steps": 250,
+        }
+    )
+    cpu_calc = OCAdsorptionCalculator(
+        **{
+            "model": "gemnet-oc-22",
+            "traj_dir": Path("data_parallel_benchmark"),
+            "batch_size": 1,
+            "device": "cpu",
+            "ads_tag": 2,
+            "fmax": 0.05,
+            "steps": 250,
+        }
+    )
     hessians_dir = Path("cu_zn_check_relaxation", "hessians").mkdir(
         parents=True, exist_ok=True
     )
@@ -1002,8 +1002,7 @@ if __name__ == "__main__":
     for p in directory_of_relaxed_structures.rglob("*.traj"):
         traj = Trajectory(str(p))
         example_structures = [traj[-1]]
-        
-    
+
         try:
             print(end - start)
 
@@ -1026,7 +1025,9 @@ if __name__ == "__main__":
 
             end = time.time()
             torch.save(b.hessian, str(p.parent / (p.stem + ".pt")))
-            torch.save(torch.Tensor([end - start]), str(p.parent / (p.stem + "cpu_time.pt")))
+            torch.save(
+                torch.Tensor([end - start]), str(p.parent / (p.stem + "cpu_time.pt"))
+            )
             print(end - start)
 
     # start = time.time()
