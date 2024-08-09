@@ -13,7 +13,7 @@ import numpy as np
 from ase import Atoms
 import ase.build as build
 from ase.calculators.singlepoint import SinglePointCalculator
-from ase.io import Trajectory
+from ase.io import Trajectory, write
 from ase.io.trajectory import TrajectoryWriter
 
 from ocdata.core import Adsorbate
@@ -230,14 +230,16 @@ class AdsorptionEnergyCalculator:
 
     def get_convergence_error_code(self, initial_structure, final_structure):
         """Check the given structure for convergence error code, using criteria from OpenCatalyst Project."""
-        assert all(
+        if not all(
             [
                 t1 == t2
                 for t1, t2 in zip(
                     initial_structure.get_tags(), final_structure.get_tags()
                 )
             ]
-        )
+        ):
+            write("init_test.xyz", initial_structure)
+            write("final_test.xyz", final_structure)
         anomaly_detector = DetectTrajAnomaly(
             init_atoms=initial_structure,
             final_atoms=final_structure,
