@@ -236,7 +236,7 @@ class AdsorptionEnergyCalculator:
         fmax = np.max(np.sqrt(np.sum(final_structure.get_forces() ** 2, axis=1)))
         if anomaly_detector.has_surface_changed():
             return 3
-        elif 2 in initial_structure.tags():
+        elif 2 in initial_structure.get_tags():
             if anomaly_detector.is_adsorbate_dissociated():
                 return 1
             elif anomaly_detector.is_adsorbate_desorbed():
