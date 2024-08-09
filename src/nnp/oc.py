@@ -999,15 +999,13 @@ if __name__ == "__main__":
         parents=True, exist_ok=True
     )
     traj_dir = Path("cu_zn_check_relaxation", "trajectories")
-    for p in directory_of_relaxed_structures.rglob("*.traj"):
+    for p in traj_dir.rglob("*.traj"):
         traj = Trajectory(str(p))
         example_structures = [traj[-1]]
 
         try:
-            print(end - start)
-
             start = time.time()
-            b = calc.hessian_jacobian_f(
+            b = gpu_calc.hessian_jacobian_f(
                 example_structures,
             )[0]
 
@@ -1015,11 +1013,10 @@ if __name__ == "__main__":
             torch.save(b.hessian, str(p.parent / (p.stem + ".pt")))
             torch.save(torch.Tensor([end - start]), "cuda_time.pt")
             print(end - start)
-        except:
-            print(end - start)
-
+        except Exception:
+            torch.cuda.empty_cache()
             start = time.time()
-            b = calc.hessian_jacobian_f(
+            b = cpu_calc.hessian_jacobian_f(
                 example_structures,
             )[0]
 
