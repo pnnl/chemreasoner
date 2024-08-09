@@ -1010,8 +1010,11 @@ if __name__ == "__main__":
             )[0]
 
             end = time.time()
-            torch.save(b.hessian, str(p.parent / (p.stem + ".pt")))
-            torch.save(torch.Tensor([end - start]), "cuda_time.pt")
+            torch.save(b.hessian, str(p.parent.parent / "hessians" / (p.stem + ".pt")))
+            torch.save(
+                torch.Tensor([end - start]),
+                p.parent.parent / "hessians"(p.stem + "cuda_time.pt"),
+            )
             print(end - start)
         except Exception:
             torch.cuda.empty_cache()
@@ -1021,9 +1024,10 @@ if __name__ == "__main__":
             )[0]
 
             end = time.time()
-            torch.save(b.hessian, str(p.parent / (p.stem + ".pt")))
+            torch.save(b.hessian, str(p.parent.parent / "hessians" / (p.stem + ".pt")))
             torch.save(
-                torch.Tensor([end - start]), str(p.parent / (p.stem + "cpu_time.pt"))
+                torch.Tensor([end - start]),
+                str(p.parent.parent / "hessians"(p.stem + "cpu_time.pt")),
             )
             print(end - start)
 
