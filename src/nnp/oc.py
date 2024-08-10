@@ -1020,7 +1020,7 @@ if __name__ == "__main__":
             torch.save(b.hessian, str(p.parent.parent / "hessians" / (p.stem + ".pt")))
             torch.save(
                 torch.Tensor([end - start]),
-                p.parent.parent / "hessians"(p.stem + "cuda_time.pt"),
+                p.parent.parent / "hessians" / (p.stem + "cuda_time.pt"),
             )
             print(end - start)
         except Exception:
@@ -1036,7 +1036,7 @@ if __name__ == "__main__":
             )
             torch.save(
                 torch.Tensor([end - start]),
-                str(p.parent.parent / "hessians"(p.stem + "cpu_time.pt")),
+                str(p.parent.parent / "hessians" / (p.stem + "cpu_time.pt")),
             )
             print(end - start)
 
