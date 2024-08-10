@@ -269,6 +269,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         **bfgs_kwargs,
     ):
         """Relax the postitions of the given atoms. Setting device overrides self."""
+        s_id_index = {atoms_name: idx for idx, atoms_name in enumerate(atoms_names)}
         atoms = self.copy_atoms_list(atoms)
         fmax = fmax if fmax is not None else self.fmax
         steps = steps if steps is not None else self.steps
@@ -282,6 +283,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             d.sid = atoms_names[i]
         # convert to torch geometric batch
         final_atoms = []
+        s_ids = []
         dl = DataListLoader(data_list, batch_size=self.batch_size, shuffle=False)
         for data_list in dl:
             batch = Batch.from_data_list(data_list)
@@ -312,7 +314,9 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             self.gnn_relaxed += len(atoms)
             self.gnn_time += end - start
 
+            s_ids += batch.sid
             final_atoms += batch_to_atoms(final_batch)
+        final_atoms = [final_atoms[s_id_index[s_id]] for s_id in s_ids]
         return final_atoms
 
     def batched_adsorption_calculation(
