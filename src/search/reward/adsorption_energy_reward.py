@@ -108,8 +108,7 @@ class AdsorptionEnergyCalculator:
             init_struct = incomplete_structures[i]
             final_struct = relaxed_atoms[i]
 
-            good_structure = self.check_structure(init_struct, final_struct)
-            if not good_structure:
+            if not self.check_structure(init_struct, final_struct):
                 relaxed_atoms[i] = self.nan_energy(relaxed_atoms[i])
 
         # Re-Combine complete/incomplete lists
@@ -293,6 +292,7 @@ class AdsorptionEnergyCalculator:
         ats = structure.copy()
         res = structure.calc.results
         res["energy"] = np.nan if not isinstance(res["energy"], list) else [np.nan]
+        res["forces"] = ats.get_forces() * np.nan
         ats.calc = SinglePointCalculator(structure, **res)
         return ats
 
