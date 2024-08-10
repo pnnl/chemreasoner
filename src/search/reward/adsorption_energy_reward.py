@@ -292,7 +292,7 @@ class AdsorptionEnergyCalculator:
         ats = structure.copy()
         res = structure.calc.results
         res["energy"] = np.nan if not isinstance(res["energy"], list) else [np.nan]
-        res["forces"] = ats.get_forces() * np.nan
+        res["forces"] = structure.get_forces() * np.nan
         ats.calc = SinglePointCalculator(structure, **res)
         return ats
 
