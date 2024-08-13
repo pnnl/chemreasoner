@@ -103,11 +103,7 @@ class AdsorptionEnergyCalculator:
 
         # Check the relaxed structures
         for i in range(len(incomplete_structures)):
-            init_struct = incomplete_structures[i]
-            final_struct = relaxed_atoms[i]
-
-            if not self.check_structure(init_struct, final_struct):
-                relaxed_atoms[i] = self.nan_energy(relaxed_atoms[i])
+            relaxed_atoms[i] = self.fetch_complete_structure(incomplete_names[i])
 
         # Re-Combine complete/incomplete lists
         all_names = complete_names + incomplete_names
