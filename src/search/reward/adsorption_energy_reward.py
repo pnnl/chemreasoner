@@ -98,8 +98,6 @@ class AdsorptionEnergyCalculator:
             relaxed_atoms = self.calc.batched_relax_atoms(
                 atoms=incomplete_structures, atoms_names=incomplete_names
             )
-            for atoms, name in zip(relaxed_atoms, incomplete_names):
-                self.save_complete_structure(atoms, name)
         else:
             relaxed_atoms = []
 

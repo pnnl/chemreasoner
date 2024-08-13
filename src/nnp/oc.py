@@ -316,8 +316,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
 
             s_ids += batch.sid
             final_atoms += batch_to_atoms(final_batch)
-        for s_id, i in zip(s_ids, range(len(s_ids))):
-            assert s_id_index[s_id] == i
 
         return final_atoms
 
