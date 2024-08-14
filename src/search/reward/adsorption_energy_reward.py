@@ -15,7 +15,6 @@ import ase.build as build
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import Trajectory, write
 from ase.io.trajectory import TrajectoryWriter
-from ase.utils.structure_comparator import SymmetryEquivalenceCheck
 
 from ocdata.core import Adsorbate
 from ocdata.utils.flag_anomaly import DetectTrajAnomaly
@@ -103,12 +102,11 @@ class AdsorptionEnergyCalculator:
             relaxed_atoms = []
 
         # Check the relaxed structures
-        comp = SymmetryEquivalenceCheck
         for i in range(len(incomplete_structures)):
             SymmetryEquivalenceCheck
             tmp_ats = relaxed_atoms[i]
             relaxed_atoms[i] = self.fetch_complete_structure(incomplete_names[i])
-            logging.info(comp(relaxed_atoms[i], tmp_ats))
+            logging.info(f"{len(relaxed_atoms[i])} in traj {len(tmp_ats)} in output")
 
         # Re-Combine complete/incomplete lists
         all_names = complete_names + incomplete_names
