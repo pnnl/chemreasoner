@@ -488,9 +488,25 @@ if __name__ == "__main__":
         root_prompt = "Propose a catalyst for the conversion of CO to methanol."
 
     # Create the reward function
+    # pathways = [
+    #     ["*CO", "*COH", "*CHOH", "*CH2OH", "*OHCH3"],
+    #     ["*CO", "*CHO", "*CHOH", "*CH2OH", "*OHCH3"],
+    # ]
     pathways = [
-        ["*CO", "*COH", "*CHOH", "*CH2OH", "*OHCH3"],
-        ["*CO", "*CHO", "*CHOH", "*CH2OH", "*OHCH3"],
+        [
+            {"*CO": 1, "*H": 4},
+            {"*COH": 1, "*H": 3},
+            {"*CHOH": 1, "*H": 2},
+            {"*CH2OH": 1, "*H": 1},
+            {"*OHCH3": 1, "*H": 0},
+        ],
+        [
+            {"*CO": 1, "*H": 4},
+            {"*CHO": 1, "*H": 3},
+            {"*CHOH": 1, "*H": 2},
+            {"*CH2OH": 1, "*H": 1},
+            {"*OHCH3": 1, "*H": 0},
+        ],
     ]
     calc = OCAdsorptionCalculator(
         **{

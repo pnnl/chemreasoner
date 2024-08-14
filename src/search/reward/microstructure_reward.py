@@ -31,9 +31,20 @@ class MicrostructureRewardFunction:
     ):
         """Return self, with the given reaction_pathways and calculator initialized."""
         self._cached_calculations = {}
-        self.reaction_pathways = reaction_pathways
+        # Check to make sure reaction pathways specifies number of intermediates, else convert
+        if isinstance(reaction_pathways[0][0], dict):
+            self.reaction_pathways = reaction_pathways
+        else:
+            self.reaction_pathways = [
+                [{syms: 1} for syms in pathway] for pathway in reaction_pathways
+            ]
         self._all_adsorbate_symbols = list(
-            {ads_sym for ads_list in self.reaction_pathways for ads_sym in ads_list}
+            {
+                ads_sym
+                for ads_list in self.reaction_pathways
+                for ads_dict in ads_list
+                for ads_sym in ads_dict.keys()
+            }
         )
         self.calc = calc
         self.num_augmentations_per_site = num_augmentations_per_site
@@ -106,7 +117,9 @@ class MicrostructureRewardFunction:
 
     def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
         """Parse the energies of the reactants for the reaction pathways."""
-        symbols = list({p[0] for p in self.reaction_pathways})
+        symbols = list(
+            {k for p in self.reaction_pathways for k in p[0].keys if "C" in k}
+        )
         if len(symbols) > 1:
             logging.warning(f"Length of reactant symbols is {len(symbols)}, not 1.")
         syms = symbols[0]
@@ -125,9 +138,15 @@ class MicrostructureRewardFunction:
             barriers[catalyst] = {}
             for i, pathway in enumerate(self.reaction_pathways):
                 e = [
-                    catalyst_results[syms]
-                    - self.ads_e_calc.adsorbate_reference_energy(syms)
-                    for syms in pathway
+                    [
+                        count
+                        * (
+                            catalyst_results[syms]
+                            - self.ads_e_calc.adsorbate_reference_energy(syms)
+                        )
+                        for syms, count in step.items()
+                    ]
+                    for step in pathway
                 ]
                 diffs = np.diff(e).tolist()
                 barriers[catalyst].update({f"pathway_{i}": max(diffs)})
