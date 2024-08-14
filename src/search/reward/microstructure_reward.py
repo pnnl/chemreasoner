@@ -138,14 +138,16 @@ class MicrostructureRewardFunction:
             barriers[catalyst] = {}
             for i, pathway in enumerate(self.reaction_pathways):
                 e = [
-                    [
-                        count
-                        * (
-                            catalyst_results[syms]
-                            - self.ads_e_calc.adsorbate_reference_energy(syms)
-                        )
-                        for syms, count in step.items()
-                    ]
+                    sum(
+                        [
+                            count
+                            * (
+                                catalyst_results[syms]
+                                - self.ads_e_calc.adsorbate_reference_energy(syms)
+                            )
+                            for syms, count in step.items()
+                        ]
+                    )
                     for step in pathway
                 ]
                 diffs = np.diff(e).tolist()
