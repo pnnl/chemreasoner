@@ -103,7 +103,6 @@ class AdsorptionEnergyCalculator:
 
         # Check the relaxed structures
         for i in range(len(incomplete_structures)):
-            SymmetryEquivalenceCheck
             tmp_ats = relaxed_atoms[i]
             relaxed_atoms[i] = self.fetch_complete_structure(incomplete_names[i])
             logging.info(f"{len(relaxed_atoms[i])} in traj {len(tmp_ats)} in output")
