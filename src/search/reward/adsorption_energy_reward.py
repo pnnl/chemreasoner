@@ -561,7 +561,7 @@ class AdsorptionEnergyUncertaintyCalculator:
 
 def ads_symbols_to_structure(syms: str):
     """Turn adsorbate symbols to a list of strings."""
-    if "*" in syms:
+    if "*" in syms and syms in oc_20_ads_structures.keys():
         ats = oc_20_ads_structures[syms][0].copy()
         ats.info.update({"binding_sites": oc_20_ads_structures[syms][1][0].copy()})
 
