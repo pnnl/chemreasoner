@@ -206,19 +206,19 @@ class MicrostructureUncertaintyFunction:
         )
         return all_structures, all_names
 
-    def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
-        """Parse the energies of the reactants for the reaction pathways."""
-        symbols = list({p[0] for p in self.reaction_pathways})
-        if len(symbols) > 1:
-            logging.warning(f"Length of reactant symbols is {len(symbols)}, not 1.")
-        syms = symbols[0]
-        energies = {
-            catalyst: catalyst_results[syms]
-            - catalyst_results[self.ads_e_calc.reference_energy_key]
-            - self.ads_e_calc.adsorbate_reference_energy(syms)
-            for catalyst, catalyst_results in energy_results.items()
-        }
-        return energies
+    # def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
+    #     """Parse the energies of the reactants for the reaction pathways."""
+    #     symbols = list({p[0] for p in self.reaction_pathways})
+    #     if len(symbols) > 1:
+    #         logging.warning(f"Length of reactant symbols is {len(symbols)}, not 1.")
+    #     syms = symbols[0]
+    #     energies = {
+    #         catalyst: catalyst_results[syms]
+    #         - catalyst_results[self.ads_e_calc.reference_energy_key]
+    #         - self.ads_e_calc.adsorbate_reference_energy(syms)
+    #         for catalyst, catalyst_results in energy_results.items()
+    #     }
+    #     return energies
 
     def fetch_uncertainty_results(self, structures: list[CatalystDigitalTwin]):
         """Fetch the uncertainty results from the given structures."""
@@ -228,22 +228,22 @@ class MicrostructureUncertaintyFunction:
             results[s._id] = row  # TODO: Is there aggregation to do?
         return deepcopy(results)
 
-    def _parse_energy_barriers(self, energy_results: dict[str, dict[str, float]]):
-        """Parse the reaction barriers for the reaction pathways."""
-        barriers = {}
-        for catalyst, catalyst_results in energy_results.items():
-            barriers[catalyst] = {}
-            for i, pathway in enumerate(self.reaction_pathways):
-                e = [
-                    catalyst_results[syms]
-                    - self.ads_e_calc.adsorbate_reference_energy(syms)
-                    for syms in pathway
-                ]
-                diffs = np.diff(e).tolist()
-                barriers[catalyst].update({f"pathway_{i}": max(diffs)})
-            barriers[catalyst].update({"best": min(barriers[catalyst].values())})
+    # def _parse_energy_barriers(self, energy_results: dict[str, dict[str, float]]):
+    #     """Parse the reaction barriers for the reaction pathways."""
+    #     barriers = {}
+    #     for catalyst, catalyst_results in energy_results.items():
+    #         barriers[catalyst] = {}
+    #         for i, pathway in enumerate(self.reaction_pathways):
+    #             e = [
+    #                 catalyst_results[syms]
+    #                 - self.ads_e_calc.adsorbate_reference_energy(syms)
+    #                 for syms in pathway
+    #             ]
+    #             diffs = np.diff(e).tolist()
+    #             barriers[catalyst].update({f"pathway_{i}": max(diffs)})
+    #         barriers[catalyst].update({"best": min(barriers[catalyst].values())})
 
-        return barriers
+    #     return barriers
 
 
 if __name__ == "__main__":
