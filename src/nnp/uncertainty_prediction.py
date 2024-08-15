@@ -74,7 +74,6 @@ class UncertaintyCalculator:
             self.torch_calc.model.model_outemb, batch
         )
         batch_uq = self.gbm_model.predict(batch_embeddings)
-        print(batch_uq)
         return batch_uq
 
 
