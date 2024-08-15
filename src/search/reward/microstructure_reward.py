@@ -96,7 +96,7 @@ class MicrostructureRewardFunction:
         """Fetch the energies associated with the given structures."""
         results = {}
         for s in structures:
-            error_codes = self.calc.get_error_codes_catalyst(s._id)
+            error_codes = self.ads_e_calc.get_error_codes_name(s._id)
             results[s._id] = error_codes
         return deepcopy(results)
 
