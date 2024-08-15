@@ -166,9 +166,19 @@ class MicrostructureUncertaintyFunction:
     ):
         """Return self, with the given reaction_pathways and calculator initialized."""
         self._cached_calculations = {}
-        self.reaction_pathways = reaction_pathways
+        if isinstance(reaction_pathways[0][0], dict):
+            self.reaction_pathways = reaction_pathways
+        else:
+            self.reaction_pathways = [
+                [{syms: 1} for syms in pathway] for pathway in reaction_pathways
+            ]
         self._all_adsorbate_symbols = list(
-            {ads_sym for ads_list in self.reaction_pathways for ads_sym in ads_list}
+            {
+                ads_sym
+                for ads_list in self.reaction_pathways
+                for ads_dict in ads_list
+                for ads_sym in ads_dict.keys()
+            }
         )
         self.calc = calc
 
