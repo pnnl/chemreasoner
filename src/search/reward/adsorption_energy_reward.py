@@ -52,7 +52,7 @@ class AdsorptionEnergyCalculator:
         self.num_augmentations_per_site = num_augmentations_per_site
 
         self.e_tot_dir = self.data_dir / "e_tot"
-        self.e_tot_dir = self.data_dir / self.reference_energy_key
+        self.e_slab_dir = self.data_dir / self.reference_energy_key
 
         self.calc = atomistic_calc
 
@@ -283,6 +283,29 @@ class AdsorptionEnergyCalculator:
         )
         return codes
 
+    def get_error_codes_catalyst(self, catalyst_names: list[str]):
+        """Check the given structure for convergence error code, using criteria from OpenCatalyst Project."""
+        e_tot_structures, e_tot_names = self.gather_total_energy_names(catalyst_names)
+
+        e_slab_structures, e_slab_names = (
+            self.gather_slab_energy_names(  # TODO: Don't re-calculate slab reference energies
+                catalyst_names
+            )
+        )
+        all_names = e_tot_names + e_slab_names
+
+        codes = {}
+        for name in all_names:
+            uuid, key = (
+                name.split("_")
+                if self.reference_energy_key != "_".join(name.split("_")[-2:])
+                else (name.split("_")[0], self.reference_energy_key)
+            )
+            if uuid not in codes.keys():
+                codes[uuid] = {}
+            codes[key] = self.fetch_error_code(name)
+        return codes
+
     def nan_energy(self, structure: Atoms) -> Atoms:
         """Return copy of given structure with potential_energy of nan."""
         ats = structure.copy()
@@ -375,6 +398,19 @@ class AdsorptionEnergyCalculator:
 
         return e_tot_structures, e_tot_names
 
+    def gather_total_energy_names(self, structures: list[CatalystDigitalTwin], names):
+        """Calculate the total energy for the given structures."""
+
+        # Do total energy calculation
+        e_tot_names = []
+        for n, struct in zip(names, structures):
+            for ads_sym in self.adsorbates_syms:
+                e_tot_name = str(Path("trajectories_e_tot") / (n + f"_{ads_sym}"))
+                (self.data_dir / e_tot_name).parent.mkdir(parents=True, exist_ok=True)
+                e_tot_names.append(e_tot_name)
+
+        return e_tot_names
+
     def gather_slab_energy_structures(
         self, structures: list[CatalystDigitalTwin], names
     ):
@@ -387,13 +423,28 @@ class AdsorptionEnergyCalculator:
             slab_structure = struct.return_slab()
             e_slab_name = str(
                 Path(f"trajectories_{self.reference_energy_key}")
-                / (n + self.reference_energy_key)
+                / (f"{n}_{self.reference_energy_key}")
             )
             (self.data_dir / e_slab_name).parent.mkdir(parents=True, exist_ok=True)
             e_slab_names.append(e_slab_name)
             e_slab_structures.append(slab_structure)
 
         return e_slab_structures, e_slab_names
+
+    def gather_slab_energy_names(self, structures: list[CatalystDigitalTwin], names):
+        """Calculate the slabal energy for the given structures."""
+
+        # Do slabal energy calculation
+        e_slab_names = []
+        for n, struct in zip(names, structures):
+            e_slab_name = str(
+                Path(f"trajectories_{self.reference_energy_key}")
+                / (f"{n}_{self.reference_energy_key}")
+            )
+            (self.data_dir / e_slab_name).parent.mkdir(parents=True, exist_ok=True)
+            e_slab_names.append(e_slab_name)
+
+        return e_slab_names
 
     @staticmethod
     def get_adsorbate_atoms(ads_syms: str):
@@ -537,7 +588,7 @@ class AdsorptionEnergyUncertaintyCalculator:
         for n, struct in zip(names, structures):
             e_slab_name = str(
                 Path(f"trajectories_{self.reference_energy_key}")
-                / (n + self.reference_energy_key)
+                / (f"{n}_{self.reference_energy_key}")
             )
             (self.data_dir / e_slab_name).parent.mkdir(parents=True, exist_ok=True)
             e_slab_names.append(e_slab_name)
