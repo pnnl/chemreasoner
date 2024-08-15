@@ -283,7 +283,7 @@ class AdsorptionEnergyCalculator:
         )
         return codes
 
-    def get_error_codes_catalyst(self, catalyst_names: list[str]):
+    def get_error_codes_catalysts(self, catalyst_names: list[str]):
         """Check the given structure for convergence error code, using criteria from OpenCatalyst Project."""
         e_tot_structures, e_tot_names = self.gather_total_energy_names(catalyst_names)
 
