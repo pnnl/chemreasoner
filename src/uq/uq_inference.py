@@ -1,8 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[4]:
-
+"""Functions and objects for GBMregressor uq model."""
 
 import numpy as np
 import os
