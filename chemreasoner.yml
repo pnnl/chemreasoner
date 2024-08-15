@@ -32,3 +32,4 @@ dependencies:
   - pydot
   - mp-api
   - crystal-toolkit
+  - xgboost
