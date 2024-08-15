@@ -563,7 +563,7 @@ def ads_symbols_to_structure(syms: str):
     """Turn adsorbate symbols to a list of strings."""
     if "*" in syms:
         ats = oc_20_ads_structures[syms][0].copy()
-        ats.info.update({"binding_molecules": oc_20_ads_structures[syms][1][0].copy()})
+        ats.info.update({"binding_sites": oc_20_ads_structures[syms][1][0].copy()})
 
     elif syms in map(lambda s: s.replace("*", ""), oc_20_ads_structures.keys()):
         idx = list(
@@ -574,7 +574,7 @@ def ads_symbols_to_structure(syms: str):
         ats = oc_20_ads_structures[syms][0].copy()
         ats.info.update({"given_syms": given_syms})
         ats.info.update(
-            {"binding_molecules": oc_20_ads_structures[syms][1][0].copy()}
+            {"binding_sites": oc_20_ads_structures[syms][1][0].copy()}
         )  # get binding indices
     elif syms.lower() == "ethanol":
         return ads_symbols_to_structure("*OHCH2CH3")
@@ -584,24 +584,15 @@ def ads_symbols_to_structure(syms: str):
         return ads_symbols_to_structure("*CH3")
     elif syms.lower() in nist_ads_structures.keys():
         return nist_ads_structures[syms.lower()]
+    elif syms == "*CH*O":
+        ats = ads_symbols_to_structure("*CHO")
+        ats.info.update({"syms": "*CH*O"})
+        ats.info.update({"binding_sites": np.array([0, 2])})
+        return ats
     else:
         ats = build.molecule(syms)
     ats.info.update({"syms": syms})
     return ats
-
-
-if __name__ == "__main__":
-    calc = OCAdsorptionCalculator(
-        **{
-            "model": "gemnet-oc-22",
-            "traj_dir": "test_trajs",
-            "batch_size": 32,
-            "device": "cuda",
-            "ads_tag": 2,
-            "fmax": 0.03,
-            "steps": 3,
-        }
-    )
 
 
 class TestStructure:
@@ -611,3 +602,7 @@ class TestStructure:
     def get_potential_energy(self):
         """Return the value of self."""
         return self.value
+
+
+if __name__ == "__main__":
+    print(ads_symbols_to_structure("*CHO").info)
