@@ -6,15 +6,16 @@ import numpy as np
 from ase.calculators.singlepoint import SinglePointCalculator
 
 from ase import Atoms
-from ase.io import Trajectory
+from ase.io import Trajectory, write
 
 from ocdata.utils.flag_anomaly import DetectTrajAnomaly
 
 from tqdm import tqdm
 
-
 if __name__ == "__main__":
-    xyz_directory = Path("../cu_zn_test/trajectories")
+    save_dir = Path("cu_zn_dft_structures")
+    save_dir.mkdir(exist_ok=True)
+    xyz_directory = Path("cu_zn_with_H/trajectories")
     print(xyz_directory)
     traj_files = list(xyz_directory.rglob("*.traj"))
 
@@ -48,6 +49,9 @@ if __name__ == "__main__":
                 )
             )
         ):
+            xyz_path = save_dir / (f.parent.stem) / (f.parent + ".xyz")
+            xyz_path.parent.mkdir(parents=True, exist_ok=True)
+            write(str(xyz_path), traj[-1])
             bad_counter += 1
         else:
             good_counter += 1
