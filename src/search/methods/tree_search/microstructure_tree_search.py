@@ -529,7 +529,9 @@ if __name__ == "__main__":
     reward_func = MicrostructureRewardFunction(
         pathways, calc, num_augmentations_per_site=1
     )
-    uq_calc = UncertaintyCalculator(device="cpu", batch_size=40)
+    uq_calc = UncertaintyCalculator(
+        calc, "data/uq_model_weights/GBMRegressor-peratom_energy.pkl", 0.1, 0.9, 100
+    )
     UncertaintyCalculator.traj_dir = save_path / "trajectories"
     uq_func = MicrostructureUncertaintyFunction(
         reaction_pathways=pathways, calc=uq_calc
