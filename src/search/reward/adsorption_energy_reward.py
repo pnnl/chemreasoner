@@ -392,12 +392,11 @@ class AdsorptionEnergyCalculator:
 
         return e_tot_structures, e_tot_names
 
-    def gather_total_energy_names(self, structures: list[CatalystDigitalTwin], names):
+    def gather_total_energy_names(self, names: list[str]):
         """Calculate the total energy for the given structures."""
-
         # Do total energy calculation
         e_tot_names = []
-        for n, struct in zip(names, structures):
+        for n in names:
             for ads_sym in self.adsorbates_syms:
                 e_tot_name = str(Path("trajectories_e_tot") / (n + f"_{ads_sym}"))
                 (self.data_dir / e_tot_name).parent.mkdir(parents=True, exist_ok=True)
@@ -409,12 +408,10 @@ class AdsorptionEnergyCalculator:
         self, structures: list[CatalystDigitalTwin], names
     ):
         """Calculate the slabal energy for the given structures."""
-
         # Do slabal energy calculation
         e_slab_names = []
         e_slab_structures = []
-        for n, struct in zip(names, structures):
-            slab_structure = struct.return_slab()
+        for n in names:
             e_slab_name = str(
                 Path(f"trajectories_{self.reference_energy_key}")
                 / (f"{n}_{self.reference_energy_key}")
