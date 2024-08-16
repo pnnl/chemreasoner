@@ -37,7 +37,7 @@ with open(Path("data", "input_data", "oc") / "nist_adsorbates.pkl", "rb") as f:
 
 
 class AdsorptionEnergyCalculator:
-    reference_energy_key = "e_slab"
+    reference_energy_key = "slab"
 
     def __init__(
         self,
@@ -210,12 +210,6 @@ class AdsorptionEnergyCalculator:
         """Fetch the trajectory associated with the given atoms_names."""
         # TODO: Put trajectories in db and change this code
         traj = Trajectory(str(self.data_dir / (atoms_name + ".traj")))
-        logging.info(0)
-        logging.info(len(traj[0]))
-        logging.info(1)
-        logging.info(len(traj[-2]))
-        logging.info(2)
-        logging.info(len(traj[-1]))
         good_structure = self.check_structure(traj[0], traj[-1])
         if not good_structure:
             return self.nan_energy(traj[-1])
