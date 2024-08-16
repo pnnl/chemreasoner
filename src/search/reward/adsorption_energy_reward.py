@@ -37,7 +37,7 @@ with open(Path("data", "input_data", "oc") / "nist_adsorbates.pkl", "rb") as f:
 
 
 class AdsorptionEnergyCalculator:
-    reference_energy_key = "slab"
+    reference_energy_key = "e_slab"
 
     def __init__(
         self,
@@ -52,7 +52,7 @@ class AdsorptionEnergyCalculator:
         self.num_augmentations_per_site = num_augmentations_per_site
 
         self.e_tot_dir = self.data_dir / "e_tot"
-        self.e_slab_dir = self.data_dir / self.reference_energy_key
+        self.e_slab_dir = self.data_dir / "e_slab"
 
         self.calc = atomistic_calc
 
