@@ -29,6 +29,15 @@ if __name__ == "__main__":
             atoms_tag=traj[0].get_tags(),
         )
         fmax = np.max(np.sqrt(np.sum(traj[-1].get_forces() ** 2, axis=1)))
+        code = None
+        if anomaly_detector.has_surface_changed():
+            code = 3
+        elif anomaly_detector.is_adsorbate_dissociated():
+            code = 1
+        elif anomaly_detector.is_adsorbate_desorbed():
+            code = 2
+        elif anomaly_detector.is_adsorbate_intercalated():
+            code = 5
         if (
             anomaly_detector.has_surface_changed()
             or fmax > 0.03
@@ -49,7 +58,7 @@ if __name__ == "__main__":
                 )
             )
         ):
-            xyz_path = save_dir / (f.parent.stem + "_bad") / (f.stem + ".xyz")
+            xyz_path = save_dir / (f.parent.stem + f"_bad_{code}") / (f.stem + ".xyz")
             xyz_path.parent.mkdir(parents=True, exist_ok=True)
             write(str(xyz_path), traj[-1])
             bad_counter += 1
