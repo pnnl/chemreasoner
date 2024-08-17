@@ -49,7 +49,9 @@ if __name__ == "__main__":
                 )
             )
         ):
-
+            xyz_path = save_dir / (f.parent.stem + "_bad") / (f.stem + ".xyz")
+            xyz_path.parent.mkdir(parents=True, exist_ok=True)
+            write(str(xyz_path), traj[-1])
             bad_counter += 1
         else:
             xyz_path = save_dir / (f.parent.stem) / (f.stem + ".xyz")
