@@ -21,6 +21,7 @@ if __name__ == "__main__":
     traj_files = list(xyz_directory.rglob("*.traj"))
 
     codes = []
+    code_counts = {}
     bad_counter = 0
     good_counter = 0
     for f in tqdm(traj_files):
@@ -44,6 +45,10 @@ if __name__ == "__main__":
             code = 6
         else:
             code = 0
+        if code in code_counts.keys():
+            code_counts[code] += 1
+        else:
+            code_counts[code] = 1
         codes.append({f.stem: code})
         if (
             anomaly_detector.has_surface_changed()
@@ -77,3 +82,4 @@ pd.DataFrame(codes).to_csv("convergence_error_codes.csv", index=False)
 print(
     f"bad_trajectories: {bad_counter}, good_trajectories: {good_counter} with {bad_counter + good_counter} total structures"
 )
+print(code_counts)
