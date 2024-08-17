@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from ase.calculators.singlepoint import SinglePointCalculator
 
 from ase import Atoms
@@ -19,6 +20,7 @@ if __name__ == "__main__":
     print(xyz_directory)
     traj_files = list(xyz_directory.rglob("*.traj"))
 
+    codes = []
     bad_counter = 0
     good_counter = 0
     for f in tqdm(traj_files):
@@ -32,12 +34,17 @@ if __name__ == "__main__":
         code = None
         if anomaly_detector.has_surface_changed():
             code = 3
-        elif anomaly_detector.is_adsorbate_dissociated():
+        elif 2 in traj[0].get_tags() and anomaly_detector.is_adsorbate_dissociated():
             code = 1
-        elif anomaly_detector.is_adsorbate_desorbed():
+        elif 2 in traj[0].get_tags() and anomaly_detector.is_adsorbate_desorbed():
             code = 2
-        elif anomaly_detector.is_adsorbate_intercalated():
+        elif 2 in traj[0].get_tags() and anomaly_detector.is_adsorbate_intercalated():
             code = 5
+        elif fmax > 0.03:
+            code = 6
+        else:
+            code = 0
+        codes.append({f.stem: code})
         if (
             anomaly_detector.has_surface_changed()
             or fmax > 0.03
@@ -58,15 +65,14 @@ if __name__ == "__main__":
                 )
             )
         ):
-            xyz_path = save_dir / (f.parent.stem + "_bad") / (f.stem + f"_{code}.xyz")
-            xyz_path.parent.mkdir(parents=True, exist_ok=True)
-            write(str(xyz_path), traj[-1])
             bad_counter += 1
         else:
-            xyz_path = save_dir / (f.parent.stem) / (f.stem + ".xyz")
-            xyz_path.parent.mkdir(parents=True, exist_ok=True)
-            write(str(xyz_path), traj[-1])
+
             good_counter += 1
+        xyz_path = save_dir / (f.parent.stem) / (f.stem + ".xyz")
+        xyz_path.parent.mkdir(parents=True, exist_ok=True)
+        write(str(xyz_path), traj[-1])
+pd.DataFrame(codes).to_csv("convergence_error_codes.csv", index=False)
 
 print(
     f"bad_trajectories: {bad_counter}, good_trajectories: {good_counter} with {bad_counter + good_counter} total structures"
