@@ -995,7 +995,7 @@ if __name__ == "__main__":
         codes = json.load(f)
     structures = []
     names = []
-    for p in Path("cu_zn_dft_structures" / "trajectories_e_tot/").rglob("*.traj"):
+    for p in Path("cu_zn_dft_structures", "trajectories_e_tot/").rglob("*.traj"):
         if codes[p.stem] == 6:
             structures.append(Trajectory(str(p))[-1])
             names.append(p.stem)
