@@ -1001,12 +1001,12 @@ if __name__ == "__main__":
             print(p)
             structures.append(read(str(p)))
             names.append(p.stem)
-    lengths = []
+    lengths = {}
     for p in Path("cu_zn_dft_structures", "trajectories_continued_convergence").rglob(
         "*.traj"
     ):
         traj = Trajectory(str(p))
-        lengths.append({p.stem: len(traj)})
+        lengths[p.stem] = len(traj)
     gpu_calc.batched_relax_atoms(structures, names)
     with open(
         Path("cu_zn_dft_structures", "trajectories_continued_convergence")

@@ -21,7 +21,7 @@ if __name__ == "__main__":
     print(xyz_directory)
     traj_files = list(xyz_directory.rglob("*.traj"))
 
-    codes = []
+    codes = {}
     code_counts = {}
     bad_counter = 0
     good_counter = 0
@@ -50,7 +50,7 @@ if __name__ == "__main__":
             code_counts[code] += 1
         else:
             code_counts[code] = 1
-        codes.append({f.stem: code})
+        codes[f.stem] = code
         if (
             anomaly_detector.has_surface_changed()
             or fmax > 0.03
