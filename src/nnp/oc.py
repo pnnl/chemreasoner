@@ -981,16 +981,24 @@ if __name__ == "__main__":
     gpu_calc = OCAdsorptionCalculator(
         **{
             "model": "gemnet-oc-22",
-            "traj_dir": Path("data_parallel_benchmark"),
+            "traj_dir": Path(
+                "cu_zn_dft_structures", "trajectories_continued_convergence"
+            ),
             "batch_size": 1,
             "device": "cuda",
             "ads_tag": 2,
-            "fmax": 0.05,
+            "fmax": 0.03,
             "steps": 250,
         }
     )
-    codes = pd.read_csv(convergence_error_codes.csv, index_col=False)
+    with open("convergence_error_codes.csv", "r") as f:
+        codes = json.load(f)
+    structures = []
+    names = []
     for p in Path("cu_zn_dft_structures" / "trajectories_e_tot/").rglob("*.traj"):
+        if codes[p.stem] == 6:
+            structures.append(Trajectory(str(p))[-1])
+            names.append(p.stem)
 
     # cpu_calc = OCAdsorptionCalculator(
     #     **{
