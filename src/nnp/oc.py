@@ -1005,7 +1005,7 @@ if __name__ == "__main__":
     ):
         traj = Trajectory(str(p))
         lengths.append({p.stem: len(traj)})
-
+    calc.batched_relax_atoms(structures, names)
     with open(
         Path("cu_zn_dft_structures", "trajectories_continued_convergence")
         / "lengths.json",
