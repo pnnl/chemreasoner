@@ -1,9 +1,10 @@
 """Utilities for atomistic structures."""
 
+import json
+
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 from ase.calculators.singlepoint import SinglePointCalculator
 
 from ase import Atoms
@@ -77,7 +78,8 @@ if __name__ == "__main__":
         xyz_path = save_dir / (f.parent.stem) / (f.stem + ".xyz")
         xyz_path.parent.mkdir(parents=True, exist_ok=True)
         write(str(xyz_path), traj[-1])
-pd.DataFrame(codes).to_csv("convergence_error_codes.csv", index=False)
+with open("convergence_error_codes.json", "w") as f:
+    json.dump(codes, f)
 
 print(
     f"bad_trajectories: {bad_counter}, good_trajectories: {good_counter} with {bad_counter + good_counter} total structures"
