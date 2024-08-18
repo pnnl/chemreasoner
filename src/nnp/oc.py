@@ -995,11 +995,11 @@ if __name__ == "__main__":
         codes = json.load(f)
     structures = []
     names = []
-    for p in Path("cu_zn_dft_structures", "trajectories_e_tot").rglob("*.traj"):
+    for p in Path("cu_zn_dft_structures", "trajectories_e_tot").rglob("*.xyz"):
         print(p)
         if codes[p.stem] == 6:
             print(p)
-            structures.append(Trajectory(str(p))[-1])
+            structures.append(read(str(p)))
             names.append(p.stem)
     lengths = []
     for p in Path("cu_zn_dft_structures", "trajectories_continued_convergence").rglob(
