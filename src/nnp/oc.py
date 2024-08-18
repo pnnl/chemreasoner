@@ -999,7 +999,19 @@ if __name__ == "__main__":
         if codes[p.stem] == 6:
             structures.append(Trajectory(str(p))[-1])
             names.append(p.stem)
-
+    lengths = []
+    for p in Path("cu_zn_dft_structures", "trajectories_continued_convergence").rglob(
+        "*.traj"
+    ):
+        traj = Trajectory(str(p))
+        lengths.append({p.stem: len(traj)})
+    with open(Path("cu_zn_dft_structures", "trajectories_continued_convergence")):
+        with open(
+            Path("cu_zn_dft_structures", "trajectories_continued_convergence")
+            / "lengths.json",
+            "w",
+        ) as f:
+            json.dump(lengths, f)
     # cpu_calc = OCAdsorptionCalculator(
     #     **{
     #         "model": "gemnet-oc-22",
