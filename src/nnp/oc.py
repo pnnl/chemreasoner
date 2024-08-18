@@ -1005,13 +1005,13 @@ if __name__ == "__main__":
     ):
         traj = Trajectory(str(p))
         lengths.append({p.stem: len(traj)})
-    with open(Path("cu_zn_dft_structures", "trajectories_continued_convergence")):
-        with open(
-            Path("cu_zn_dft_structures", "trajectories_continued_convergence")
-            / "lengths.json",
-            "w",
-        ) as f:
-            json.dump(lengths, f)
+
+    with open(
+        Path("cu_zn_dft_structures", "trajectories_continued_convergence")
+        / "lengths.json",
+        "w",
+    ) as f:
+        json.dump(lengths, f)
     # cpu_calc = OCAdsorptionCalculator(
     #     **{
     #         "model": "gemnet-oc-22",
