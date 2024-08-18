@@ -997,6 +997,7 @@ if __name__ == "__main__":
     names = []
     for p in Path("cu_zn_dft_structures", "trajectories_e_tot/").rglob("*.traj"):
         if codes[p.stem] == 6:
+            print(p)
             structures.append(Trajectory(str(p))[-1])
             names.append(p.stem)
     lengths = []
@@ -1005,7 +1006,7 @@ if __name__ == "__main__":
     ):
         traj = Trajectory(str(p))
         lengths.append({p.stem: len(traj)})
-    calc.batched_relax_atoms(structures, names)
+    gpu_calc.batched_relax_atoms(structures, names)
     with open(
         Path("cu_zn_dft_structures", "trajectories_continued_convergence")
         / "lengths.json",
