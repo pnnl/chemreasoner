@@ -991,7 +991,7 @@ if __name__ == "__main__":
             "steps": 250,
         }
     )
-    with open("convergence_error_codes.csv", "r") as f:
+    with open("convergence_error_codes.json", "r") as f:
         codes = json.load(f)
     structures = []
     names = []
