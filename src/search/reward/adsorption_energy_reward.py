@@ -299,9 +299,9 @@ class AdsorptionEnergyCalculator:
         codes = {}
         for name in all_names:
             uuid, key = (
-                name.split("_")
+                name.split("_")[-2:]
                 if self.reference_energy_key != "_".join(name.split("_")[-2:])
-                else (name.split("_")[0], self.reference_energy_key)
+                else (name.split("_")[-3], self.reference_energy_key)
             )
             if uuid not in codes.keys():
                 codes[uuid] = {}
