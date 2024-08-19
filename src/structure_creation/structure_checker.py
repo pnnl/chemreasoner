@@ -67,30 +67,30 @@ if __name__ == "__main__":
         else:
             code_counts[code] = 1
         codes[f.stem] = code
-        if (
-            anomaly_detector.has_surface_changed()
-            or fmax > 0.03
-            or (
-                2 in initial_structure.get_tags()
-                and any(
-                    [
-                        (
-                            anomaly_detector.is_adsorbate_dissociated()  # adsorbate is dissociated
-                        ),
-                        (
-                            anomaly_detector.is_adsorbate_desorbed()  # flying off the surfgace
-                        ),
-                        (
-                            anomaly_detector.is_adsorbate_intercalated()  # interacting with bulk atom
-                        ),
-                    ]
-                )
-            )
-        ):
-            bad_counter += 1
-        else:
+        # if (
+        #     anomaly_detector.has_surface_changed()
+        #     or fmax > 0.03
+        #     or (
+        #         2 in initial_structure.get_tags()
+        #         and any(
+        #             [
+        #                 (
+        #                     anomaly_detector.is_adsorbate_dissociated()  # adsorbate is dissociated
+        #                 ),
+        #                 (
+        #                     anomaly_detector.is_adsorbate_desorbed()  # flying off the surfgace
+        #                 ),
+        #                 (
+        #                     anomaly_detector.is_adsorbate_intercalated()  # interacting with bulk atom
+        #                 ),
+        #             ]
+        #         )
+        #     )
+        # ):
+        #     bad_counter += 1
+        # else:
 
-            good_counter += 1
+        #     good_counter += 1
         final_path = final_structure_dir / (f.parent.stem) / (f.stem + ".xyz")
         final_path.parent.mkdir(parents=True, exist_ok=True)
         write(str(final_path), final_structure)
@@ -112,7 +112,7 @@ if __name__ == "__main__":
 with open("convergence_error_codes.json", "w") as f:
     json.dump(codes, f)
 
-print(
-    f"bad_trajectories: {bad_counter}, good_trajectories: {good_counter} with {bad_counter + good_counter} total structures"
-)
+# print(
+#     f"bad_trajectories: {bad_counter}, good_trajectories: {good_counter} with {bad_counter + good_counter} total structures"
+# )
 print(code_counts)
