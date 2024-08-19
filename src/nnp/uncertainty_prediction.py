@@ -94,7 +94,7 @@ if __name__ == "__main__":
         cpu_calc, "data/uq_model_weights/GBMRegressor-peratom_energy.pkl", 0.1, 0.9, 100
     )
 
-    traj_dir = Path("src/nnp/oc_eval_set/oc_22")
+    traj_dir = Path("test", "gnn_test_structures/")
     example_structures = []
     i = 0
     for p in traj_dir.rglob("*.xyz"):
