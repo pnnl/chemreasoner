@@ -148,7 +148,10 @@ class AdsorptionEnergyCalculator:
                 complete_structures.append(self.fetch_complete_structure(n))
             else:
                 incomplete_names.append(n)
-                incomplete_structures.append(structure)
+                incom_structure = self.fetch_incomplete_structure(n)
+                incomplete_structures.append(
+                    structure if incom_structure is None else incom_structure
+                )
 
         if len(incomplete_structures) > 0:
             relaxed_atoms = self.calc.batched_relax_atoms(
@@ -215,6 +218,13 @@ class AdsorptionEnergyCalculator:
             return self.nan_energy(traj[-1])
         else:
             return traj[-1]
+
+    def fetch_incomplete_structure(self, atoms_name):
+        """Fetch the incomplete structure for name."""
+        try:
+            return Trajectory(str(self.data_dir / (atoms_name + ".traj")))[0]
+        except FileNotFoundError:
+            return None
 
     def check_structure(self, initial_structure: Atoms, final_structure: Atoms):
         """Check the given structure for good convergence, using criteria from OpenCatalyst Project."""
