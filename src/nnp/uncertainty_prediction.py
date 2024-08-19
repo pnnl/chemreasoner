@@ -63,9 +63,7 @@ class UncertaintyCalculator:
             batch = Batch.from_data_list(data_list)
             batch = batch.to("cpu")
 
-            uncertainties += [
-                0.0 for _ in range(len(data_list))
-            ]  # self.get_uq(batch).tolist()
+            uncertainties += self.get_uq(batch).tolist()
         return uncertainties
 
     def get_uq(self, batch: Batch):
