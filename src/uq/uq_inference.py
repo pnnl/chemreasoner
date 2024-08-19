@@ -87,10 +87,10 @@ def get_per_sample_embeddings(output_embeddings, batch):
     """
     data = output_embeddings
     # print(data)
-    atom_emb = data["hidden_h"]
-    edge_emb = data["hidden_m"]
-    energies = data["energy"]
-    forces = data["forces"]
+    atom_emb = data["hidden_h"].detach().to("cpu")
+    edge_emb = data["hidden_m"].detach().to("cpu")
+    energies = data["energy"].detach().to("cpu")
+    forces = data["forces"].detach().to("cpu")
     graph_embs = []
     for i in range(len(batch.ptr) - 1):
         idx_start = batch.ptr[i]
