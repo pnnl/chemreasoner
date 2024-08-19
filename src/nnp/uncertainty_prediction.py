@@ -71,7 +71,7 @@ class UncertaintyCalculator:
 
         _ = self.torch_calc.predict(batch, per_image=False)
         batch_embeddings = get_per_sample_embeddings(
-            self.torch_calc.model.model_outemb.detatch().to("cpu"), batch
+            self.torch_calc.model.model_outemb, batch
         )
         batch_uq = self.gbm_model.predict(batch_embeddings)
         return batch_uq
