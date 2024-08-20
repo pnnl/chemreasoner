@@ -211,7 +211,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             # set up calculator for ase relaxations
             self.ase_calc = OCPCalculator(
                 config_yml=str(self.config_path),
-                checkpoint_path=str(self.model_path),
+                checkpoint=str(self.model_path),
                 trainer="forces",
                 cpu=self.device == "cpu",
             )
