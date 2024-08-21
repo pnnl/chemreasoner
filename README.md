@@ -35,7 +35,7 @@ The code to reproduce the ICML results is located in ```src/scripts/run_icml_que
 
 ### Setting up .env file
 
-The .env file should contain the api keys and info for your Azure OpenAI interface, which can be found on the Azure portal.
+The .env file should be located in the chemreasoner root directory and contain the api keys and info for your Azure OpenAI interface, which can be found on the Azure portal.
 
 ```
 AZURE_OPENAI_DEPLOYMENT_NAME=<deployment name>
