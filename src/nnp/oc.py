@@ -906,7 +906,10 @@ class BatchDataParallel(torch_geometric.nn.data_parallel.DataParallel):
 
     def forward(self, batch: Batch):
         """Convert batch to datalist and perform the usual forward call."""
-        data_list = batch.to_data_list()
+        if isinstance(batch, Batch):
+            data_list = batch.to_data_list()
+        else:
+            data_list = batch
         if self.device_ids and len(data_list) < len(self.device_ids):
             # if len(batch) <  len(gpus), run batch on first gpu
             data = Batch.from_data_list(
