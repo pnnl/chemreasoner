@@ -25,6 +25,46 @@ To test the installation:
 python src/scripts/test_gnn.py      # use --cpu to test on cpu only
 ```
 
+## Running the ICML Code
+
+The code to reproduce the ICML results is located in ```src/scripts/run_icml_queries.py```. An example run script has been provided in ```src/launch_scripts/run_icml.sh```. You will need to set a few parameters...
+
+* savedir: The directory to save the results in
+* start-query: The index of the first query to evaluate (see data/input_data/dataset.csv)
+* start-query: The index of the final query to evaluate
+* gnn-traj-dir: The directroy in which to store relaxation trajectories
+* dotenv-path: The path to .env file containing api keys for your azure openai setup (see instructions below)
+
+### Setting up .env file
+
+The .env file should contain the api keys and info for your Azure OpenAI interface, which can be found on the Azure portal.
+
+```
+AZURE_OPENAI_DEPLOYMENT_NAME=<deployment name>
+AZURE_OPENAI_ENDPOINT=<url to deployment endpoint>
+AZURE_OPENAI_API_KEY=<api key>
+AZURE_OPENAI_API_VERSION="2023-07-01-preview"
+```
+
+### Setting up local GNN server
+
+To run relaxations with the GNN model, you will have to set up a redis server. To do so open a new terminal on the same machine that you will be running chemreasoner on (with access to a GPU). Then run,
+
+```
+redis-server --dir <directory to store redis server cache>
+```
+
+Here, ```--dir``` can be set to any directory.
+
+### Running ICML code
+
+Once you have set up the run script, the .env file, and started the local redis server, run the ICML code by entering
+
+```
+./src/launch_scripts/run_icml.sh
+```
+
+
 ## News/Presentations/Publications
 * ICML 2024: "Heuristic Search over a Large Language Model's Knowledge Space using Quantum-Chemical Feedback" [arXiv](https://arxiv.org/abs/2402.10980)
 * Presentation at [MLCommons Science Working Group](https://sutanay.github.io/publications/ChemReasoner-SciMLCommons.pdf)
