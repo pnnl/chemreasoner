@@ -13,8 +13,6 @@ cd chemreasoner
 git submodule update --init --recursive
 cd ext/ocp/
 pip install -e .
-vi configs/oc22/s2ef/gemnet-oc/gemnet_oc_oc20_oc22_degen_edges.yml
-Modify the path in the second line to read ext/ocp/configs/oc22/s2ef/base_joint.yml
 cd ../Open-Catalyst-Dataset
 pip install -e .
 cd ../..
@@ -37,7 +35,7 @@ The code to reproduce the ICML results is located in ```src/scripts/run_icml_que
 
 ### Setting up .env file
 
-The .env file should contain the api keys and info for your Azure OpenAI interface, which can be found on the Azure portal.
+The .env file should be located in the chemreasoner root directory and contain the api keys and info for your Azure OpenAI interface, which can be found on the Azure portal.
 
 ```
 AZURE_OPENAI_DEPLOYMENT_NAME=<deployment name>
