@@ -270,7 +270,7 @@ class AdsorptionEnergyCalculator:
     def fetch_error_code(self, atoms_name):
         """Fetch the trajectory associated with the given atoms_names."""
         # TODO: Put trajectories in db and change this code
-        traj = Trajectory(str(self.data_dir / (atoms_name + ".traj")))[-1]
+        traj = Trajectory(str(self.data_dir / (atoms_name + ".traj")))
         good_structure = self.check_structure(traj[0], traj[-1])
         if not good_structure:
             return self.nan_energy(traj[-1])
