@@ -620,7 +620,7 @@ if __name__ == "__main__":
         reward_func=reward_func,
         uq_func=uq_func,
     )
-    dataframe.to_csv(save_path / "reward_values.csv")
+    dataframe.to_csv(save_path / "reward_values.csv", na_rep="NaN")
 
     print(rewards)
 
