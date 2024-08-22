@@ -298,14 +298,8 @@ class AdsorptionEnergyCalculator:
 
         codes = {}
         for name in all_names:
-            uuid, key = (
-                name.split("_")[-2:]
-                if self.reference_energy_key != "_".join(name.split("_")[-2:])
-                else (name.split("_")[-3], self.reference_energy_key)
-            )
-            if uuid not in codes.keys():
-                codes[uuid] = {}
-            codes[key] = self.fetch_error_code(name)
+            uuid = Path(name).stem.split("_")[0]
+            codes[uuid] = self.fetch_error_code(name)
         return codes
 
     def nan_energy(self, structure: Atoms) -> Atoms:
