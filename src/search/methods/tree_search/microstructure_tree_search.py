@@ -441,13 +441,15 @@ def get_reward_data(
         )
 
         reward_row = reward_data[n._id]
-        energy_row = energy_data[n._id]
-        error_code_row = relaxation_error_code[n._id]
-        uq_row = uncertainty_data[n._id]
+        energy_row = {f"energy_{k}": v for k, v in energy_data[n._id].items()}
+        error_code_row = {
+            f"error_code_{k}": v for k, v in relaxation_error_code[n._id].items()
+        }
+        uq_row = {f"uncertainty_{k}": v for k, v in uncertainty_data[n._id].items()}
 
         row.update(reward_row)
         row.update(energy_row)
-        # row.update(error_code_row)
+        row.update(error_code_row)
         logging.info(error_code_row)
         row.update(uq_row)
 
