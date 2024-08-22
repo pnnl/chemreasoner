@@ -295,6 +295,7 @@ class AdsorptionEnergyCalculator:
         codes = {}
         for name in all_names:
             uuid = Path(name).stem.split("_")[0]
+            key = Path(name).stem.replace(f"{uuid}_", "")
             codes[uuid] = self.fetch_error_code(name)
         return codes
 

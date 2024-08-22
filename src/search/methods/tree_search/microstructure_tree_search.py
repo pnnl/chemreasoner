@@ -447,7 +447,8 @@ def get_reward_data(
 
         row.update(reward_row)
         row.update(energy_row)
-        row.update(error_code_row)
+        # row.update(error_code_row)
+        logging.info(error_code_row)
         row.update(uq_row)
 
         row.update({"reward": reward_values[n._id]})
