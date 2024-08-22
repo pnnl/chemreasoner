@@ -58,7 +58,7 @@ class UncertaintyCalculator:
             d.sid = atoms_names[i] if atoms_names is not None else None
         # convert to torch geometric batch
         uncertainties = []
-        dl = DataListLoader(data_list, batch_size=10, shuffle=False)
+        dl = DataListLoader(data_list, batch_size=1, shuffle=False)
         for data_list in dl:
             batch = Batch.from_data_list(data_list)
             batch = batch.to("cpu")
