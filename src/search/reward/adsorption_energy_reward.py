@@ -271,11 +271,7 @@ class AdsorptionEnergyCalculator:
         """Fetch the trajectory associated with the given atoms_names."""
         # TODO: Put trajectories in db and change this code
         traj = Trajectory(str(self.data_dir / (atoms_name + ".traj")))
-        good_structure = self.check_structure(traj[0], traj[-1])
-        if not good_structure:
-            return self.nan_energy(traj[-1])
-        else:
-            return traj[-1]
+        return self.get_convergence_error_code(traj[0], traj[-1])
 
     def get_error_codes_name(self, catalyst_name: str):
         """Check the given structure for convergence error code, using criteria from OpenCatalyst Project."""
