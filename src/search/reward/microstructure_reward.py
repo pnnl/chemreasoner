@@ -75,6 +75,14 @@ class MicrostructureRewardFunction:
 
         return rewards
 
+    def fetch_total_energy_results(self, structures: list[CatalystDigitalTwin]):
+        """Fetch the energies associated with the given structures."""
+        results = {}
+        for s in structures:
+            row = self._cached_calculations[s._id]
+            results[s._id] = {ads_key: e_tot for ads_key, e_tot in row.items()}
+        return deepcopy(results)
+
     def fetch_adsorption_energy_results(self, structures: list[CatalystDigitalTwin]):
         """Fetch the energies associated with the given structures."""
         results = {}
@@ -99,13 +107,13 @@ class MicrostructureRewardFunction:
 
     def fetch_reward_results(self, structures: list[CatalystDigitalTwin]):
         """Fetch the rewards associated with the given structures."""
-        energies = self.fetch_adsorption_energy_results(structures)
+        energies = self.fetch_total_energy_results(structures)
         reactant_energies = self._parse_reactant_energies(energies)
         energy_barriers = self._parse_energy_barriers(energies)
         return {
             s._id: {
                 "reward_function_1": reactant_energies[s._id],
-                "reward_function_2": energy_barriers[s._id]["best"],
+                "reward_function_2": -1 * energy_barriers[s._id]["best"],
                 "reward": -1
                 * (reactant_energies[s._id] / energy_barriers[s._id]["best"]),
             }
