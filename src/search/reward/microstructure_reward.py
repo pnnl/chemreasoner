@@ -113,7 +113,7 @@ class MicrostructureRewardFunction:
         return {
             s._id: {
                 "reward_function_1": reactant_energies[s._id],
-                "reward_function_2": -1 * energy_barriers[s._id]["best"],
+                "reward_function_2": energy_barriers[s._id]["best"],
                 "reward": -1
                 * (reactant_energies[s._id] / energy_barriers[s._id]["best"]),
             }
