@@ -15,7 +15,7 @@ from ocdata.utils.flag_anomaly import DetectTrajAnomaly
 from tqdm import tqdm
 
 if __name__ == "__main__":
-    save_dir = Path("cu_zn_with_H_uq", "cu_zn_xyz_files")
+    save_dir = Path("cu_zn_with_H_uq")
 
     dft_structure_dir = save_dir / "dft_structures"
     initial_structure_dir = save_dir / "intial_structures"
