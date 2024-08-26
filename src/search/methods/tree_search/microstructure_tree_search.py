@@ -382,12 +382,18 @@ def visualize_tree(tree: MicrostructureTree):
 
 
 def extract_dft_candidates(
-    rewards_dataframe: pd.DataFrame, columns=["symbols", "bulk_composition"]
+    dataframe: pd.DataFrame,
+    num_samples: int,
+    columns=["symbols", "bulk_composition"],
 ):
     """Extract dft candidates for a given reward dataframe, stratifying on the given columns."""
-    sampling_priors = _recursive_get_sampling_priors(
-        dataframe=dataframe, columns=columns, sampling_prior=1.0
+    sampling_priors, sample_names = _recursive_get_sampling_priors(
+        dataframe=dataframe,
+        columns=columns,
+        sampling_prior=1.0,
+        total_num_samples=num_samples,
     )
+    return sampling_priors, sample_names
 
 
 def _sample_dataframe(dataframe: pd.DataFrame, num_samples: int):
@@ -408,7 +414,7 @@ def _sample_dataframe(dataframe: pd.DataFrame, num_samples: int):
                         unique = False
                 if unique:
                     uncertainty_values.append((f"{row['id']}_{new_col}", row[col]))
-    samples = sorted(uncertainty_values, key=lambda x: x[1])[:-num_samples]
+    samples = sorted(uncertainty_values, key=lambda x: x[1])[-num_samples:]
     return samples
 
 
@@ -423,24 +429,28 @@ def _recursive_get_sampling_priors(
     column_values = dataframe[column_name].unique()
     sampling_priors = {}
     sampling_rewards = {}
-    for col in column_values:
-        sampling_rewards[col] = np.nanmean(
-            dataframe[dataframe[column_name] == col]["reward"]
+    for val in column_values:
+        sampling_rewards[val] = np.nanmean(
+            dataframe[dataframe[column_name] == val]["reward"]
         )
 
-    sorted_column_names = sorted(
+    sorted_column_rewards = sorted(
         [v if not np.isnan(v) else -np.inf for k, v in sampling_rewards.items()]
     )
     sampling_priors = {
-        col: pow(2, -(i + 1)) for i, col in enumerate(sorted_column_names)
+        column_values[i]: pow(2, -(i + 1)) for i, _ in enumerate(sorted_column_rewards)
     }
     sampling_priors = _normalize_priors(sampling_priors)
+
     if len(columns) > 1:
         return_data = {}
         samples = []
         for k, p in sampling_priors.items():
             return_data[k], samples_ = _recursive_get_sampling_priors(
-                dataframe=dataframe[dataframe[column_name] == k], columns=columns[1:]
+                dataframe=dataframe[dataframe[column_name].to_numpy() == k],
+                columns=columns[1:],
+                sampling_prior=p * sampling_prior,
+                total_num_samples=total_num_samples,
             )
             samples += samples_
         return return_data, samples
@@ -448,17 +458,18 @@ def _recursive_get_sampling_priors(
         return_data = {}
         samples = []
         for k, p in sampling_priors.items():
-            return_data[k], samples_ = _recursive_get_sampling_priors(
-                dataframe=dataframe[dataframe[column_name] == k], columns=columns[1:]
+            return_data[k] = p * sampling_prior
+            samples += _sample_dataframe(
+                dataframe[dataframe[column_name].to_numpy() == k],
+                math.round(total_num_samples * p),
             )
-            samples += _sample_dataframe(math.ceil(total_num_samples * p))
         return return_data, samples
 
 
 def _normalize_priors(priors: dict):
     """Normalize the prior probabilities given in the priors."""
     N = sum(list(priors.values()))
-    return {k: v / N for k, v in priors}
+    return {k: v / N for k, v in priors.items()}
 
 
 def simplify_float_values(tuple_data: tuple):
@@ -541,6 +552,12 @@ def get_reward_data(
 
 
 if __name__ == "__main__":
+    df = pd.read_csv("/Users/spru445/cu_zn_with_H_uq/reward_values.csv")
+    priors, samples = extract_dft_candidates(df, 100)
+    print(priors)
+    print(len(samples))
+
+    exit()
 
     def list_of_strings(arg):
         return arg.split(",")
