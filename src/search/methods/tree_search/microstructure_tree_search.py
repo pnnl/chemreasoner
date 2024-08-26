@@ -3,6 +3,7 @@
 import argparse
 import json
 import logging
+import math
 import sys
 
 from pathlib import Path
@@ -378,6 +379,86 @@ def visualize_tree(tree: MicrostructureTree):
         sm,
         cax=ax.inset_axes([0.95, 0.1, 0.05, 0.8]),
     )
+
+
+def extract_dft_candidates(
+    rewards_dataframe: pd.DataFrame, columns=["symbols", "bulk_composition"]
+):
+    """Extract dft candidates for a given reward dataframe, stratifying on the given columns."""
+    sampling_priors = _recursive_get_sampling_priors(
+        dataframe=dataframe, columns=columns, sampling_prior=1.0
+    )
+
+
+def _sample_dataframe(dataframe: pd.DataFrame, num_samples: int):
+    """Sample the energies to run DFT with."""
+    uncertainty_columns = [col for col in dataframe.columns if "uncertainty" in col]
+    # gather the uncertainty values
+    uncertainty_values = []
+    for i, row in dataframe.iterrows():
+        for col in uncertainty_columns:
+            if "e_slab" not in uncertainty_values:
+                new_col = col.replace("uncertainty_", "")
+                uncertainty_values.append((f"{row['id']}_{new_col}", row[col]))
+            else:
+                # Check to make sure the slab uncertainty is not repeated
+                unique = True
+                for val in uncertainty_values:
+                    if "e_slab" in val[0] and row[col] == val[1]:
+                        unique = False
+                if unique:
+                    uncertainty_values.append((f"{row['id']}_{new_col}", row[col]))
+    samples = sorted(uncertainty_values, key=lambda x: x[1])[:-num_samples]
+    return samples
+
+
+def _recursive_get_sampling_priors(
+    dataframe: pd.DataFrame,
+    columns: list,
+    sampling_prior: float,
+    total_num_samples: int,
+):
+    """Recursively get samples from the given dataframe."""
+    column_name = columns[0]
+    column_values = dataframe[column_name].unique()
+    sampling_priors = {}
+    sampling_rewards = {}
+    for col in column_values:
+        sampling_rewards[col] = np.nanmean(
+            dataframe[dataframe[column_name] == col]["reward"]
+        )
+
+    sorted_column_names = sorted(
+        [v if not np.isnan(v) else -np.inf for k, v in sampling_rewards.items()]
+    )
+    sampling_priors = {
+        col: pow(2, -(i + 1)) for i, col in enumerate(sorted_column_names)
+    }
+    sampling_priors = _normalize_priors(sampling_priors)
+    if len(columns) > 1:
+        return_data = {}
+        samples = []
+        for k, p in sampling_priors.items():
+            return_data[k], samples_ = _recursive_get_sampling_priors(
+                dataframe=dataframe[dataframe[column_name] == k], columns=columns[1:]
+            )
+            samples += samples_
+        return return_data, samples
+    else:
+        return_data = {}
+        samples = []
+        for k, p in sampling_priors.items():
+            return_data[k], samples_ = _recursive_get_sampling_priors(
+                dataframe=dataframe[dataframe[column_name] == k], columns=columns[1:]
+            )
+            samples += _sample_dataframe(math.ceil(total_num_samples * p))
+        return return_data, samples
+
+
+def _normalize_priors(priors: dict):
+    """Normalize the prior probabilities given in the priors."""
+    N = sum(list(priors.values()))
+    return {k: v / N for k, v in priors}
 
 
 def simplify_float_values(tuple_data: tuple):
