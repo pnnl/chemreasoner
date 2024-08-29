@@ -149,6 +149,7 @@ class MicrostructureRewardFunction:
                             * (
                                 catalyst_results[syms]
                                 - self.ads_e_calc.adsorbate_reference_energy(syms)
+                                - catalyst_results[self.ads_e_calc.reference_energy_key]
                             )
                             for syms, count in step.items()
                         ]
