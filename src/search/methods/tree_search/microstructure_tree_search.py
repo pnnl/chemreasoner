@@ -569,6 +569,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--save-dir", type=str, default=None)
+    parser.add_argument("--pathway-file", type=str, default=None)
     parser.add_argument("--attempts", type=int, default=25)
 
     parser.add_argument("--gnn-model", type=str, default=None)
@@ -597,29 +598,8 @@ if __name__ == "__main__":
     #     ["*CO", "*COH", "*CHOH", "*CH2OH", "*OHCH3"],
     #     ["*CO", "*CHO", "*CHOH", "*CH2OH", "*OHCH3"],
     # ]
-    pathways = [
-        [
-            {"*CO": 1, "*H": 4},
-            {"*COH": 1, "*H": 3},
-            {"*CHOH": 1, "*H": 2},
-            {"*CH2OH": 1, "*H": 1},
-            {"*OHCH3": 1, "*H": 0},
-        ],
-        [
-            {"*CO": 1, "*H": 4},
-            {"*CHO": 1, "*H": 3},
-            {"*CH2*O": 1, "*H": 2},
-            {"*OCH3": 1, "*H": 1},
-            {"*OHCH3": 1, "*H": 0},
-        ],
-        [
-            {"*CO": 1, "*H": 4},
-            {"*CH*O": 1, "*H": 3},
-            {"*CH2*O": 1, "*H": 2},
-            {"*OCH3": 1, "*H": 1},
-            {"*OHCH3": 1, "*H": 0},
-        ],
-    ]
+    with open(args.pathway_file, "r") as f:
+        pathways = json.load(f)
     calc = OCAdsorptionCalculator(
         **{
             "model": args.gnn_model,
