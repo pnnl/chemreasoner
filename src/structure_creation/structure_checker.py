@@ -15,14 +15,14 @@ from ocdata.utils.flag_anomaly import DetectTrajAnomaly
 from tqdm import tqdm
 
 if __name__ == "__main__":
-    save_dir = Path("cu_zn_with_H_uq")
+    save_dir = Path("final_structures")
 
     dft_structure_dir = save_dir / "dft_structures"
     initial_structure_dir = save_dir / "intial_structures"
     final_structure_dir = save_dir / "final_structures"
 
     save_dir.mkdir(exist_ok=True)
-    traj_directory = Path("cu_zn_with_H_uq/trajectories")
+    traj_directory = Path("dft_trajectories")
     print(traj_directory)
     traj_files = list(traj_directory.rglob("*.traj"))
 
