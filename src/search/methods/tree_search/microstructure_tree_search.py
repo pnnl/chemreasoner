@@ -552,16 +552,16 @@ def get_reward_data(
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("../cu_zn_with_H_uq/reward_values.csv")
-    priors, samples = extract_dft_candidates(df, 100)
-    print(priors)
-    print(len(samples))
-    with open("../cu_zn_with_H_uq/priors.json", "w") as f:
-        json.dump(priors, f)
-    with open("../cu_zn_with_H_uq/samples.json", "w") as f:
-        json.dump(samples, f)
+    # df = pd.read_csv("../cu_zn_with_H_uq/reward_values.csv")
+    # priors, samples = extract_dft_candidates(df, 100)
+    # print(priors)
+    # print(len(samples))
+    # with open("../cu_zn_with_H_uq/priors.json", "w") as f:
+    #     json.dump(priors, f)
+    # with open("../cu_zn_with_H_uq/samples.json", "w") as f:
+    #     json.dump(samples, f)
 
-    exit()
+    # exit()
 
     def list_of_strings(arg):
         return arg.split(",")
