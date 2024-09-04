@@ -592,7 +592,7 @@ if __name__ == "__main__":
             raise ValueError(f"Unkown chemical symbol {syms}.")
 
     class TestState:
-        def init(
+        def __init__(
             self,
             prompt: str = "Propose a catalyst for the conversion of CO to methanol.",
         ):
