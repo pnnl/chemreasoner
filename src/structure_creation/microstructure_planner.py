@@ -311,7 +311,28 @@ class OCPMicrostructurePlanner:
         """Parse the given answer for the miller indices."""
         twin, state = twin_state
         print(answer_data["answer"])
-        answer_list = self.literal_parse_response_list(answer_data["answer"])
+        try:
+            answer_list = self.literal_parse_response_list(answer_data["answer"])
+        except Exception:
+            # Try manually parsing out numbers
+            response = answer_data["answer"]
+            final_answer_idx = response.find("final_answer")
+            list_start = response.find("[", final_answer_idx)
+            list_end = response.find("]", list_start)
+
+            answer_list = []
+            for millers in response[list_start : list_end + 1]
+                these_miller_indices = []  # Assume miller index is always single digits
+                minus_1 = 1
+                for character in millers:
+                    # Assume miller index is always single digits
+                    if character == "-":
+                        minus_1 = -1
+                    elif character.isnumeric():
+                        these_miller_indices.append(minus_1 * int(character))
+                        minus_1 = 1
+            answer_list.append(tuple(these_miller_indices))
+
         twin.update_info("millers", answer_data)
 
         return answer_list
