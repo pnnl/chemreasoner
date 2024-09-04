@@ -600,6 +600,10 @@ if __name__ == "__main__":
     # ]
     with open(args.pathway_file, "r") as f:
         pathways = json.load(f)
+    # Save the pathways in the data
+    with open(save_path / "pathways.json", "w") as f:
+        json.dump(pathways, f)
+
     calc = OCAdsorptionCalculator(
         **{
             "model": args.gnn_model,
