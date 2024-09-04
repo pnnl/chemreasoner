@@ -38,7 +38,10 @@ def process_prompt(
         print(raw_answers)
         for p_idx, raw_answer in zip(prompt_idx, raw_answers):
             # Attempt to parse out the answer
-            answers[p_idx] = prompt_parsing_function(raw_answer, prompt_info[p_idx])
+            try:
+                answers[p_idx] = prompt_parsing_function(raw_answer, prompt_info[p_idx])
+            except Exception:
+                answers[p_idx] = None
         attempts += 1
     print(answers)
     if return_value:
