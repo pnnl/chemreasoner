@@ -270,7 +270,6 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
         **bfgs_kwargs,
     ):
         """Relax the postitions of the given atoms. Setting device overrides self."""
-        s_id_index = {atoms_name: idx for idx, atoms_name in enumerate(atoms_names)}
         atoms = self.copy_atoms_list(atoms)
         fmax = fmax if fmax is not None else self.fmax
         steps = steps if steps is not None else self.steps
@@ -301,7 +300,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
             # assume 100 steps every time
             start = time.time()
             final_batch = ml_relax(
-                batch=batch,  # ml_relax always uses batch[0]
+                batch=[batch],  # ml_relax always uses batch[0]
                 model=trainer,
                 steps=steps,
                 fmax=fmax,
