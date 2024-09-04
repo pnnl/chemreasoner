@@ -657,5 +657,6 @@ class TestStructure:
 
 
 if __name__ == "__main__":
+    print(oc_20_ads_structures["*OCH2"])
     print(ads_symbols_to_structure("*CHO").info)
     print(ads_symbols_to_structure("*COOH").info)
