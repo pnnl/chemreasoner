@@ -32,6 +32,9 @@ with open(Path("data", "input_data", "oc", "oc_20_adsorbates.pkl"), "rb") as f:
         v[1]: (v[0], v[2:]) for k, v in oc_20_ads_structures.items()
     }
 
+with open(Path("data", "input_data", "reactions", "co2_to_methanol.pkl"), "rb") as f:
+    co2_to_methanol_structures = pickle.load(f)
+
 with open(Path("data", "input_data", "oc") / "nist_adsorbates.pkl", "rb") as f:
     nist_ads_structures = pickle.load(f)
 
@@ -446,7 +449,7 @@ class AdsorptionEnergyCalculator:
         return ads_symbols_to_structure(ads_syms)
 
     def adsorbate_reference_energy(self, ads_syms: str):
-        """Get the adsorbate reference energy from the given adsorbate syns."""
+        """Get the adsorbate reference energy from the given adsorbate syms."""
         ats = self.get_adsorbate_atoms(ads_syms=ads_syms)
         e_ref = 0
         for n in ats.get_atomic_numbers():
@@ -621,6 +624,10 @@ def ads_symbols_to_structure(syms: str):
         ats.info.update(
             {"binding_sites": oc_20_ads_structures[syms][1][0].copy()}
         )  # get binding indices
+    elif syms in co2_to_methanol_structures.keys():
+        ats, binding_sites = co2_to_methanol_structures[syms]
+        ats = ats.copy()
+        ats.info.update({"binding_sites": binding_sites.copy()})
     elif syms.lower() == "ethanol":
         return ads_symbols_to_structure("*OHCH2CH3")
     elif syms.lower() == "methanol":
@@ -651,3 +658,4 @@ class TestStructure:
 
 if __name__ == "__main__":
     print(ads_symbols_to_structure("*CHO").info)
+    print(ads_symbols_to_structure("*COOH").info)
