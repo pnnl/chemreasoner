@@ -571,6 +571,7 @@ if __name__ == "__main__":
     parser.add_argument("--save-dir", type=str, default=None)
     parser.add_argument("--pathway-file", type=str, default=None)
     parser.add_argument("--attempts", type=int, default=25)
+    parser.add_argument("--root-prompt", type=str, default=None)
 
     parser.add_argument("--gnn-model", type=str, default=None)
     parser.add_argument("--gnn-batch-size", type=int, default=None)
@@ -591,7 +592,15 @@ if __name__ == "__main__":
             raise ValueError(f"Unkown chemical symbol {syms}.")
 
     class TestState:
-        root_prompt = "Propose a catalyst for the conversion of CO to methanol."
+        def init(
+            self,
+            prompt: str = "Propose a catalyst for the conversion of CO to methanol.",
+        ):
+            """Initialize self with the given root prompt."""
+            assert isinstance(
+                prompt, str
+            ), f"Prompt is of type {type(prompt)}, not string."
+            self.root_prompt = prompt
 
     # Create the reward function
     # pathways = [
@@ -627,7 +636,7 @@ if __name__ == "__main__":
     )
     # uq_func = UQfunc()
 
-    state = TestState()
+    state = TestState(args.root_prompt)
     # Create the LLM and microstructure planner
     llm_function = AzureOpenaiInterface(dotenv_path=".env", model="gpt-4")
     ms_planner = OCPMicrostructurePlanner(llm_function=llm_function)
