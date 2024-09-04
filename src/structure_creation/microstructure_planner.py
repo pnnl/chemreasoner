@@ -81,9 +81,9 @@ class OCPMicrostructurePlanner:
 
     default_retries = {
         "symbols": 2,
-        "bulk": 0,
-        "millers": 0,
-        "site_placement": 0,
+        "bulk": 1,
+        "millers": 1,
+        "site_placement": 1,
         "__default__": 1,
     }
     num_choices = {
