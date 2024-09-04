@@ -334,7 +334,7 @@ class OCPMicrostructurePlanner:
             answer_list.append(tuple(these_miller_indices))
 
         twin.update_info("millers", answer_data)
-
+        print(answer_list)
         return answer_list
 
     def run_millers_prompt(self, digital_twins: CatalystDigitalTwin):
