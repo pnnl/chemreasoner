@@ -321,7 +321,7 @@ class OCPMicrostructurePlanner:
             list_end = response.find("]", list_start)
 
             answer_list = []
-            for millers in response[list_start : list_end + 1]
+            for millers in response[list_start : list_end + 1]:
                 these_miller_indices = []  # Assume miller index is always single digits
                 minus_1 = 1
                 for character in millers:
