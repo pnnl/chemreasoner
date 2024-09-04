@@ -95,19 +95,14 @@ class CatalystDigitalTwin:
         """Return the reward associated with self for given reaction info."""
         return self.uncertainty
 
-    def update_info(self, status_key: str, updates: Union[dict, list]):
+    def update_info(self, status_key: str, updates: dict, start_new: bool = False):
         """Update the info for the self with updates."""
         if status_key not in self.info:
-            self.info[status_key] = updates
-
-        if type(self.info[status_key]) is not type(updates):
-            raise TypeError(
-                f"Incorrect type {type(updates)} for info field of type {type(self.info[status_key])}."
-            )
-        elif isinstance(self.info[status_key], list):
-            self.info[status_key] += updates
+            self.info[status_key] = [updates]
+        elif start_new:
+            self.info[status_key].append(updates)
         elif isinstance(self.info[status_key], dict):
-            self.info[status_key].update(updates)
+            self.info[status_key][-1].update(updates)
 
     def copy(self, copy_info: bool = False):
         """Return a copy of self."""

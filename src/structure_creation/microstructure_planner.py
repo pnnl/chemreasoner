@@ -244,7 +244,7 @@ class OCPMicrostructurePlanner:
             "num_choices": self.num_choices["bulk"],
         }
         prompt = fstr(prompts["bulk"]["prompt"], prompt_values)
-        twin.update_info("bulk", {"prompt": prompt})
+        twin.update_info("bulk", {"prompt": prompt}, start_new=True)
         return prompt
 
     def create_bulk_system_prompt(
@@ -262,8 +262,8 @@ class OCPMicrostructurePlanner:
         """Parse the bulk_prompt_response."""
         # TODO: Track the behavior here
         twin, state = twin_state
-        answer_list = self.literal_parse_response_list(answer_data["answer"])
         twin.update_info("bulk", answer_data)
+        answer_list = self.literal_parse_response_list(answer_data["answer"])
 
         return answer_list
 
@@ -293,7 +293,7 @@ class OCPMicrostructurePlanner:
             "num_choices": self.num_choices["millers"],
         }
         prompt = fstr(prompts["millers"]["prompt"], values)
-        twin.update_info("millers", {"prompt": prompt})
+        twin.update_info("millers", {"prompt": prompt}, start_new=True)
         return prompt
 
     def create_millers_system_prompt(
@@ -310,6 +310,7 @@ class OCPMicrostructurePlanner:
     ):
         """Parse the given answer for the miller indices."""
         twin, state = twin_state
+        twin.update_info("millers", answer_data)
         print(answer_data["answer"])
         try:
             answer_list = self.literal_parse_response_list(answer_data["answer"])
@@ -334,7 +335,6 @@ class OCPMicrostructurePlanner:
                     these_miller_indices.append(minus_1 * int(char))
                     minus_1 = 1
 
-        twin.update_info("millers", answer_data)
         print(answer_list)
         return answer_list
 
@@ -389,7 +389,7 @@ class OCPMicrostructurePlanner:
             "num_choices": self.num_choices["site_placement"],
         }
         prompt = fstr(prompts["site_placement"]["prompt"], values)
-        twin.update_info("site_placement", {"prompt": prompt})
+        twin.update_info("site_placement", {"prompt": prompt}, start_new=True)
         return prompt
 
     @staticmethod
@@ -407,9 +407,9 @@ class OCPMicrostructurePlanner:
     ):
         """Parse the given answer for the miller indices."""
         twin, state = twin_state
-
-        answer_list = self.literal_parse_response_list(answer_data["answer"])
         twin.update_info("site_placement", answer_data)
+        answer_list = self.literal_parse_response_list(answer_data["answer"])
+
         return answer_list
 
     def run_site_placement_prompt(self, digital_twins: CatalystDigitalTwin):
