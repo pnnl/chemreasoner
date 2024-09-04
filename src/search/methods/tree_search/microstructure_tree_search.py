@@ -667,9 +667,7 @@ if __name__ == "__main__":
                 nodes = microstructure_search(tree, ms_planner)
                 complete = True
             except Exception as err:
-                attempts += 1
-                if attempts > 25:
-                    raise err
+                raise err
 
         node_data, edge_data, llm_data = tree.store_data(metadata=True)
 
