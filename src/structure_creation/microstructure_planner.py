@@ -321,17 +321,18 @@ class OCPMicrostructurePlanner:
             list_end = response.find("]", list_start)
 
             answer_list = []
-            for millers in response[list_start : list_end + 1]:
-                these_miller_indices = []  # Assume miller index is always single digits
-                minus_1 = 1
-                for character in millers:
-                    # Assume miller index is always single digits
-                    if character == "-":
-                        minus_1 = -1
-                    elif character.isnumeric():
-                        these_miller_indices.append(minus_1 * int(character))
-                        minus_1 = 1
-            answer_list.append(tuple(these_miller_indices))
+            these_miller_indices = []  # Assume miller index is always single digits
+            minus_1 = 1
+            for char in response[list_start : list_end + 1]:
+                if char == ",":
+                    answer_list.append(tuple(these_miller_indices))
+                    these_miller_indices = []
+                print(char)
+                if char == "-":
+                    minus_1 = -1
+                elif char.isnumeric():  # assume miller index always single digit
+                    these_miller_indices.append(minus_1 * int(char))
+                    minus_1 = 1
 
         twin.update_info("millers", answer_data)
         print(answer_list)
