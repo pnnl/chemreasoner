@@ -82,6 +82,8 @@ class AdsorptionEnergyCalculator:
 
         all_structures = e_tot_structures + e_slab_structures
         all_names = e_tot_names + e_slab_names
+        for n in all_names:
+            print(n)
 
         # split into completed and incompleted calculations to avoid repeat work
         logging.info("Checking for completed relaxations...")
