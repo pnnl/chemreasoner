@@ -93,20 +93,20 @@ if __name__ == "__main__":
         #     good_counter += 1
         final_path = final_structure_dir / (f.parent.stem) / (f.stem + ".xyz")
         final_path.parent.mkdir(parents=True, exist_ok=True)
-        write(str(final_path), final_structure)
+        write(str(final_path).replace("*", "+"), final_structure)
 
         initial_path = initial_structure_dir / (f.parent.stem) / (f.stem + ".xyz")
         initial_path.parent.mkdir(parents=True, exist_ok=True)
-        write(str(initial_path), initial_structure)
+        write(str(initial_path).replace("*", "+"), initial_structure)
 
         if code != 0 and code != 6:
             dft_path = dft_structure_dir / (f.parent.stem) / (f.stem + ".xyz")
             dft_path.parent.mkdir(parents=True, exist_ok=True)
-            write(str(dft_path), initial_structure)
+            write(str(dft_path).replace("*", "+"), initial_structure)
         else:
             dft_path = dft_structure_dir / (f.parent.stem) / (f.stem + ".xyz")
             dft_path.parent.mkdir(parents=True, exist_ok=True)
-            write(str(dft_path), final_structure)
+            write(str(dft_path).replace("*", "+"), final_structure)
 
 
 with open("convergence_error_codes.json", "w") as f:
