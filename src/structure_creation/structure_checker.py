@@ -22,7 +22,7 @@ if __name__ == "__main__":
     final_structure_dir = save_dir / "final_structures"
 
     save_dir.mkdir(exist_ok=True)
-    traj_directory = Path("cu_zn_co2_to_methanol_from_scratch/dft_trajectories")
+    traj_directory = Path("cu_zn_co2_to_methanol_from_scratch/trajectories")
     print(traj_directory)
     traj_files = list(traj_directory.rglob("*.traj"))
 
