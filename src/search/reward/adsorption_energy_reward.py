@@ -35,6 +35,9 @@ with open(Path("data", "input_data", "oc", "oc_20_adsorbates.pkl"), "rb") as f:
 with open(Path("data", "input_data", "reactions", "co2_to_methanol.pkl"), "rb") as f:
     co2_to_methanol_structures = pickle.load(f)
 
+with open(Path("data", "input_data", "reactions", "co_to_ethanol.pkl"), "rb") as f:
+    co_to_ethanol_structures = pickle.load(f)
+
 with open(Path("data", "input_data", "oc") / "nist_adsorbates.pkl", "rb") as f:
     nist_ads_structures = pickle.load(f)
 
@@ -626,6 +629,10 @@ def ads_symbols_to_structure(syms: str):
         )  # get binding indices
     elif syms in co2_to_methanol_structures.keys():
         ats, binding_sites = co2_to_methanol_structures[syms]
+        ats = ats.copy()
+        ats.info.update({"binding_sites": binding_sites.copy()})
+    elif syms in co_to_ethanol_structures.keys():
+        ats, binding_sites = co_to_ethanol_structures[syms]
         ats = ats.copy()
         ats.info.update({"binding_sites": binding_sites.copy()})
     elif syms.lower() == "ethanol":
