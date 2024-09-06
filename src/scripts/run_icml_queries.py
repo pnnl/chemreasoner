@@ -90,6 +90,7 @@ def get_reward_function(args, state, llm_function):
         assert args.gnn_model in [
             "gemnet-t",
             "gemnet-oc",
+            "gemnet-oc-22",
             "escn",
             "eq2",
         ], "invalid parameter"
@@ -301,7 +302,7 @@ if __name__ == "__main__":
                     data.update(
                         {"total_time": end_time - start_time, "step_times": timing_data}
                     )
-                    json.dump(data, f, cls=NpEncoder)
+                    json.dump(data, f, cls=NpEncoder, indent=4)
 
                 end = time.time()
                 logging.info(f"TIMING: One search iteration: {end-start}")
