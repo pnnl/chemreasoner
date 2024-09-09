@@ -15,14 +15,14 @@ from ocdata.utils.flag_anomaly import DetectTrajAnomaly
 from tqdm import tqdm
 
 if __name__ == "__main__":
-    save_dir = Path("final_structures")
+    save_dir = Path("cu_zn_co2_to_methanol_from_scratch/final_structures")
 
     dft_structure_dir = save_dir / "dft_structures"
     initial_structure_dir = save_dir / "intial_structures"
     final_structure_dir = save_dir / "final_structures"
 
     save_dir.mkdir(exist_ok=True)
-    traj_directory = Path("dft_trajectories")
+    traj_directory = Path("cu_zn_co2_to_methanol_from_scratch/trajectories")
     print(traj_directory)
     traj_files = list(traj_directory.rglob("*.traj"))
 
@@ -93,20 +93,20 @@ if __name__ == "__main__":
         #     good_counter += 1
         final_path = final_structure_dir / (f.parent.stem) / (f.stem + ".xyz")
         final_path.parent.mkdir(parents=True, exist_ok=True)
-        write(str(final_path), final_structure)
+        write(str(final_path).replace("*", "+"), final_structure)
 
         initial_path = initial_structure_dir / (f.parent.stem) / (f.stem + ".xyz")
         initial_path.parent.mkdir(parents=True, exist_ok=True)
-        write(str(initial_path), initial_structure)
+        write(str(initial_path).replace("*", "+"), initial_structure)
 
         if code != 0 and code != 6:
             dft_path = dft_structure_dir / (f.parent.stem) / (f.stem + ".xyz")
             dft_path.parent.mkdir(parents=True, exist_ok=True)
-            write(str(dft_path), initial_structure)
+            write(str(dft_path).replace("*", "+"), initial_structure)
         else:
             dft_path = dft_structure_dir / (f.parent.stem) / (f.stem + ".xyz")
             dft_path.parent.mkdir(parents=True, exist_ok=True)
-            write(str(dft_path), final_structure)
+            write(str(dft_path).replace("*", "+"), final_structure)
 
 
 with open("convergence_error_codes.json", "w") as f:
