@@ -139,6 +139,8 @@ class MicrostructureRewardFunction:
     def _parse_energy_barriers(self, energy_results: dict[str, dict[str, float]]):
         """Parse the reaction barriers for the reaction pathways."""
         barriers = {}
+        best_energy_profile = None
+        best_energy_barrier = None
         for catalyst, catalyst_results in energy_results.items():
             barriers[catalyst] = {}
             for i, pathway in enumerate(self.reaction_pathways):
@@ -158,7 +160,14 @@ class MicrostructureRewardFunction:
                 ]
                 diffs = np.diff(e).tolist()
                 barriers[catalyst].update({f"pathway_{i}": max(diffs)})
-            barriers[catalyst].update({"best": min(barriers[catalyst].values())})
+                if best_energy_barrier is None or max(diffs) < best_energy_barrier:
+                    best_energy_barrier = max(diffs)
+                    best_energy_profile = e
+
+            barriers[catalyst].update(
+                {"best_barrier": min(barriers[catalyst].values())}
+            )
+            barriers[catalyst].update({"best_energy_profile": best_energy_profile})
 
         return barriers
 
