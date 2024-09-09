@@ -164,9 +164,7 @@ class MicrostructureRewardFunction:
                     best_energy_barrier = max(diffs)
                     best_energy_profile = e
 
-            barriers[catalyst].update(
-                {"best_barrier": min(barriers[catalyst].values())}
-            )
+            barriers[catalyst].update({"best": min(barriers[catalyst].values())})
             barriers[catalyst].update({"best_energy_profile": best_energy_profile})
 
         return barriers

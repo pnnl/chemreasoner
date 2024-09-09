@@ -682,7 +682,7 @@ if __name__ == "__main__":
     print(10 * "" + "finished!" + "*" * 10)
 
     rewards = reward_func(nodes)
-    uq_values = uq_func(nodes)
+    uq_values = np.zeros(len(nodes))  # uq_func(nodes)
     for r, u, n in zip(rewards, uq_values, nodes):
         n.set_reward(r)
         n.set_uncertainty(u)
