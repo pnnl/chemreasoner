@@ -27,6 +27,7 @@ class MicrostructureRewardFunction:
         self,
         reaction_pathways: list[list[str]],
         calc: OCAdsorptionCalculator,
+        pathway_preferences: list[list[int]] = None,
         num_augmentations_per_site: int = 1,
     ):
         """Return self, with the given reaction_pathways and calculator initialized."""
@@ -47,6 +48,7 @@ class MicrostructureRewardFunction:
             }
         )
         self.calc = calc
+        self.pathway_preferences = pathway_preferences
         self.num_augmentations_per_site = num_augmentations_per_site
 
         self.ads_e_calc = AdsorptionEnergyCalculator(
@@ -69,7 +71,7 @@ class MicrostructureRewardFunction:
         reactant_energies = self._parse_reactant_energies(energies)
         energy_barriers = self._parse_energy_barriers(energies)
         rewards = {  # TODO: Do a better calculation for these
-            k: -1 * (reactant_energies[k] / energy_barriers[k]["best"])
+            k: -1 * (reactant_energies[k] / energy_barriers[k]["reward"])
             for k in reactant_energies.keys()
         }
 
@@ -113,9 +115,9 @@ class MicrostructureRewardFunction:
         return {
             s._id: {
                 "reward_function_1": reactant_energies[s._id],
-                "reward_function_2": energy_barriers[s._id]["best"],
+                "reward_function_2": energy_barriers[s._id]["reward"],
                 "reward": -1
-                * (reactant_energies[s._id] / energy_barriers[s._id]["best"]),
+                * (reactant_energies[s._id] / energy_barriers[s._id]["reward"]),
             }
             for s in structures
         }
@@ -141,6 +143,7 @@ class MicrostructureRewardFunction:
         barriers = {}
         best_energy_profile = None
         best_energy_barrier = None
+        reward = None
         for catalyst, catalyst_results in energy_results.items():
             barriers[catalyst] = {}
             for i, pathway in enumerate(self.reaction_pathways):
@@ -160,11 +163,20 @@ class MicrostructureRewardFunction:
                 ]
                 diffs = np.diff(e).tolist()
                 barriers[catalyst].update({f"pathway_{i}": max(diffs)})
-                if best_energy_barrier is None or max(diffs) < best_energy_barrier:
-                    best_energy_barrier = max(diffs)
-                    best_energy_profile = e
+                if self.pathway_preferences is not None:
+                    reward *= max(diffs) ** self.pathway_preferences[i]
+                else:
+                    if (
+                        best_energy_barrier is None
+                        or max(diffs) < best_energy_barrier
+                        or np.isnan(best_energy_barrier)
+                    ):
+                        best_energy_barrier = max(diffs)
+                        best_energy_profile = e
+                        if self.pathway_preferences is None:
+                            reward = max(diffs)
 
-            barriers[catalyst].update({"best": min(barriers[catalyst].values())})
+            barriers[catalyst].update({"reward": reward})
             barriers[catalyst].update({"best_energy_profile": best_energy_profile})
 
         return barriers
@@ -254,7 +266,7 @@ class MicrostructureUncertaintyFunction:
     #             ]
     #             diffs = np.diff(e).tolist()
     #             barriers[catalyst].update({f"pathway_{i}": max(diffs)})
-    #         barriers[catalyst].update({"best": min(barriers[catalyst].values())})
+    #         barriers[catalyst].update({"reward": min(barriers[catalyst].values())})
 
     #     return barriers
 
