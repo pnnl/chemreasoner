@@ -5,6 +5,14 @@
 
 Installation assumes cuda version 12.0
 
+### Azure Quantum Elements (AQE)
+Log in to a compute node using the following command
+```shell
+salloc -p prm96c4g --time=240 -I60 -N 1 --ntasks-per-node=1 --gres=gpu:1 --cpus-per-task 24 /bin/bash
+```
+and then ssh into the compute node.
+
+
 ```
 mamba env create -f chemreasoner.yml
 conda activate chemreasoner
@@ -43,6 +51,53 @@ AZURE_OPENAI_ENDPOINT=<url to deployment endpoint>
 AZURE_OPENAI_API_KEY=<api key>
 AZURE_OPENAI_API_VERSION="2023-07-01-preview"
 ```
+
+### Installing the redis server cli on AQE
+This section contains instructions on how to install Redis on AQE with no admin privilege. First create a directory for Redis in the `HOME` folder.
+```
+mkdir -p ~/redis
+cd ~/redis
+```
+Next, download the Redis source code (check for the latest stable version) and extract the tarball. Compile Redis and install it locally.
+```
+wget http://download.redis.io/redis-stable.tar.gz
+tar xvzf redis-stable.tar.gz
+cd redis-stable
+make
+make PREFIX=$HOME/redis install
+```
+If the above command fails due to missing gcc, try using a different compiler if available: `make CC=gcc-<version>` Replace <version> with available gcc version.
+
+Create a directory for Redis configuration, copy the default redis configuration file.
+```
+mkdir -p ~/redis/etc
+cp redis.conf ~/redis/etc/
+```
+
+Edit the Redis configuration file. You may need to adjust the port if the default (6379) is already in use
+```
+sed -i 's/bind 127.0.0.1/bind 127.0.0.1/' ~/redis/etc/redis.conf
+sed -i 's/port 6379/port 6389/' ~/redis/etc/redis.conf
+sed -i 's/dir .\//dir \/anfhome\/'$USER'\/redis\/data/' ~/redis/etc/redis.conf
+```
+
+Now create a data directory to store redis server cache.
+```
+mkdir -p ~/redis/data
+```
+
+Add the following line to `~/.bashrc` to add Redis to your environment path.
+```
+export PATH=$HOME/redis/bin:$PATH
+```
+
+Then, you can restart your bash or run `source ~/.bashrc`.  Now you can start the Redis server and test it to see whether Redis is running.
+```
+~/redis/bin/redis-server ~/redis/etc/redis.conf &
+~/redis/bin/redis-cli -p 6389 ping
+```
+If it responds with "PONG", the server is running
+
 
 ### Setting up local GNN server
 
