@@ -28,7 +28,7 @@ sys.path.append("src")
 from llm.utils import process_prompt
 from llm.azure_open_ai_interface import AzureOpenaiInterface
 from search.state.reasoner_state import ReasonerState
-from structure_creation.digital_twin import ©≈
+from structure_creation.digital_twin import CatalystDigitalTwin
 
 logging.getLogger().setLevel(logging.INFO)
 

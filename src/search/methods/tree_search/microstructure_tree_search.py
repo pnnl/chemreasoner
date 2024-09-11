@@ -515,8 +515,6 @@ def get_reward_data(
     nodes = [tree.nodes[n] for n in tree.get_leaf_nodes()]
     df = []
 
-    reward_values = reward_func(structures=nodes)
-    reward_values = {n._id: reward_values[i] for i, n in enumerate(nodes)}
     energy_data = reward_func.fetch_adsorption_energy_results(nodes)
     relaxation_error_code = reward_func.fetch_error_codes(nodes)
     reward_data = reward_func.fetch_reward_results(nodes)
@@ -542,10 +540,8 @@ def get_reward_data(
         row.update(reward_row)
         row.update(energy_row)
         row.update(error_code_row)
-        logging.info(error_code_row)
-        row.update(uq_row)
 
-        row.update({"reward": reward_values[n._id]})
+        row.update(uq_row)
 
         df.append(row)
     return pd.DataFrame(df)
@@ -682,7 +678,7 @@ if __name__ == "__main__":
     print(10 * "" + "finished!" + "*" * 10)
 
     rewards = reward_func(nodes)
-    uq_values = np.zeros(len(nodes))  # uq_func(nodes)
+    uq_values = uq_func(nodes)
     for r, u, n in zip(rewards, uq_values, nodes):
         n.set_reward(r)
         n.set_uncertainty(u)
@@ -695,18 +691,6 @@ if __name__ == "__main__":
     dft_atoms, dft_names = uq_func.fetch_calculated_atoms(
         [tree.nodes[n] for n in dft_nodes]
     )
-    with open(save_path / "structures_for_dft.json", "w") as f:
-        json.dump(dft_names, f)
-    all_atoms, all_names = uq_func.fetch_calculated_atoms(
-        [tree.nodes[n] for n in tree.get_leaf_nodes()]
-    )
-    dft_dir = save_path / "relaxed_structures"
-    dft_dir.mkdir(parents=True, exist_ok=True)
-    # Write nodes to disk
-    for ats, name in zip(all_atoms, all_names):
-        p = dft_dir / (name + ".xyz")
-        p.parent.mkdir(parents=True, exist_ok=True)
-        write(str(p), ats)
 
     # Save reward and energy information to disk
 

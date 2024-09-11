@@ -136,6 +136,7 @@ class CatalystDigitalTwin:
                         )
                 dt = method([row_data[k]])[0]
         dt._id = row_data["id"]
+        assert dt._id == row_data["id"] and row_data["id"] == dt.return_row()["id"]
         return dt
 
     def return_row(self, metadata: bool = False):  # TODO: Do something with LLM queries

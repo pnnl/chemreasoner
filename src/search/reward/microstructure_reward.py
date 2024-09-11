@@ -18,6 +18,8 @@ from search.reward.adsorption_energy_reward import (
     AdsorptionEnergyUncertaintyCalculator,
 )
 
+from ase.units import kB
+
 logging.getLogger().setLevel(logging.INFO)
 
 
@@ -66,13 +68,45 @@ class MicrostructureRewardFunction:
         final_values = self._calculate_final_reward(energies=energies)
         return [final_values[s._id] for s in structures]
 
+    def _reward(
+        self,
+        energy_results: dict[dict],
+        return_metadata=False,
+        T: float = 300,  # temperature in kelvin
+    ):
+        """Return the reward value associated with reactant and barrier reward function values."""
+        reactant_energy = self._parse_reactant_energy(energy_results)
+        energy_profiles = self._parse_energy_profiles(energy_results)
+        k_n = []
+        combined_rate_numerator = 0
+        combined_rate_denomenator = 0
+        metadata = {}
+        for i, p in enumerate(energy_profiles):
+            de = max(np.diff(p))
+            k = np.exp(-de / kB / T)
+            k_n.append(k)
+            if self.pathway_preferences is None or self.pathway_preferences[i] == 1:
+                combined_rate_numerator += k_n
+            else:
+                combined_rate_denomenator += k_n
+            metadata[f"k_{i}"] = k
+            metadata[f"profile_{i}"] = p
+
+        if self.pathway_preferences is not None:
+            combined_rate_numerator /= combined_rate_denomenator
+        metadata["combined_reaction_rate"] = combined_rate_numerator
+        metadata["reactant_energy"] = reactant_energy
+        metadata["reward"] = reactant_energy * combined_rate_numerator
+
+        if return_metadata:
+            return metadata
+        else:
+            return reactant_energy * combined_rate_numerator
+
     def _calculate_final_reward(self, energies: dict[str, float]):
         """Calculate the final reward associated with the given energies."""
-        reactant_energies = self._parse_reactant_energies(energies)
-        energy_barriers = self._parse_energy_barriers(energies)
         rewards = {  # TODO: Do a better calculation for these
-            k: -1 * (reactant_energies[k] / energy_barriers[k]["reward"])
-            for k in reactant_energies.keys()
+            k: self._reward(v) for k, v in energies.items()
         }
 
         return rewards
@@ -116,13 +150,12 @@ class MicrostructureRewardFunction:
             s._id: {
                 "reward_function_1": reactant_energies[s._id],
                 "reward_function_2": energy_barriers[s._id]["reward"],
-                "reward": -1
-                * (reactant_energies[s._id] / energy_barriers[s._id]["reward"]),
+                "reward": self._reward(energies[s._id], return_metadata=True),
             }
             for s in structures
         }
 
-    def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
+    def _parse_reactant_energy(self, energy_results: dict[str, dict[str, float]]):
         """Parse the energies of the reactants for the reaction pathways."""
         symbols = list(
             {k for p in self.reaction_pathways for k in p[0].keys() if "C" in k}
@@ -130,13 +163,47 @@ class MicrostructureRewardFunction:
         if len(symbols) > 1:
             logging.warning(f"Length of reactant symbols is {len(symbols)}, not 1.")
         syms = symbols[0]
-        energies = {
-            catalyst: catalyst_results[syms]
-            - catalyst_results[self.ads_e_calc.reference_energy_key]
+        return (
+            energy_results[syms]
+            - energy_results[self.ads_e_calc.reference_energy_key]
             - self.ads_e_calc.adsorbate_reference_energy(syms)
+        )
+
+    def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
+        """Parse the energies of the reactants for the reaction pathways."""
+        energies = {
+            catalyst: self._parse_reactant_energies(catalyst_results)
             for catalyst, catalyst_results in energy_results.items()
         }
         return energies
+
+    def _parse_energy_profile(self, energy_results: dict[str, float]):
+        """Parse a single energy profile."""
+        profiles = {}
+        for i, pathway in enumerate(self.reaction_pathways):
+            e = [
+                sum(
+                    [
+                        count
+                        * (
+                            energy_results[syms]
+                            - self.ads_e_calc.adsorbate_reference_energy(syms)
+                            - energy_results[self.ads_e_calc.reference_energy_key]
+                        )
+                        for syms, count in step.items()
+                    ]
+                )
+                for step in pathway
+            ]
+            profiles.update({f"pathway_{i}": e})
+        return profiles
+
+    def _parse_energy_profiles(self, energy_results: dict[str, dict[str, float]]):
+        """Parse the reaction energy profiles for all the surfaces."""
+        profiles = {}
+        for catalyst, catalyst_results in energy_results.items():
+            profiles[catalyst] = self._parse_energy_profile(catalyst_results)
+        return profiles
 
     def _parse_energy_barriers(self, energy_results: dict[str, dict[str, float]]):
         """Parse the reaction barriers for the reaction pathways."""
