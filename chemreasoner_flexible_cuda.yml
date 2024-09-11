@@ -1,0 +1,32 @@
+name: chemreasoner
+channels:
+- nvidia
+- conda-forge
+- default
+dependencies:
+- python
+- pytorch-gpu
+- pytorch_geometric
+- pyg-lib
+- pip
+- pip:
+  - torch_scatter
+  - torch_sparse
+  - torch_cluster
+  - torch_spline_conv
+  - ase==3.22
+  - openai
+  - pyyaml
+  - lmdb
+  - orjson
+  - redis
+  - wandb
+  - tensorboard
+  - e3nn
+  - numba
+  - wget
+  - python-dotenv
+  - pydot
+  - mp-api
+  - crystal-toolkit
+  - xgboost

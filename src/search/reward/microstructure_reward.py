@@ -7,6 +7,7 @@ import time
 from copy import deepcopy
 
 from ase import Atoms
+from tqdm import tqdm
 import numpy as np
 
 sys.path.append("src")
@@ -31,6 +32,7 @@ class MicrostructureRewardFunction:
         calc: OCAdsorptionCalculator,
         pathway_preferences: list[list[int]] = None,
         num_augmentations_per_site: int = 1,
+        sanity_check: bool = True,
     ):
         """Return self, with the given reaction_pathways and calculator initialized."""
         self._cached_calculations = {}
@@ -57,7 +59,13 @@ class MicrostructureRewardFunction:
             atomistic_calc=self.calc,
             adsorbates_syms=self._all_adsorbate_symbols,
             num_augmentations_per_site=self.num_augmentations_per_site,
+            sanity_check=sanity_check,
         )
+        self.sanity_check = sanity_check
+
+    def set_sanity_check(self, sanity: bool = True):
+        """Set whether or not to do sanity checks."""
+        self.ads_e_calc.set_sanity_check(sanity=sanity)
 
     def __call__(self, structures: list[CatalystDigitalTwin]):
         """Call the reward values for the given list of structures."""
@@ -76,26 +84,28 @@ class MicrostructureRewardFunction:
     ):
         """Return the reward value associated with reactant and barrier reward function values."""
         reactant_energy = self._parse_reactant_energy(energy_results)
-        energy_profiles = self._parse_energy_profiles(energy_results)
+        energy_profiles = self._parse_energy_profile(energy_results)
         k_n = []
-        combined_rate_numerator = 0
-        combined_rate_denomenator = 0
+        combined_rate_numerator = 0.0
+        combined_rate_denomenator = 0.0
         metadata = {}
+        print(energy_profiles)
         for i, p in enumerate(energy_profiles):
+            print(p)
             de = max(np.diff(p))
             k = np.exp(-de / kB / T)
             k_n.append(k)
             if self.pathway_preferences is None or self.pathway_preferences[i] == 1:
-                combined_rate_numerator += k_n
+                combined_rate_numerator += k
             else:
-                combined_rate_denomenator += k_n
+                combined_rate_denomenator += k
             metadata[f"k_{i}"] = k
             metadata[f"profile_{i}"] = p
 
         if self.pathway_preferences is not None:
             combined_rate_numerator /= combined_rate_denomenator
-        metadata["combined_reaction_rate"] = combined_rate_numerator
-        metadata["reactant_energy"] = reactant_energy
+        metadata["reward_function_1"] = combined_rate_numerator
+        metadata["reward_function_2"] = reactant_energy
         metadata["reward"] = reactant_energy * combined_rate_numerator
 
         if return_metadata:
@@ -106,7 +116,7 @@ class MicrostructureRewardFunction:
     def _calculate_final_reward(self, energies: dict[str, float]):
         """Calculate the final reward associated with the given energies."""
         rewards = {  # TODO: Do a better calculation for these
-            k: self._reward(v) for k, v in energies.items()
+            k: self._reward(v) for k, v in tqdm(energies.items())
         }
 
         return rewards
@@ -172,14 +182,14 @@ class MicrostructureRewardFunction:
     def _parse_reactant_energies(self, energy_results: dict[str, dict[str, float]]):
         """Parse the energies of the reactants for the reaction pathways."""
         energies = {
-            catalyst: self._parse_reactant_energies(catalyst_results)
+            catalyst: self._parse_reactant_energy(catalyst_results)
             for catalyst, catalyst_results in energy_results.items()
         }
         return energies
 
     def _parse_energy_profile(self, energy_results: dict[str, float]):
         """Parse a single energy profile."""
-        profiles = {}
+        profiles = []
         for i, pathway in enumerate(self.reaction_pathways):
             e = [
                 sum(
@@ -195,7 +205,7 @@ class MicrostructureRewardFunction:
                 )
                 for step in pathway
             ]
-            profiles.update({f"pathway_{i}": e})
+            profiles.append(e)
         return profiles
 
     def _parse_energy_profiles(self, energy_results: dict[str, dict[str, float]]):

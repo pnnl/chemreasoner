@@ -50,6 +50,7 @@ class AdsorptionEnergyCalculator:
         atomistic_calc: OCAdsorptionCalculator,
         adsorbates_syms: list[str],
         num_augmentations_per_site: int = 1,
+        sanity_check: bool = True,
     ):
         """Initialize self, setting the data_dir."""
         self.data_dir = atomistic_calc.traj_dir
@@ -63,6 +64,11 @@ class AdsorptionEnergyCalculator:
         self.calc = atomistic_calc
 
         self.adsorbates_syms = adsorbates_syms
+        self.sanity_check = True
+
+    def set_sanity_check(self, sanity: bool = True):
+        """Set whether or not to do sanity checks."""
+        self.sanity_check = sanity
 
     def __call__(
         self,
@@ -240,38 +246,41 @@ class AdsorptionEnergyCalculator:
 
     def get_convergence_error_code(self, initial_structure, final_structure):
         """Check the given structure for convergence error code, using criteria from OpenCatalyst Project."""
-        if not all(
-            [
-                t1 == t2
-                for t1, t2 in zip(
-                    initial_structure.get_tags(), final_structure.get_tags()
-                )
-            ]
-        ):
-            write("init_test.xyz", initial_structure)
-            write("final_test.xyz", final_structure)
-        anomaly_detector = DetectTrajAnomaly(
-            init_atoms=initial_structure,
-            final_atoms=final_structure,
-            atoms_tag=initial_structure.get_tags(),
-        )
-        fmax = np.max(np.sqrt(np.sum(final_structure.get_forces() ** 2, axis=1)))
-        if anomaly_detector.has_surface_changed():
-            return 3
-        elif 2 in initial_structure.get_tags():
-            if anomaly_detector.is_adsorbate_dissociated():
-                return 1
-            elif anomaly_detector.is_adsorbate_desorbed():
-                return 2
-            elif anomaly_detector.is_adsorbate_intercalated():
-                return 5
-            # No value for 4. This was used for incorrect CHCOH placement in OCP dataset and is not measured here
-            elif fmax > self.calc.fmax:
-                return 6
+        if not self.sanity_check:
+            return 0
+        else:
+            if not all(
+                [
+                    t1 == t2
+                    for t1, t2 in zip(
+                        initial_structure.get_tags(), final_structure.get_tags()
+                    )
+                ]
+            ):
+                write("init_test.xyz", initial_structure)
+                write("final_test.xyz", final_structure)
+            anomaly_detector = DetectTrajAnomaly(
+                init_atoms=initial_structure,
+                final_atoms=final_structure,
+                atoms_tag=initial_structure.get_tags(),
+            )
+            fmax = np.max(np.sqrt(np.sum(final_structure.get_forces() ** 2, axis=1)))
+            if anomaly_detector.has_surface_changed():
+                return 3
+            elif 2 in initial_structure.get_tags():
+                if anomaly_detector.is_adsorbate_dissociated():
+                    return 1
+                elif anomaly_detector.is_adsorbate_desorbed():
+                    return 2
+                elif anomaly_detector.is_adsorbate_intercalated():
+                    return 5
+                # No value for 4. This was used for incorrect CHCOH placement in OCP dataset and is not measured here
+                elif fmax > self.calc.fmax:
+                    return 6
+                else:
+                    return 0
             else:
                 return 0
-        else:
-            return 0
 
     def fetch_error_code(self, atoms_name):
         """Fetch the trajectory associated with the given atoms_names."""
