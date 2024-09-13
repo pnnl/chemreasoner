@@ -1,0 +1,59 @@
+class NodeContext:
+    def select_context(self, query):
+        """
+        A node in the JSON tree has many types of data.
+        Text providing justification for the recommendations.
+        Adsorption energies per adsorbate.
+        May even contain information from different reaction pathways.
+       
+        Given a query we may want to be smart about which pieces to return.
+        It would be perfectly fine to use all the data in the first implementation.
+        """
+
+class LLMLogAgent:
+    def get_scope(self, query):
+        """
+        Given a question determine whether to retrieve from best node or all nodes.
+        """
+
+    def generic_qa(self, query):
+        """
+        Given a query: first identify the node context.
+        Then retrieve the node contexts
+        Generate a prompt with the original question + List[NodeContext] + any other instructions.
+        """
+
+class MicrostructureAgent:
+    """
+    This agent will answer questions on a dataframe containing columns like this:
+    ["conf_id", "combinations", "composition", "miller_index", "site", "reward"]
+
+    The main objective of this Agent is to map a natural language query to a 
+    pandas query.  Make the LLM generate the code and execute it.
+
+    We are not going to add individual functions hardcoded to do averaging or min/max
+    based on different column choices.
+    """
+    def get_descriptor_names(self, descriptor_type):
+        """
+        Descriptor_types can be: composition, miller_index, sites etc.
+        These are all column names in the dataframe.
+        Return a set containing the name of sites in the dataframe.
+        """
+
+    def aggregate_query(self, descriptor_type, query):
+        """
+        Example questions: 
+        -- Which site had the best reward metric? (groupby and average)
+        -- Which composition had the best overall performance? (groupby and max)
+        """ 
+
+class CompositionalAnsweringAgent:
+    """
+    Reserve to implement after the above ones are done.
+    This agent will focus on questions that require combining information from both
+    LLM log and the dataframe.
+    For example: 
+    LLM may make a statement about Cu-rich or Zn-rich surface being preferable for hydrogenation.
+    And the dataframe is going to have precise information about which one is better.
+    """
