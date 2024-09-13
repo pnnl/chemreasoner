@@ -33,7 +33,6 @@ class NodeContext:
             node_ids = self.get_best_path_node_ids()
         else:
             node_ids = self.get_all_node_ids()
-        logger.debug(f"Before filter: {len(node_ids)}")
         if filter_options:
             return self.filter_nodes(node_ids, filter_options)
         return node_ids
@@ -44,10 +43,18 @@ class NodeContext:
             node = self.find_node_by_id(node_id)
             if node:
                 answer = node['info']['generation'][0]['answer']
-                if any(option in answer for option in filter_options):
+                if self.contains_exact_match(answer, filter_options):
                     filtered_ids.append(node_id)
         
         return filtered_ids if filtered_ids else node_ids  # Return all nodes if no matches found
+
+    def contains_exact_match(self, text: str, options: List[str]) -> bool:
+        for option in options:
+            # Create a regex pattern that matches the option as a whole word
+            pattern = r'\b' + re.escape(option) + r'\b'
+            if re.search(pattern, text, re.IGNORECASE):
+                return True
+        return False
 
     def get_best_path_node_ids(self) -> List[int]:
         best_node = self.find_best_node(self.json_data)
@@ -124,14 +131,13 @@ class NodeContext:
         for node_id in node_ids:
             node = self.find_node_by_id(node_id)
             if node:
-                context_parts.append(f"Node ID: {node['id']}")
                 context_parts.append(f"Answer: {node['info']['generation'][0]['answer']}")
                 context_parts.append(f"Node Reward: {node['node_rewards']}")
                 context_parts.append("")  # Empty line for separation
 
         return "\n".join(context_parts)
 
-    def get_adsorption_energies_context(self, nodes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def get_adsorption_energies_context(self, nodes: List[Dict[str, Any]]) -> str:
         # Placeholder: extract adsorption energy data from the nodes
         pass
 
@@ -144,14 +150,21 @@ class NodeContext:
 class LLMLogAgent:
     def __init__(self, node_context: NodeContext):
         self.node_context = node_context
+        self.valid_elements = set([
+            'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn',
+            'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd',
+            'La', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg',
+            'Ac', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn'
+        ])
+        self.valid_elements_lower = set(elem.lower() for elem in self.valid_elements)
 
     def process_query(self, query: str) -> str:
         scope_type = self.determine_scope(query)
         context_type = self.determine_context_type(query)
         filter_options = self.extract_catalyst_systems(query)
 
-        logger.debug(f"Scope type : {scope_type}")
         logger.debug(f"Context type : {context_type}")
+        logger.debug(f"Scope type : {scope_type}")
         logger.debug(f"Filters on catalyst : {filter_options}")
         
         node_ids = self.node_context.get_nodes(scope_type, filter_options)
@@ -180,16 +193,46 @@ class LLMLogAgent:
     def extract_catalyst_systems(self, query: str) -> List[str]:
         catalysts = []
         
-        # Pattern for catalyst systems (e.g., Cu-Zn, Pt-Ru)
-        system_pattern = r'([A-Z][a-z]?-[A-Z][a-z]?)'
-        catalysts.extend(re.findall(system_pattern, query))
+        # Pattern for catalyst systems (e.g., Cu-Zn, Pt-Ru, cu-zn)
+        system_pattern = r'\b([A-Za-z][a-z]?-[A-Za-z][a-z]?)\b'
+        catalysts.extend(re.findall(system_pattern, query, re.IGNORECASE))
         
-        # Pattern for individual elements (e.g., Cu, Pt)
-        element_pattern = r'\b([A-Z][a-z]?)\b'
-        catalysts.extend(re.findall(element_pattern, query))
+        # Pattern for individual elements, including in compound words (e.g., Cu, Pt, cu-based)
+        element_pattern = r'\b([A-Za-z][a-z]?)(?:\b|-)'
+        potential_elements = re.findall(element_pattern, query)
+        for elem in potential_elements:
+            if elem.lower() in self.valid_elements_lower:
+                catalysts.append(elem)
+        
+        # Pattern for element oxides (e.g., ZnO, CuO, zno)
+        oxide_pattern = r'\b([A-Za-z][a-z]?O)\b'
+        potential_oxides = re.findall(oxide_pattern, query, re.IGNORECASE)
+        catalysts.extend([oxide for oxide in potential_oxides if oxide[:-1].lower() in self.valid_elements_lower])
+        
+        # Pattern for complex oxides (e.g., Cu2O, Fe3O4, cu2o)
+        complex_oxide_pattern = r'\b([A-Za-z][a-z]?[2-9]?O[2-9]?)\b'
+        potential_complex_oxides = re.findall(complex_oxide_pattern, query, re.IGNORECASE)
+        catalysts.extend([oxide for oxide in potential_complex_oxides if oxide[0].lower() in self.valid_elements_lower])
+        
+        # Standardize the output
+        catalysts = [self.standardize_catalyst(cat) for cat in catalysts]
         
         # Remove duplicates while preserving order
         return list(dict.fromkeys(catalysts))
+    
+    def standardize_catalyst(self, catalyst: str) -> str:
+        # Capitalize the first letter of each element
+        parts = catalyst.split('-')
+        standardized_parts = []
+        for part in parts:
+            # Handle oxides
+            if 'o' in part.lower():
+                element = part.rstrip('Oo123456789')
+                if element.lower() in self.valid_elements_lower:
+                    standardized_parts.append(element.capitalize() + 'O' + ''.join(filter(str.isdigit, part)))
+            elif part.lower() in self.valid_elements_lower:
+                standardized_parts.append(part.capitalize())
+        return '-'.join(standardized_parts)
 
     def generate_response(self, query: str, context: List[Dict[str, Any]], context_type: str) -> str:
         # Implement the LLM handler to generate a response using a prompt
@@ -207,9 +250,13 @@ if __name__ == "__main__":
     # Example queries
     queries = [
         "What's the best catalyst recommendation?",
-        "What is the role of Cu in Cu-Zn catalyst system?",
+        "List the roles of ZnO in Cu-Zn catalyst system?",
         "How do Pt and Pd catalysts perform in this reaction?",
-        "Compare the performance of Cu-Zn and Ni-Co catalysts"
+        "Compare the performance of Cu-Zn and Ni-Co catalysts", 
+        "What are the proposed active sites for Cu-Zn based catalysts?",
+        "What can cause high activity in the design of Cu/zno catalysts?",
+        "What types of promoters are used in cu-based catalysts?",
+        "What are the evidences of SMSI in the catalyst?"
     ]
     
     for query in queries:
