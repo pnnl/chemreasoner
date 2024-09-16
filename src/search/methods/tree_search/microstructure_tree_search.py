@@ -282,6 +282,7 @@ def microstructure_search(
             selected_bulks = [available_bulks[j] for j in these_bulks]
             # Generate child nodes and put them in the tree
     else:
+        parent_node = tree.nodes[root_id]
         selected_bulks = parent_node.get_bulks()
     tree.set_children(parent_node._id, parent_node.set_bulk(selected_bulks))
 
