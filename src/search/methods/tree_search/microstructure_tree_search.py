@@ -570,6 +570,7 @@ if __name__ == "__main__":
     parser.add_argument("--pathway-file", type=str, default=None)
     parser.add_argument("--attempts", type=int, default=25)
     parser.add_argument("--root-prompt", type=str, default=None)
+    parser.add_argument("--temperature", type=float, default=None)
 
     parser.add_argument("--gnn-model", type=str, default=None)
     parser.add_argument("--gnn-batch-size", type=int, default=None)
@@ -623,7 +624,7 @@ if __name__ == "__main__":
         }
     )
     reward_func = MicrostructureRewardFunction(
-        pathways, calc, num_augmentations_per_site=1
+        pathways, calc, num_augmentations_per_site=1, T=args.temperature
     )
     uq_calc = UncertaintyCalculator(
         calc, "data/uq_model_weights/GBMRegressor-peratom_energy.pkl", 0.1, 0.9, 100

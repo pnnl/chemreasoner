@@ -7,6 +7,7 @@ import time
 from copy import deepcopy
 
 from ase import Atoms
+from ase.units import kB
 import numpy as np
 
 sys.path.append("src")
@@ -28,6 +29,7 @@ class MicrostructureRewardFunction:
         reaction_pathways: list[list[str]],
         calc: OCAdsorptionCalculator,
         num_augmentations_per_site: int = 1,
+        T: float = None,
     ):
         """Return self, with the given reaction_pathways and calculator initialized."""
         self._cached_calculations = {}
@@ -54,6 +56,7 @@ class MicrostructureRewardFunction:
             adsorbates_syms=self._all_adsorbate_symbols,
             num_augmentations_per_site=self.num_augmentations_per_site,
         )
+        self.T = T if T is not None else 300
 
     def __call__(self, structures: list[CatalystDigitalTwin]):
         """Call the reward values for the given list of structures."""
@@ -69,7 +72,9 @@ class MicrostructureRewardFunction:
         reactant_energies = self._parse_reactant_energies(energies)
         energy_barriers = self._parse_energy_barriers(energies)
         rewards = {  # TODO: Do a better calculation for these
-            k: -1 * (reactant_energies[k] / energy_barriers[k]["best"])
+            k: np.exp(-1 * (reactant_energies[k] + energy_barriers[k]["best"]))
+            / kB
+            / self.T
             for k in reactant_energies.keys()
         }
 
