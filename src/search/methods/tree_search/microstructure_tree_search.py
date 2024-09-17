@@ -517,8 +517,6 @@ def get_reward_data(
     nodes = [tree.nodes[n] for n in tree.get_leaf_nodes()]
     df = []
 
-    reward_values = reward_func(structures=nodes)
-    reward_values = {n._id: reward_values[i] for i, n in enumerate(nodes)}
     energy_data = reward_func.fetch_adsorption_energy_results(nodes)
     relaxation_error_code = reward_func.fetch_error_codes(nodes)
     reward_data = reward_func.fetch_reward_results(nodes)
@@ -546,8 +544,6 @@ def get_reward_data(
         row.update(error_code_row)
         logging.info(error_code_row)
         row.update(uq_row)
-
-        row.update({"reward": reward_values[n._id]})
 
         df.append(row)
     return pd.DataFrame(df)
