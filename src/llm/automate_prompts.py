@@ -1,6 +1,10 @@
 """Functions to automate prompts for the bio fuels dataset."""
+
+import json
 import logging
 import sys
+
+from pathlib import Path
 
 import pandas as pd
 
@@ -17,6 +21,9 @@ molecule_conversions = {
     "methanol": "*OHCH3",
     "ethanol": "*OCH2CH3",
 }
+
+with open(Path("data", "reaction_pathways", "co_to_methanol")) as f:
+    computational_pathways_co_to_methanol = json.load(f)
 
 computational_pathways_methanol = [
     ["CO2", "*OCHO", "*CHOH", "*OHCH3"],
