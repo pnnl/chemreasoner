@@ -119,15 +119,12 @@ class MicrostructureRewardFunction:
             s._id: {
                 "reward_function_1": reactant_energies[s._id],
                 "reward_function_2": energy_barriers[s._id]["best"],
-                "reward": {  # TODO: Do a better calculation for these
-                    k: np.exp(
-                        -1
-                        * (reactant_energies[k] + energy_barriers[k]["best"])
-                        / kB
-                        / self.T
-                    )
-                    for k in reactant_energies.keys()
-                },
+                "reward": np.exp(
+                    -1
+                    * (reactant_energies[s._id] + energy_barriers[s._id]["best"])
+                    / kB
+                    / self.T
+                ),  # TODO: Do a better calculation for these
             }
             for s in structures
         }
