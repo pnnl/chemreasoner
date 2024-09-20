@@ -605,6 +605,12 @@ if __name__ == "__main__":
     # ]
     with open(args.pathway_file, "r") as f:
         pathways = json.load(f)
+        if "pathway_preferences" in pathways.keys():
+            pathway_preferences = pathways["pathway_preferences"]
+            pathways = pathways["pathways"]
+            assert len(pathway_preferences) == len(pathways)
+        else:
+            pathway_preferences = None
     # Save the pathways in the data
     with open(save_path / "pathways.json", "w") as f:
         json.dump(pathways, f)
@@ -621,7 +627,10 @@ if __name__ == "__main__":
         }
     )
     reward_func = MicrostructureRewardFunction(
-        pathways, calc, num_augmentations_per_site=1
+        pathways,
+        calc,
+        num_augmentations_per_site=1,
+        pathway_preferences=pathway_preferences,
     )
     uq_calc = UncertaintyCalculator(
         calc, "data/uq_model_weights/GBMRegressor-peratom_energy.pkl", 0.1, 0.9, 100
