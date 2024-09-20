@@ -63,6 +63,22 @@ async def parallel_azure_openai_chat_completion(
         )
         end = time.time()
         return value, end - start
+    except RuntimeError as err:
+        error_message = str(err)
+        if "Event loop is closed" in error_message:
+            logging.info("Caught event loop error. Retrying the chat completion.")
+            start = time.time()
+            value = await parallel_azure_openai_chat_completion(
+                client=client,
+                prompt=prompt,
+                system_prompt=system_prompt,
+                model=model,
+                **kwargs,
+            )
+            end = time.time()
+            return value, end - start
+        else:
+            raise err
 
 
 async def azure_openai_chat_async_evaluation(
@@ -94,9 +110,9 @@ class AzureOpenaiInterface:
         """Run the given prompts with the openai interface."""
         client = init_azure_openai(self.model, self.dotenv_path)
         # Apply defaults to kwargs
-        kwargs["temperature"] = kwargs.get("temperature", 0.7)
+        kwargs["temperature"] = kwargs.get("temperature", 0.75)
         kwargs["top_p"] = kwargs.get("top_p", 0.95)
-        kwargs["max_tokens"] = kwargs.get("max_tokens", 1600)
+        kwargs["max_tokens"] = kwargs.get("max_tokens", 7000)
 
         if system_prompts is None:
             system_prompts = [None] * len(prompts)
