@@ -569,6 +569,8 @@ if __name__ == "__main__":
     parser.add_argument("--attempts", type=int, default=25)
     parser.add_argument("--root-prompt", type=str, default=None)
 
+    parser.add_argument("--temperature", type=float, default=300.0)
+
     parser.add_argument("--gnn-model", type=str, default=None)
     parser.add_argument("--gnn-batch-size", type=int, default=None)
     parser.add_argument("--gnn-device", type=str, default=None)

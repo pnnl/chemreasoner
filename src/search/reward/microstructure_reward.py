@@ -33,6 +33,7 @@ class MicrostructureRewardFunction:
         pathway_preferences: list[list[int]] = None,
         num_augmentations_per_site: int = 1,
         sanity_check: bool = True,
+        temperature: float = 300.0,
     ):
         """Return self, with the given reaction_pathways and calculator initialized."""
         self._cached_calculations = {}
@@ -62,6 +63,7 @@ class MicrostructureRewardFunction:
             sanity_check=sanity_check,
         )
         self.sanity_check = sanity_check
+        self.temperature = temperature
 
     def set_sanity_check(self, sanity: bool = True):
         """Set whether or not to do sanity checks."""
@@ -80,7 +82,6 @@ class MicrostructureRewardFunction:
         self,
         energy_results: dict[dict],
         return_metadata=False,
-        T: float = 300,  # temperature in kelvin
     ):
         """Return the reward value associated with reactant and barrier reward function values."""
         reactant_energy = self._parse_reactant_energy(energy_results)
@@ -89,13 +90,12 @@ class MicrostructureRewardFunction:
         combined_rate_numerator = 0.0
         combined_rate_denomenator = 0.0
         metadata = {}
-        print(energy_profiles)
         found_non_nan_numerator = False
         found_non_nan_denomenator = False
         for i, p in enumerate(energy_profiles):
             print(p)
             de = max(np.diff(p))
-            k = np.exp(-de / kB / T)
+            k = np.exp(-de / kB / self.temperature)
             k_n.append(k)
             if self.pathway_preferences is None or self.pathway_preferences[i] == 1:
                 if not np.isnan(k):
@@ -164,16 +164,10 @@ class MicrostructureRewardFunction:
     def fetch_reward_results(self, structures: list[CatalystDigitalTwin]):
         """Fetch the rewards associated with the given structures."""
         energies = self.fetch_total_energy_results(structures)
-        reactant_energies = self._parse_reactant_energies(energies)
-        energy_barriers = self._parse_energy_barriers(energies)
-        return {
-            s._id: {
-                "reward_function_1": reactant_energies[s._id],
-                "reward_function_2": energy_barriers[s._id]["reward"],
-                "reward": self._reward(energies[s._id], return_metadata=True),
-            }
-            for s in structures
+        rewards = {  # TODO: Do a better calculation for these
+            k: self._reward(v, return_metadata=True) for k, v in tqdm(energies.items())
         }
+        return rewards
 
     def _parse_reactant_energy(self, energy_results: dict[str, dict[str, float]]):
         """Parse the energies of the reactants for the reaction pathways."""
