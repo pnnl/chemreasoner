@@ -90,22 +90,32 @@ class MicrostructureRewardFunction:
         combined_rate_denomenator = 0.0
         metadata = {}
         print(energy_profiles)
+        found_non_nan_numerator = False
+        found_non_nan_denomenator = False
         for i, p in enumerate(energy_profiles):
             print(p)
             de = max(np.diff(p))
             k = np.exp(-de / kB / T)
             k_n.append(k)
             if self.pathway_preferences is None or self.pathway_preferences[i] == 1:
-                combined_rate_numerator += k
+                if not np.isnan(k):
+                    found_non_nan_numerator = True
+                    combined_rate_numerator += k
             else:
-                combined_rate_denomenator += k
+                if not np.isnan(k):
+                    found_non_nan_denomenator = True
+                    combined_rate_denomenator += k
             metadata[f"k_{i}"] = k
             metadata[f"profile_{i}"] = p
 
         if self.pathway_preferences is not None:
-            combined_rate_numerator /= combined_rate_denomenator
-        metadata["reward_function_1"] = combined_rate_numerator
-        metadata["reward_function_2"] = reactant_energy
+            if found_non_nan_denomenator and found_non_nan_numerator:
+                combined_rate_numerator /= combined_rate_denomenator
+            else:
+                combined_rate_numerator = np.nan
+
+        metadata["reward_function_2"] = combined_rate_numerator
+        metadata["reward_function_1"] = reactant_energy
         metadata["reward"] = reactant_energy * combined_rate_numerator
 
         if return_metadata:
