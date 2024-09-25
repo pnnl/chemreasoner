@@ -13,3 +13,4 @@ data/output_data/
 ext/*/*.yml
 *.env
 src/nnp/*.pkl
+*.log
