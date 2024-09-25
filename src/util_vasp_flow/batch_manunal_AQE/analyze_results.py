@@ -39,10 +39,14 @@ pathway_index = [
 
 
 # We need to know ID --> surface info
-lookup_table = pd.read_csv('/anfhome/difan.zhang/vasp/task02_henry_geometry_0819/lookup_ID_with_composition.csv')#, index_col=0)
-lookup_table = lookup_table.set_index('id')[['millers','symbols','bulk','composition']].to_dict()
-#print( lookup_table )
-# Got a dict (key='millers'...) of dict (key=id)
+try:
+    lookup_table = pd.read_csv('lookup_ID_table.csv')#, index_col=0)
+    lookup_table = lookup_table.set_index('id')[['millers','symbols','bulk','composition']].to_dict()
+    #print( lookup_table )
+    # Got a dict (key='millers'...) of dict (key=id)
+except:
+    lookup_table = None
+
 
 ## Summarize all pathways: slab ID is key, value is a list of pathways
 all_energy_paths = {}
@@ -68,18 +72,23 @@ for k in energy_slab.keys():
     all_energy_paths[k] = energy_paths
 
     k = k.replace("job_", "")
-    b = lookup_table['millers'][k]
-    a = lookup_table['composition'][k]
-    #d = [ f'{i}$_{int(float(j))}$'.strip() for i,j in zip(['Cu','Zn'],d.split(',')) ]
-    this_label = a.strip() + b.strip()
+    k = k.replace("job-", "")
+
+    if lookup_table is not None:
+        b = lookup_table['millers'][k]
+        a = lookup_table['composition'][k]
+        #d = [ f'{i}$_{int(float(j))}$'.strip() for i,j in zip(['Cu','Zn'],d.split(',')) ]
+        this_label = a.strip() + b.strip()
+    else:
+        this_label = 'ID'
     know_slabs.append( this_label )
 
 #print(all_energy_paths)
-from collections import Counter
-know_slabs = Counter(know_slabs)
-for k,v in know_slabs.items():
-    print(k, v)
-exit()
+#from collections import Counter
+#know_slabs = Counter(know_slabs)
+#for k,v in know_slabs.items():
+#    print(k, v)
+#exit()
 
 ## Rank all pathways
 df_data = []
@@ -125,17 +134,21 @@ print( selected_paths )
 fig, axs = plt.subplots(1,2,figsize=(3.5*2,3),tight_layout=True,dpi=100)
 colors = [plt.cm.rainbow(n) for n in np.linspace(0,1,len(selected_paths)) ]
 
+landscape_selected_paths = {}
 for n,name in enumerate(selected_paths['name']):
     surface_key = name.split('/')[0] ## id number
     path_index = int(name.split('/')[1])
     
-    a = lookup_table['symbols'][surface_key]
-    b = lookup_table['bulk'][surface_key]
-    c = lookup_table['millers'][surface_key]
-    d = lookup_table['composition'][surface_key]
-    d = [ f'{i}$_{int(float(j))}$'.strip() for i,j in zip(['Cu','Zn'],d.split(',')) ]
-    this_label = ''.join(d) + c.strip()
-    print( surface_key, this_label )
+    if lookup_table is not None:
+        a = lookup_table['symbols'][surface_key]
+        b = lookup_table['bulk'][surface_key]
+        c = lookup_table['millers'][surface_key]
+        d = lookup_table['composition'][surface_key]
+        d = [ f'{i}$_{int(float(j))}$'.strip() for i,j in zip(['Cu','Zn'],d.split(',')) ]
+        this_label = ''.join(d) + c.strip()
+        #print( surface_key, this_label )
+    else:
+        this_label = str(n)
     
     e = all_energy_paths[surface_key][path_index]
     xdata = list(np.arange(len(e))+1)
@@ -145,7 +158,9 @@ for n,name in enumerate(selected_paths['name']):
     xlabel_reaction = [ xlabel[i] +r' $\rightarrow$ '+ xlabel[i+1] for i in range(len(xlabel)-1)]
     
     axs[0].plot(xdata, e, lw=2, ls='-', marker='o', ms=4, markerfacecolor='none', color=colors[n])#, label=labels[n], )
-    axs[1].plot( [0]+xdata, [0]+list(np.cumsum(e)), lw=2, ls='-', marker='o', ms=4, markerfacecolor='none', color=colors[n], label=this_label, )
+    landscape = [0]+list(np.cumsum(e))
+    axs[1].plot( [0]+xdata, landscape, lw=2, ls='-', marker='o', ms=4, markerfacecolor='none', color=colors[n], label=this_label, )
+    landscape_selected_paths[surface_key] = landscape
     
     axs[0].set_xticks( xdata )
     axs[0].set_xticklabels( xlabel_reaction, fontsize=8, rotation=-90 )
@@ -166,12 +181,14 @@ axs[1].legend(fontsize=6, frameon=False, loc='center right', ncol=1, columnspaci
 
 fig.savefig("Best_surf_pathway.png", dpi=400)
 #plt.show()
+landscape_selected_paths = pd.DataFrame.from_dict( landscape_selected_paths )
+landscape_selected_paths.to_csv('Best_surf_pathway.csv')
 
 ## The best one:
 name = selected_paths['name'].iloc[0]
 surface_key = name.split('/')[0] ## id number
 path_index = int(name.split('/')[1])
-print( surface_key, lookup_table['millers'][surface_key], lookup_table['bulk'][surface_key], lookup_table['composition'][surface_key])
-print( ' -> '.join([labels[n].ljust(10,' ') for n in pathway_index[path_index]]) )
-print( ' -> '.join([ str(n).ljust(10,' ') for n in pathway_index[path_index]]) )
+#print( surface_key, lookup_table['millers'][surface_key], lookup_table['bulk'][surface_key], lookup_table['composition'][surface_key])
+#print( ' -> '.join([labels[n].ljust(10,' ') for n in pathway_index[path_index]]) )
+#print( ' -> '.join([ str(n).ljust(10,' ') for n in pathway_index[path_index]]) )
 
