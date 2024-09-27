@@ -12,9 +12,9 @@ from logging_utils import LogManager
 # Load the logging configuration
 if __name__ == "__main__":
     LogManager.initialize(
-        log_file_path="logs/test_microstruct_agent.log", 
-        log_config_path="src/query/logging_config.ini"
-        )
+        log_file_path="logs/test_microstruct_agent.log",
+        log_config_path="src/query/logging_config.ini",
+    )
 
 logger = LogManager.get_logger("microstruct_agent")
 
@@ -32,7 +32,7 @@ class MicroStructureAgent:
         relevant_columns (List[str]): A list of relevant column names in the DataFrame.
     """
 
-    def __init__(self, csv_file_path: str, azure_handler: AzureOpenAIHandler):
+    def __init__(self, csv_txt_or_path: str, azure_handler: AzureOpenAIHandler):
         """
         Initialize the MicroStructureAgent with a CSV file and AzureOpenAIHandler.
 
@@ -41,13 +41,15 @@ class MicroStructureAgent:
             azure_handler (AzureOpenAIHandler): An instance of AzureOpenAIHandler for generating queries.
         """
         # Load the CSV file and filter out rows where 'reward' is NaN
-        self.df = pd.read_csv(csv_file_path)
+        self.df = pd.read_csv(csv_txt_or_path)
         original_row_count = len(self.df)
-        self.df = self.df.dropna(subset=['reward'])
+        self.df = self.df.dropna(subset=["reward"])
         filtered_row_count = len(self.df)
         rows_removed = original_row_count - filtered_row_count
-        
-        logger.info(f"Loaded CSV file from {csv_file_path}")
+
+        if isinstance(csv_txt_or_path, str):
+            csv_file_path = csv_txt_or_path
+            logger.info(f"Loaded CSV file from {csv_file_path}")
         logger.info(f"Removed {rows_removed} rows with NaN rewards")
         logger.info(f"Remaining rows: {filtered_row_count}")
 
@@ -64,10 +66,20 @@ class MicroStructureAgent:
             List[str]: A list of relevant column names.
         """
         all_columns = self.df.columns
-        relevant_columns = [col for col in all_columns if col in [
-            "millers", "surface", "site_placement", "bulk_composition",
-            "bulk_symmetry", "site_composition", "reward"
-        ]]
+        relevant_columns = [
+            col
+            for col in all_columns
+            if col
+            in [
+                "millers",
+                "surface",
+                "site_placement",
+                "bulk_composition",
+                "bulk_symmetry",
+                "site_composition",
+                "reward",
+            ]
+        ]
         return relevant_columns
 
     def preprocess_miller_indices(self):
@@ -77,9 +89,11 @@ class MicroStructureAgent:
         This method converts the Miller indices from string representation (e.g., '(1,1,1)')
         to a tuple of integers and adds a new column 'miller_index' with the combined representation.
         """
-        if 'millers' in self.df.columns:
-            self.df['millers'] = self.df['millers'].apply(ast.literal_eval)
-            self.df['miller_index'] = self.df['millers'].apply(lambda x: f"({x[0]}{x[1]}{x[2]})")
+        if "millers" in self.df.columns:
+            self.df["millers"] = self.df["millers"].apply(ast.literal_eval)
+            self.df["miller_index"] = self.df["millers"].apply(
+                lambda x: f"({x[0]}{x[1]}{x[2]})"
+            )
 
     def answer_query(self, query: str, catalysts: List[str]) -> str:
         """
@@ -100,13 +114,13 @@ class MicroStructureAgent:
 
         prompt = f"""
         Given the following pandas DataFrame columns: {', '.join(self.relevant_columns + ['miller_index'])}
-        
+
         The 'millers' column contains tuples like (1,1,1), and 'miller_index' contains strings like '(111)'.
         The 'bulk_composition' column contains the catalyst compositions as strings.
         The 'reward' column contains numerical values representing the performance of each catalyst configuration.
 
         Generate a pandas query to answer the following question: "{query}"
-        
+
         Consider the following aspects when generating the query:
         1. If a specific Miller index ({miller_index}) is mentioned, filter for it.
         2. If specific catalysts ({', '.join(catalysts)}) are mentioned, filter rows where the 'bulk_composition' column contains any of these catalysts.
@@ -127,8 +141,11 @@ class MicroStructureAgent:
         """
 
         messages = [
-            {"role": "system", "content": "You are a helpful assistant that generates pandas queries."},
-            {"role": "user", "content": prompt}
+            {
+                "role": "system",
+                "content": "You are a helpful assistant that generates pandas queries.",
+            },
+            {"role": "user", "content": prompt},
         ]
 
         try:
@@ -137,10 +154,12 @@ class MicroStructureAgent:
 
             df = self.df  # Create a local variable 'df' that refers to self.df
             result = eval(pandas_query)
-            
+
             if isinstance(result, pd.DataFrame):
                 # Filter the result to include only relevant columns
-                result = result[[col for col in self.relevant_columns if col in result.columns]]
+                result = result[
+                    [col for col in self.relevant_columns if col in result.columns]
+                ]
                 return result.to_string()
             elif isinstance(result, pd.Series):
                 return result.to_string()
@@ -162,10 +181,12 @@ class MicroStructureAgent:
             str: The extracted Miller index, or None if not found.
         """
         import re
-        match = re.search(r'\((\d{3})\)', query)
+
+        match = re.search(r"\((\d{3})\)", query)
         if match:
             return match.group(1)
         return None
+
 
 # Example usage
 if __name__ == "__main__":
@@ -182,7 +203,7 @@ if __name__ == "__main__":
         "Compare the average rewards of Cu and Zn catalysts across all Miller indices.",
         "What are the top 5 performing catalysts for the (110) Miller index?",
         "How does the reward distribution vary for different bulk compositions?",
-        "What is the standard deviation of rewards for each unique surface type?"
+        "What is the standard deviation of rewards for each unique surface type?",
     ]
 
     for query in queries:

@@ -14,9 +14,9 @@ from logging_utils import LogManager
 
 if __name__ == "__main__":
     LogManager.initialize(
-        log_file_path="logs/application.log", 
-        log_config_path="src/query/logging_config.ini"
-        )
+        log_file_path="logs/application.log",
+        log_config_path="src/query/logging_config.ini",
+    )
 
 logger = LogManager.get_logger("llm_log_agent")
 
@@ -36,7 +36,12 @@ class LLMLogAgent:
         valid_elements_lower (set): A set of lowercase valid transition metal elements.
     """
 
-    def __init__(self, node_context: NodeContext, azure_handler: AzureOpenAIHandler, micro_agent: MicroStructureAgent):
+    def __init__(
+        self,
+        node_context: NodeContext,
+        azure_handler: AzureOpenAIHandler,
+        micro_agent: MicroStructureAgent,
+    ):
         """
         Initialize the LLMLogAgent with NodeContext, AzureOpenAIHandler, and MicroStructureAgent instances.
 
@@ -48,12 +53,50 @@ class LLMLogAgent:
         self.node_context = node_context
         self.azure_handler = azure_handler
         self.micro_agent = micro_agent
-        self.valid_elements = set([
-            'Sc', 'Ti', 'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn',
-            'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd',
-            'La', 'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg',
-            'Ac', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn'
-        ])
+        self.valid_elements = set(
+            [
+                "Sc",
+                "Ti",
+                "V",
+                "Cr",
+                "Mn",
+                "Fe",
+                "Co",
+                "Ni",
+                "Cu",
+                "Zn",
+                "Y",
+                "Zr",
+                "Nb",
+                "Mo",
+                "Tc",
+                "Ru",
+                "Rh",
+                "Pd",
+                "Ag",
+                "Cd",
+                "La",
+                "Hf",
+                "Ta",
+                "W",
+                "Re",
+                "Os",
+                "Ir",
+                "Pt",
+                "Au",
+                "Hg",
+                "Ac",
+                "Rf",
+                "Db",
+                "Sg",
+                "Bh",
+                "Hs",
+                "Mt",
+                "Ds",
+                "Rg",
+                "Cn",
+            ]
+        )
         self.valid_elements_lower = set(elem.lower() for elem in self.valid_elements)
         logger.info("LLMLogAgent initialized")
 
@@ -72,26 +115,40 @@ class LLMLogAgent:
             str: The generated response based on the query and retrieved context.
 
         Raises:
-            NotImplementedError: If the query is microstructure-related but not for Cu or Zn.
+            NotImplementedError: If the query is microstructure-related but not for Cu or
+            Zn.
         """
         logger.debug(f"Processing query: {query}")
-        
+
         # Check if the query is related to microstructure
-        microstructure_keywords = ['composition', 'miller index', 'miller indices', 'surface', 'bulk', 'site']
+        microstructure_keywords = [
+            "composition",
+            "miller index",
+            "miller indices",
+            "surface",
+            "bulk",
+            "site",
+        ]
         if any(keyword in query.lower() for keyword in microstructure_keywords):
             logger.info("Query identified as microstructure-related")
             filter_options = self.extract_catalyst_systems(query)
-            valid_catalysts = [cat for cat in filter_options if cat in ['Cu', 'Zn']]
+            valid_catalysts = [cat for cat in filter_options if cat in ["Cu", "Zn"]]
             if valid_catalysts:
-                logger.info(f"Processing microstructure query for {', '.join(valid_catalysts)}: {query}")
+                logger.info(
+                    (
+                        "Processing microstructure query for "
+                        f" {', '.join(valid_catalysts)}: {query}"
+                    )
+                )
                 return self.micro_agent.answer_query(query, valid_catalysts)
             else:
-                logger.warning(f"Microstructure query not implemented for: {filter_options}")
+                logger.warning(
+                    f"Microstructure query not implemented for: {filter_options}"
+                )
                 logger.info("Generating results for Cu-Zn catalyst.")
-                valid_catalysts = ['Cu', 'Zn']
+                valid_catalysts = ["Cu", "Zn"]
                 return self.micro_agent.answer_query(query, valid_catalysts)
-                # raise NotImplementedError("Microstructure queries are only implemented for Cu-Zn catalyst system.")
-        
+
         # If not microstructure-related, process as before
         scope_type = self.determine_scope(query)
         context_type = self.determine_context_type(query)
@@ -99,7 +156,7 @@ class LLMLogAgent:
 
         node_ids = self.node_context.get_nodes(scope_type, filter_options)
         context = self.node_context.get_context(node_ids, context_type)
-        
+
         response = self.generate_response(query, context, context_type)
         logger.info(f"Generated response for query: {query}")
         return response
@@ -152,31 +209,45 @@ class LLMLogAgent:
             List[str]: A list of identified catalyst systems and elements.
         """
         catalysts = []
-        
+
         # Pattern for catalyst systems (e.g., Cu-Zn, Pt-Ru, cu-zn)
-        system_pattern = r'\b([A-Za-z][a-z]?-[A-Za-z][a-z]?)\b'
+        system_pattern = r"\b([A-Za-z][a-z]?-[A-Za-z][a-z]?)\b"
         catalysts.extend(re.findall(system_pattern, query, re.IGNORECASE))
-        
+
         # Pattern for individual elements, including in compound words (e.g., Cu, Pt, cu-based)
-        element_pattern = r'\b([A-Za-z][a-z]?)(?:\b|-)'
+        element_pattern = r"\b([A-Za-z][a-z]?)(?:\b|-)"
         potential_elements = re.findall(element_pattern, query)
         for elem in potential_elements:
             if elem.lower() in self.valid_elements_lower:
                 catalysts.append(elem)
-        
+
         # Pattern for element oxides (e.g., ZnO, CuO, zno)
-        oxide_pattern = r'\b([A-Za-z][a-z]?O)\b'
+        oxide_pattern = r"\b([A-Za-z][a-z]?O)\b"
         potential_oxides = re.findall(oxide_pattern, query, re.IGNORECASE)
-        catalysts.extend([oxide for oxide in potential_oxides if oxide[:-1].lower() in self.valid_elements_lower])
-        
+        catalysts.extend(
+            [
+                oxide
+                for oxide in potential_oxides
+                if oxide[:-1].lower() in self.valid_elements_lower
+            ]
+        )
+
         # Pattern for complex oxides (e.g., Cu2O, Fe3O4, cu2o)
-        complex_oxide_pattern = r'\b([A-Za-z][a-z]?[2-9]?O[2-9]?)\b'
-        potential_complex_oxides = re.findall(complex_oxide_pattern, query, re.IGNORECASE)
-        catalysts.extend([oxide for oxide in potential_complex_oxides if oxide[0].lower() in self.valid_elements_lower])
-        
+        complex_oxide_pattern = r"\b([A-Za-z][a-z]?[2-9]?O[2-9]?)\b"
+        potential_complex_oxides = re.findall(
+            complex_oxide_pattern, query, re.IGNORECASE
+        )
+        catalysts.extend(
+            [
+                oxide
+                for oxide in potential_complex_oxides
+                if oxide[0].lower() in self.valid_elements_lower
+            ]
+        )
+
         # Standardize the output
         catalysts = [self.standardize_catalyst(cat) for cat in catalysts]
-        
+
         # Remove duplicates while preserving order
         return list(dict.fromkeys(catalysts))
 
@@ -191,17 +262,19 @@ class LLMLogAgent:
             str: The standardized catalyst string.
         """
         # Capitalize the first letter of each element
-        parts = catalyst.split('-')
+        parts = catalyst.split("-")
         standardized_parts = []
         for part in parts:
             # Handle oxides
-            if 'o' in part.lower():
-                element = part.rstrip('Oo123456789')
+            if "o" in part.lower():
+                element = part.rstrip("Oo123456789")
                 if element.lower() in self.valid_elements_lower:
-                    standardized_parts.append(element.capitalize() + 'O' + ''.join(filter(str.isdigit, part)))
+                    standardized_parts.append(
+                        element.capitalize() + "O" + "".join(filter(str.isdigit, part))
+                    )
             elif part.lower() in self.valid_elements_lower:
                 standardized_parts.append(part.capitalize())
-        return '-'.join(standardized_parts)
+        return "-".join(standardized_parts)
 
     def generate_response(self, query: str, context: str, context_type: str) -> str:
         """
@@ -217,17 +290,24 @@ class LLMLogAgent:
         """
         # Prepare the messages for the Azure OpenAI service
         messages = [
-            {"role": "system", "content": "You are a helpful assistant specializing in catalysis. "
-                                          "Use the provided context to answer the user's query."
-                                          "Only limit your response to the provided context."
-                                          "If the context does not have any related information, "
-                                          "respond by stating : 'The context does not provide any information about the query.'"},
-            {"role": "user", "content": f"Context ({context_type}):\n{context}\n\nQuery: {query}"}
+            {
+                "role": "system",
+                "content": "You are a helpful assistant specializing in catalysis. "
+                "Use the provided context to answer the user's query."
+                "Only limit your response to the provided context."
+                "If the context does not have any related information, "
+                "respond by stating : 'The context does not provide any information about the query.'",
+            },
+            {
+                "role": "user",
+                "content": f"Context ({context_type}):\n{context}\n\nQuery: {query}",
+            },
         ]
 
         # Generate the response using AzureOpenAIHandler
         response = self.azure_handler.generate_response(messages)
         return response
+
 
 # Example usage
 if __name__ == "__main__":
@@ -239,7 +319,7 @@ if __name__ == "__main__":
     azure_handler = AzureOpenAIHandler(env_path)
     micro_agent = MicroStructureAgent(csv_file_path, azure_handler)
     agent = LLMLogAgent(node_context, azure_handler, micro_agent)
-    
+
     # Example queries
     queries = [
         "What is the average reward for Cu-Zn catalysts with (111) Miller index?",
@@ -257,9 +337,9 @@ if __name__ == "__main__":
         "Discuss the advantages of Ag-supported catalysts in optimal catalysts",
         "In this reaction, what catalysts work best?",
         "How does Au perform as an optimal catalyst?",
-        "Tell me about optimal catalysts containing Pt-Ru alloys"
+        "Tell me about optimal catalysts containing Pt-Ru alloys",
     ]
-    
+
     for query in queries:
         response = agent.process_query(query)
         logger.info("--------------Query-Response--------------")

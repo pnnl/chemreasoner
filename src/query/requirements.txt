@@ -1,0 +1,6 @@
+ase
+azure-functions
+azure-storage-blob
+pandas
+python-dotenv
+openai
