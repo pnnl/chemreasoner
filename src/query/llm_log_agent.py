@@ -126,8 +126,12 @@ class LLMLogAgent:
             "miller index",
             "miller indices",
             "surface",
+            "preferable surface",
             "bulk",
             "site",
+            "sites",
+            "active site",
+            "active sites",
         ]
         if any(keyword in query.lower() for keyword in microstructure_keywords):
             logger.info("Query identified as microstructure-related")
@@ -312,7 +316,7 @@ class LLMLogAgent:
 # Example usage
 if __name__ == "__main__":
     json_file_path = "/anfhome/rounak.meyur/chemreasoner_results_processed/chemreasoner_results/search_tree_6.json"
-    csv_file_path = "/anfhome/shared/chemreasoner/cu_zn_co2_to_methanol_from_scratch/reward_values.csv"
+    csv_file_path = "/anfhome/shared/chemreasoner/cu_zn_co_to_ethanol_from_scratch/reward_values.csv"
     env_path = ".env"
 
     node_context = NodeContext(json_file_path)
