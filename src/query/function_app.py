@@ -193,14 +193,19 @@ def post_prompt(req: func.HttpRequest) -> func.HttpResponse:
     while node["parent_id"]:
         parent = NODE_LOOKUP[node["parent_id"]]
         node_ids.append(parent["id"])
+        node = parent
     context = GLOBAL_NODE_CONTEXT.get_catalyst_recommendation_context(
         reversed(node_ids)
     )
-    agent = LLMLogAgent(context, AZURE_HANDLER, MICRO_AGENT)
-    response = agent.process_query(prompt)
-    return func.JsonResponse(
-        {
-            "response": response,
-            "context": context,
-        }
+    logging.info(context)
+    agent = LLMLogAgent(GLOBAL_NODE_CONTEXT, AZURE_HANDLER, MICRO_AGENT)
+    response = agent.process_query(prompt, context)
+    return func.HttpResponse(
+        json.dumps(
+            {
+                "response": response,
+                "context": context,
+            }
+        ),
+        mimetype="application/json",
     )

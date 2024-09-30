@@ -3,6 +3,21 @@
 FUNCTION_APP_NAME="chem-reasoner-query"
 RESOURCE_GROUP="aqe-ldrd"
 
+INCLUDE_SCM_BUILD=false
+
+# Parse command line arguments
+while getopts ":s" opt; do
+  case $opt in
+    s)
+      INCLUDE_SCM_BUILD=true
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+  esac
+done
+
 # Check if already logged in to Azure
 if ! az account show &> /dev/null
 then
@@ -28,6 +43,7 @@ zip function.zip *.py *.ini requirements.txt host.json
 # Deploy the Azure Function
 echo "Deploying the Azure Function..."
 az functionapp deployment source config-zip \
+    --build-remote $INCLUDE_SCM_BUILD \
     -g $RESOURCE_GROUP \
     -n $FUNCTION_APP_NAME \
     --src ./function.zip

@@ -100,7 +100,7 @@ class LLMLogAgent:
         self.valid_elements_lower = set(elem.lower() for elem in self.valid_elements)
         logger.info("LLMLogAgent initialized")
 
-    def process_query(self, query: str) -> str:
+    def process_query(self, query: str, context: str = None) -> str:
         """
         Process the given query and return a response.
 
@@ -153,13 +153,14 @@ class LLMLogAgent:
                 valid_catalysts = ["Cu", "Zn"]
                 return self.micro_agent.answer_query(query, valid_catalysts)
 
-        # If not microstructure-related, process as before
-        scope_type = self.determine_scope(query)
         context_type = self.determine_context_type(query)
-        filter_options = self.extract_catalyst_systems(query)
+        if not context:
+            scope_type = self.determine_scope(query)
+            # If not microstructure-related, process as before
+            filter_options = self.extract_catalyst_systems(query)
 
-        node_ids = self.node_context.get_nodes(scope_type, filter_options)
-        context = self.node_context.get_context(node_ids, context_type)
+            node_ids = self.node_context.get_nodes(scope_type, filter_options)
+            context = self.node_context.get_context(node_ids, context_type)
 
         response = self.generate_response(query, context, context_type)
         logger.info(f"Generated response for query: {query}")

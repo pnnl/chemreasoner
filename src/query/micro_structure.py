@@ -37,7 +37,7 @@ class MicroStructureAgent:
         column_of_interest (str): The column currently being analyzed (either 'reward' or an adsorbate energy column).
     """
 
-    def __init__(self, csv_txt_or_path: str, azure_handler: AzureOpenAIHandler):
+    def __init__(self, csv_file_path: str, azure_handler: AzureOpenAIHandler):
         """
         Initialize the MicroStructureAgent with a CSV file and AzureOpenAIHandler.
 
