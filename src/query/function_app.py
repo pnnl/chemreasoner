@@ -145,19 +145,25 @@ def get_structures(req: func.HttpRequest) -> func.HttpResponse:
         reactants: List[str], catalysts: List[str]
     ) -> List[List[Dict[str, Any]]]:
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-            futures = [
+            future_to_prefix = {
                 executor.submit(
                     get_structure_data, get_structure_prefix(reactant, catalyst)
-                )
+                ): get_structure_prefix(reactant, catalyst)
+                for catalyst in catalysts
+                for reactant in reactants
+            }
+            results = {
+                future_to_prefix[future]: future.result()
+                for future in concurrent.futures.as_completed(future_to_prefix)
+            }
+            ordered_results = [
+                results[get_structure_prefix(reactant, catalyst)]
                 for catalyst in catalysts
                 for reactant in reactants
             ]
-            results = [
-                future.result() for future in concurrent.futures.as_completed(futures)
-            ]
             return [
-                results[i : i + len(reactants)]  # noqa: E203
-                for i in range(0, len(results), len(reactants))
+                ordered_results[i : i + len(reactants)]  # noqa: E203
+                for i in range(0, len(ordered_results), len(reactants))
             ]
 
     pathways_data = [
