@@ -22,9 +22,6 @@ molecule_conversions = {
     "ethanol": "*OCH2CH3",
 }
 
-with open(Path("data", "reaction_pathways", "co_to_methanol.json")) as f:
-    computational_pathways_co_to_methanol = json.load(f)
-
 computational_pathways_methanol = [
     ["CO2", "*OCHO", "*CHOH", "*OHCH3"],
     ["CO2", "*CO", "*CHO", "*CH2*O", "*OHCH3"],
