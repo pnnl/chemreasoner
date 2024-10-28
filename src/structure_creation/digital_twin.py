@@ -101,7 +101,7 @@ class CatalystDigitalTwin:
             self.info[status_key] = [updates]
         elif start_new:
             self.info[status_key].append(updates)
-        elif isinstance(self.info[status_key], dict):
+        else:
             self.info[status_key][-1].update(updates)
 
     def copy(self, copy_info: bool = False):
