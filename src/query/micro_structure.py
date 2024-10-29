@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import ast
 import re
+from collections import defaultdict
 from typing import List, Dict, Any, Tuple
 from azure_openai_handler import AzureOpenAIHandler
 
@@ -36,13 +37,14 @@ class MicroStructureAgent:
         column_of_interest (str): The column currently being analyzed (either 'reward' or an adsorbate energy column).
     """
 
-    def __init__(self, csv_file_path: str, azure_handler: AzureOpenAIHandler):
+    def __init__(self, csv_file_path: str, azure_handler: AzureOpenAIHandler, catalysts: List[str]):
         """
         Initialize the MicroStructureAgent with a CSV file and AzureOpenAIHandler.
 
         Args:
             csv_file_path (str): Path to the CSV file containing microstructure data.
             azure_handler (AzureOpenAIHandler): An instance of AzureOpenAIHandler for generating queries.
+            catalysts (List[str]): List of catalysts mentioned in the query.
         """
         # Load the CSV file with specific columns
         self.df = pd.read_csv(csv_file_path)
@@ -57,30 +59,20 @@ class MicroStructureAgent:
         ] + energy_columns
         self.df = self.df[relevant_columns]
 
+        # Initialize the list of catalysts
+        self.catalysts = catalysts
+
+        # Initialize the LLM handler
         self.azure_handler = azure_handler
-        self.relevant_columns = self.get_relevant_columns()
-        self.adsorbate_symbols = self.get_adsorbate_symbols()
+
+        # Other necessary initialization
+        self.relevant_columns = ["millers", "bulk_composition", "bulk_symmetry", "site_composition", "miller_index"]
+        self.adsorbate_symbols = [col.split("*")[1] for col in self.df.columns if col.startswith("energy_*")]
         self.column_of_interest = "reward"
         self.preprocess_miller_indices()
+
         logger.info("MicroStructureAgent initialized with filtered CSV data")
 
-    def get_relevant_columns(self) -> List[str]:
-        """
-        Get the list of relevant column names from the DataFrame.
-
-        Returns:
-            List[str]: A list of relevant column names.
-        """
-        return ["millers", "bulk_composition", "bulk_symmetry", "site_composition", "reward", "miller_index"]
-
-    def get_adsorbate_symbols(self) -> List[str]:
-        """
-        Get the list of acceptable adsorbate symbols from the DataFrame columns.
-
-        Returns:
-            List[str]: A list of acceptable adsorbate symbols.
-        """
-        return [col.split("*")[1] for col in self.df.columns if col.startswith("energy_*")]
 
     def filter_nan_rows(self):
         """
@@ -105,7 +97,7 @@ class MicroStructureAgent:
             self.df['miller_index'] = self.df['millers'].apply(lambda x: f"({x[0]}{x[1]}{x[2]})")
         logger.debug("Preprocessed Miller indices")
 
-    def answer_query(self, query: str, catalysts: List[str], max_attempts: int = 3) -> str:
+    def answer_query(self, query: str, max_attempts: int = 3) -> str:
         """
         Process a natural language query and return the result.
 
@@ -114,11 +106,11 @@ class MicroStructureAgent:
 
         Args:
             query (str): The natural language query to process.
-            catalysts (List[str]): List of catalyst names identified in the query.
 
         Returns:
             str: The result of the query execution or an error message.
         """
+        # Find necessary information in query to set/reset flags
         miller_index = self.extract_miller_index(query)
         adsorbate = self.extract_adsorbate(query)
         is_active_sites_query, is_summary = self.is_active_sites_query(query)
@@ -134,7 +126,7 @@ class MicroStructureAgent:
         logger.debug(f"Is summary query: {is_summary}")
         logger.debug(f"Preferable surface query: {is_preferable_surface_query}")
 
-        prompt = self.generate_prompt(query, catalysts, miller_index, is_active_sites_query, is_summary, is_preferable_surface_query)
+        prompt = self.generate_prompt(query, miller_index, is_active_sites_query, is_summary, is_preferable_surface_query)
 
         messages = [
             {"role": "system", "content": "You are a helpful assistant that generates pandas queries."},
@@ -151,9 +143,7 @@ class MicroStructureAgent:
                 result = eval(pandas_query)
                 if isinstance(result, str):
                     result = eval(result)
-                
-                response = self.format_response(result, is_active_sites_query, is_summary, is_preferable_surface_query, adsorbate, catalysts)
-                return response
+                break
             
             except Exception as e:
                 error_msg = f"Error processing query: {str(e)}"
@@ -161,6 +151,16 @@ class MicroStructureAgent:
                 index_attempts += 1
                 if index_attempts == max_attempts:
                     return error_msg
+        
+        # Generate the summarized response
+        try:
+            response = self.format_response(result, is_active_sites_query, is_summary, is_preferable_surface_query, adsorbate)
+            return response
+        except Exception as e:
+            error_msg = f"Error generating summarized response from pandas result: {str(e)}"
+            logger.error(error_msg)
+            return error_msg
+
 
     def set_column_of_interest(self, adsorbate: str):
         """
@@ -175,13 +175,12 @@ class MicroStructureAgent:
             self.column_of_interest = "reward"
         self.filter_nan_rows()
 
-    def generate_prompt(self, query: str, catalysts: List[str], miller_index: str, is_active_sites_query: bool, is_summary: bool, is_preferable_surface_query: bool) -> str:
+    def generate_prompt(self, query: str, miller_index: str, is_active_sites_query: bool, is_summary: bool, is_preferable_surface_query: bool) -> str:
         """
         Generate a prompt for the LLM based on the query and extracted information.
 
         Args:
             query (str): The original query.
-            catalysts (List[str]): List of catalyst names.
             miller_index (str): Extracted Miller index.
             is_active_sites_query (bool): Whether the query is about active sites.
             is_summary (bool): Whether the query is asking for a summary.
@@ -191,7 +190,7 @@ class MicroStructureAgent:
         """
 
         prompt = f"""
-        Given the following pandas DataFrame columns: {', '.join(self.relevant_columns)}
+        Given the following pandas DataFrame columns: {', '.join(self.relevant_columns + [self.column_of_interest])}
         
         The 'millers' column contains tuples like (1,1,1), and 'miller_index' contains strings like '(111)'.
         The 'bulk_composition' column contains the catalyst compositions as strings.
@@ -201,7 +200,7 @@ class MicroStructureAgent:
         
         Consider the following aspects when generating the query:
         1. If a specific Miller index ({miller_index}) is mentioned, filter for it, otherwise ignore it.
-        2. If specific catalysts ({', '.join(catalysts)}) are mentioned, filter rows where the 'bulk_composition' column contains any of these catalysts.
+        2. If specific catalysts ({', '.join(self.catalysts)}) are mentioned, filter rows where the 'bulk_composition' column contains any of these catalysts.
         3. Use the '{self.column_of_interest}' column for calculations and comparisons.
         4. When using groupby operations:
            - If you need to apply a function to the grouped data, use agg() instead of apply() where possible.
@@ -263,7 +262,7 @@ class MicroStructureAgent:
 
         return prompt
 
-    def format_response(self, result: Any, is_active_sites_query: bool, is_summary: bool, is_preferable_surface_query: bool, adsorbate: str, catalysts: List[str]) -> str:
+    def format_response(self, result: Any, is_active_sites_query: bool, is_summary: bool, is_preferable_surface_query: bool, adsorbate: str) -> str:
         """
         Format the response based on the query type and result.
 
@@ -290,17 +289,17 @@ class MicroStructureAgent:
 
         if isinstance(result, pd.DataFrame):
             response += result.to_string() + "\n\n"
-            response += self.summarize_dataframe(result, is_active_sites_query, is_summary, adsorbate, is_preferable_surface_query, catalysts)
+            response += self.summarize_dataframe(result, is_active_sites_query, is_summary, adsorbate, is_preferable_surface_query)
         elif isinstance(result, pd.Series):
             response += result.to_string() + "\n\n"
-            response += self.summarize_series(result, is_active_sites_query, adsorbate, is_preferable_surface_query, catalysts)
+            response += self.summarize_series(result, is_active_sites_query, adsorbate, is_preferable_surface_query)
         else:
             response += str(result) + "\n\n"
             response += "The result is a single value or a non-tabular output.\n"
 
         return response
 
-    def summarize_dataframe(self, df: pd.DataFrame, is_active_sites_query: bool, is_summary: bool, adsorbate: str, is_preferable_surface_query: bool, catalysts: List[str]) -> str:
+    def summarize_dataframe(self, df: pd.DataFrame, is_active_sites_query: bool, is_summary: bool, adsorbate: str, is_preferable_surface_query: bool) -> str:
         """
         Summarize the contents of a DataFrame result.
 
@@ -310,33 +309,40 @@ class MicroStructureAgent:
             is_summary (bool): Whether the query is asking for a summary.
             adsorbate (str): The adsorbate symbol extracted from the query.
             is_preferable_surface_query (bool): Whether the query is about preferable surfaces.
-            catalysts (List[str]): List of catalyst names identified in the query.
 
         Returns:
             str: A summary of the DataFrame contents.
         """
         summary = "Summary of results:\n"
 
+        if df.empty:
+            return "No data available to summarize."
+
         if is_preferable_surface_query:
-            summary += "- The results show the top 5 site compositions for each bulk composition.\n"
+            summary += "- The results show the top site compositions for each bulk composition.\n"
             
+            # Check if bulk_composition is in the index
             if 'bulk_composition' in df.index.names:
                 unique_compositions = df.index.get_level_values('bulk_composition').nunique()
-                summary += f"- {unique_compositions} different bulk compositions are represented.\n"
+            else:
+                unique_compositions = df['bulk_composition'].nunique()
+            summary += f"- {unique_compositions} different bulk compositions are represented.\n"
             
             if 'site_composition' in df.columns:
                 unique_sites = df['site_composition'].nunique()
                 summary += f"- {unique_sites} unique site compositions are shown across all bulk compositions.\n"
             
             if 'millers' in df.columns:
-                most_common_miller = df['millers'].mode().iloc[0]
+                most_common_miller = df['millers'].mode().iloc[0] if not df['millers'].empty else "N/A"
                 summary += f"- The most common Miller index across all compositions is {most_common_miller}.\n"
             
-            # Determine which surface is preferable relative to the given catalysts
-            if 'site_composition' in df.columns and catalysts:
-                df['catalyst_match'] = df['site_composition'].apply(lambda x: any(cat in x for cat in catalysts))
-                preferable_surface = "near" if df['catalyst_match'].any() else "far from"
-                summary += f"- The preferable surface appears to be {preferable_surface} the catalysts in the list ({', '.join(catalysts)}).\n"
+            # Determine which catalyst-rich surface is more preferable for each bulk composition
+            if 'site_composition' in df.columns and self.catalysts:
+                catalyst_preferences = self.analyze_catalyst_preferences(df)
+                if catalyst_preferences:
+                    summary += self.format_catalyst_preference(catalyst_preferences)
+                else:
+                    summary += "- Unable to determine a preference for catalyst-rich surfaces based on the available data.\n"
 
         elif is_active_sites_query:
             if is_summary:
@@ -363,6 +369,91 @@ class MicroStructureAgent:
             summary += f"- The average adsorption energy for {adsorbate} is {avg_energy:.2f}.\n"
 
         return summary
+    
+    def analyze_catalyst_preferences(self, df: pd.DataFrame) -> Dict[str, Dict[str, int]]:
+        """
+        Analyze the site compositions to determine catalyst preferences for each bulk composition.
+
+        Args:
+            df (pd.DataFrame): The DataFrame containing 'bulk_composition' and 'site_composition' columns.
+
+        Returns:
+            Dict[str, Dict[str, int]]: A nested dictionary with bulk compositions as keys and 
+                                       catalyst preference dictionaries as values.
+        """
+        preferences = defaultdict(lambda: defaultdict(int))
+        
+        # Check if bulk_composition is in the index
+        if 'bulk_composition' in df.index.names:
+            for bulk_comp, group in df.groupby(level='bulk_composition'):
+                for site_comp in group['site_composition']:
+                    counts = self.parse_site_composition(site_comp)
+                    max_count = max(counts.values()) if counts else 0
+                    for cat, count in counts.items():
+                        if count == max_count and max_count > 0:
+                            preferences[bulk_comp][cat] += 1
+        else:
+            # If bulk_composition is a regular column
+            for bulk_comp, group in df.groupby('bulk_composition'):
+                for site_comp in group['site_composition']:
+                    counts = self.parse_site_composition(site_comp)
+                    max_count = max(counts.values()) if counts else 0
+                    for cat, count in counts.items():
+                        if count == max_count and max_count > 0:
+                            preferences[bulk_comp][cat] += 1
+        
+        return dict(preferences)
+
+    def format_catalyst_preference(self, preferences: Dict[str, Dict[str, int]]) -> str:
+        """
+        Format the catalyst preference summary for each bulk composition.
+
+        Args:
+            preferences (Dict[str, Dict[str, int]]): Nested dictionary of catalyst preferences per bulk composition.
+
+        Returns:
+            str: Formatted summary of catalyst preferences.
+        """
+        summary = "Catalyst preferences by bulk composition:\n"
+
+        for bulk_comp, cat_prefs in preferences.items():
+            summary += f"- For {bulk_comp}:\n"
+            if not cat_prefs:
+                summary += "  Unable to determine a preference based on the available data.\n"
+            elif len(set(cat_prefs.values())) == 1 and len(cat_prefs) > 1:
+                summary += f"  The surface equally prefers {' and '.join(cat_prefs.keys())}-rich sites.\n"
+            else:
+                preferred_catalyst = max(cat_prefs, key=cat_prefs.get)
+                summary += f"  The preferable surface appears to be {preferred_catalyst}-rich.\n"
+
+        return summary
+    
+    def parse_site_composition(self, site_comp: str) -> Dict[str, int]:
+        """
+        Parse the site composition string and return a dictionary of catalyst counts.
+
+        Args:
+            site_comp (str): The site composition string (e.g., "Near 2 Cu, 3 Zn" or "Near 1 Cu").
+
+        Returns:
+            Dict[str, int]: A dictionary with catalysts as keys and their counts as values.
+        """
+        counts = {cat: 0 for cat in self.catalysts}  # Initialize all catalysts with 0 count
+        if not isinstance(site_comp, str) or not site_comp.startswith('Near'):
+            return counts
+        
+        # Replace "a single" with "1"
+        site_comp = re.sub(r'a single', '1', site_comp, flags=re.IGNORECASE)
+
+        parts = site_comp.split(',')
+        for part in parts:
+            match = re.search(r'(\d+)\s+(\w+)', part)
+            if match:
+                count, catalyst = match.groups()
+                if catalyst in counts:
+                    counts[catalyst] = int(count)
+
+        return counts
 
     def summarize_series(self, series: pd.Series, is_active_sites_query: bool, adsorbate: str) -> str:
         """
@@ -445,16 +536,17 @@ class MicroStructureAgent:
 if __name__ == "__main__":
     csv_file_path = "/anfhome/shared/chemreasoner/cu_zn_co_to_methanol/reward_values.csv"  # Replace with your actual CSV file path
     env_path = ".env"  # Replace with the path to your .env file
+    catalysts = ["Cu", "Zn"]  # This would typically come from LLMLogAgent
 
     from azure_openai_handler import AzureOpenAIHandler
     azure_handler = AzureOpenAIHandler(env_path)
-    micro_agent = MicroStructureAgent(csv_file_path, azure_handler)
+    micro_agent = MicroStructureAgent(csv_file_path, azure_handler, catalysts)
 
     # Example queries
     queries = [
-        "What are proposed active sites for Cu-Zn based catalysts?",
-        "What are the active sites of CO in Cu-Zn catalysts?",
-        "Give me a summary of active sites for H adsorption.",
+        # "What are proposed active sites for Cu-Zn based catalysts?",
+        # "What are the active sites of CO in Cu-Zn catalysts?",
+        # "Give me a summary of active sites for H adsorption.",
         "Give a summary of preferable surface for CO adsorption",
         "Which is preferable surface - Cu rich or Zn rich?",
         # "Compare the average rewards of Cu and Zn catalysts across all Miller indices.",
@@ -463,7 +555,7 @@ if __name__ == "__main__":
     ]
 
     for query in queries:
-        catalysts = ["Cu", "Zn"]  # This would typically come from LLMLogAgent
-        result = micro_agent.answer_query(query, catalysts, max_attempts=5)
+        
+        result = micro_agent.answer_query(query, max_attempts=3)
         logger.info(f"Query: {query}")
         logger.info(f"Result:\n{result}\n")
