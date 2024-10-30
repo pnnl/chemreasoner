@@ -572,6 +572,10 @@ if __name__ == "__main__":
     parser.add_argument("--root-prompt", type=str, default=None)
     parser.add_argument("--temperature", type=float, default=None)
 
+    parser.add_argument("--num-bulks", type=int, default=None)
+    parser.add_argument("--num-millers", type=int, default=None)
+    parser.add_argument("--num-site-compositions", type=int, default=None)
+
     parser.add_argument("--gnn-model", type=str, default=None)
     parser.add_argument("--gnn-batch-size", type=int, default=None)
     parser.add_argument("--gnn-device", type=str, default=None)

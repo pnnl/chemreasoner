@@ -144,3 +144,4 @@ CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that perform the CO2
 CO2ToMethanol,Generate a list of top-5 {metallic catalysts} that[ are cheap and] perform the CO2 to methanol conversion reaction at lower temperature (<200 C).
 CO2ToMethanol,Generate a list of top-5 {bimetallic catalysts} that exhibit high activity for the CO2 to methanol conversion reaction.
 CO2ToMethanol,Generate a list of top-5 {bimetallic catalysts (combination of noble metal and base metal)} that exhibit high activity for the CO2 to methanol conversion reaction.
+COToMethanol,Generate a list of top-5 {metallic catalysts} that exhibit high activity for the CO to methanol conversion reaction.
