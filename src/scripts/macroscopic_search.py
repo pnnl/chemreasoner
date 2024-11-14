@@ -209,7 +209,7 @@ def get_indeces(config):
     start_query = config.getint("MACRO SEARCH", "start-query")
     assert start_query >= 0
     end_query = config.getint("MACRO SEARCH", "end-query")
-    assert start_query > start_query
+    assert end_query > start_query
     return list(range(start_query, end_query))
 
 
