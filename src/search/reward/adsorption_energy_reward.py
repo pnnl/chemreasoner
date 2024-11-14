@@ -371,6 +371,38 @@ class AdsorptionEnergyCalculator:
                 results[catalyst_name].update({key: value})
         return results
 
+    def fetch_calculated_atoms(
+        self,
+        catalyst_structures: list[CatalystDigitalTwin],
+        catalyst_names: list[str] = None,
+    ):
+        """Fetch the structures associated with the given structures."""
+        if catalyst_names is None:
+            catalyst_names = list(range(len(catalyst_structures)))
+
+        e_tot_structures, e_tot_names = self.gather_total_energy_structures(
+            catalyst_structures, catalyst_names
+        )
+
+        e_slab_structures, e_slab_names = (
+            self.gather_slab_energy_structures(  # TODO: Don't re-calculate slab reference energies
+                catalyst_structures, catalyst_names
+            )
+        )
+
+        all_structures = e_tot_structures + e_slab_structures
+        all_names = e_tot_names + e_slab_names
+
+        # split into completed and incompleted calculations to avoid repeat work
+        all_structures = []
+        for n in all_names:
+            if not self.check_complete(n):
+                raise FileNotFoundError(
+                    f"The simulation had not completed for structure {n}"
+                )
+            all_structures.append(self.fetch_complete_structure(n))
+        return all_structures, all_names
+
     def gather_total_energy_structures(
         self, structures: list[CatalystDigitalTwin], names
     ):
