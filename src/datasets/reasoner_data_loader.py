@@ -1,4 +1,5 @@
 """A class to load reasoner states, policies, and reward functions for state."""
+
 import sys
 
 from pathlib import Path
@@ -48,6 +49,20 @@ def get_state(dataset, prompt, chain_of_thought=True):
             chain_of_thought=chain_of_thought,
         )
     elif dataset == "CO2ToMethanol":
+        return get_initial_state_methanol(
+            prompt,
+            prediction_model=None,
+            reward_model=None,
+            chain_of_thought=chain_of_thought,
+        )
+    elif dataset == "COToEthanol":
+        return get_initial_state_ethanol(
+            prompt,
+            prediction_model=None,
+            reward_model=None,
+            chain_of_thought=chain_of_thought,
+        )
+    elif dataset == "COToMethanol":
         return get_initial_state_methanol(
             prompt,
             prediction_model=None,
