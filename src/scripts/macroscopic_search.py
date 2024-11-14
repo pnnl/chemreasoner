@@ -216,7 +216,7 @@ def get_indeces(config):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--config_path", type=str, default=None)
+    parser.add_argument("--config-path", type=str, default=None)
 
     args = parser.parse_args()
 
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     assert depth > 0
 
     start = time.time()
-    save_dir = Path(config.get)
+    save_dir = Path(config.get("MACRO SEARCH", "savedir"))
     save_dir.mkdir(parents=True, exist_ok=True)
 
     llm_function = get_llm_function(config)
