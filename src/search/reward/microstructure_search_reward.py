@@ -13,7 +13,7 @@ from ase.data import chemical_symbols
 from pymatgen.ext.matproj import MPRester
 
 sys.path.append("src")
-from ll.ase_interface import StructureGenerationError
+from llm.ase_interface import StructureGenerationError
 from search.state.reasoner_state import ReasonerState
 from search.reward.base_reward import BaseReward
 from search.methods.tree_search.microstructure_tree_search import (
