@@ -207,7 +207,7 @@ def get_llm_function(config):
 def get_indeces(config):
     """Get the state indeces provided in args."""
     start_query = config.getint("MACRO SEARCH", "start-query")
-    assert args.start_query >= 0
+    assert start_query >= 0
     end_query = config.getint("MACRO SEARCH", "end-query")
     assert start_query > start_query
     return list(range(start_query, end_query))
@@ -242,7 +242,7 @@ if __name__ == "__main__":
         continue_searching = True
         try:
             logging.info(
-                f"=============TIMING: Processing query {i}/{len(indeces)}================"
+                f"=============TIMING: Processing query {i}/{len(indices)}================"
             )
             start = time.time()
             fname = save_dir / f"search_tree_{i}.json"
