@@ -136,9 +136,7 @@ def get_reward_function(config, state, llm_function, query_index):
             **nnp_kwargs,
         )
     elif config.get("REWARD", "reward-function") == "microstructure-search-reward":
-        search_dir = Path(
-            config.get("MACRO SEARCH", "save-dir"), f"query_{query_index}"
-        )
+        search_dir = Path(config.get("MACRO SEARCH", "savedir"), f"query_{query_index}")
         search_dir.mkdir(parents=True, exist_ok=True)
         return microstructure_search_reward.StructureReward(
             llm_function=llm_function,
