@@ -19,7 +19,6 @@ import pandas as pd
 sys.path.append("src")
 from datasets import reasoner_data_loader  # noqa:E402
 from llm.azure_open_ai_interface import AzureOpenaiInterface  # noqa:E402
-from llm.llama2_vllm_chemreasoner import LlamaLLM  # noqa:E402
 from search.policy import coherent_policy, reasoner_policy  # noqa:E402
 from search.reward import (
     simulation_reward,
@@ -193,6 +192,8 @@ def get_llm_function(config):
             model=config.get("MACRO SEARCH", "llm"),
         )
     elif config.get("MACRO SEARCH", "llm") == "llama2-13b":
+        from llm.llama2_vllm_chemreasoner import LlamaLLM  # noqa:E402
+
         llm_function = LlamaLLM(
             "meta-llama/Llama-2-13b-chat-hf",
             num_gpus=1,
