@@ -71,7 +71,7 @@ def get_search_method(config, data, policy, reward_fn):
         )
 
 
-def get_reward_function(config, state, llm_function):
+def get_reward_function(config, state, llm_function, query_index):
     """Get the reward function provided in args."""
     penalty_value = config.getfloat("REWARD", "reward-function")
     assert penalty_value < 0, "invalid parameter"
@@ -137,10 +137,16 @@ def get_reward_function(config, state, llm_function):
             **nnp_kwargs,
         )
     elif config.get("REWARD", "reward_function") == "microstructure-reward":
+        search_dir = Path(
+            config.get("MACRO SEARCH", "save-dir"), f"query_{query_index}"
+        )
+        search_dir.mkdir(parents=True, exist_ok=True)
         return microstructure_search_reward.StructureReward(
             llm_function=llm_function,
-            microstructure_results_dir=Path(args.microstructure_results_dir),
             config=config,
+            microstructure_results_dir=search_dir,
+            penalty_value=penalty_value,
+            reward_max_attempts=reward_max_attempts,
         )
 
     elif config.get("REWARD", "reward_function") == "llm-reward":
@@ -227,11 +233,11 @@ if __name__ == "__main__":
     llm_function = get_llm_function(config)
 
     df = pd.read_csv(config.get("MACRO SEARCH", "dataset-path"))
-    indeces = get_indeces(config)
+    indices = get_indeces(config)
     end = time.time()
     logging.info(f"TIMING: Initialization time: {end-start}")
 
-    for i in indeces:
+    for i in indices:
         continue_searching = True
         try:
             logging.info(
@@ -242,7 +248,7 @@ if __name__ == "__main__":
             starting_state = get_state_from_idx(i, df)
 
             policy = get_policy(config, llm_function)
-            reward_fn = get_reward_function(config, starting_state, llm_function)
+            reward_fn = get_reward_function(config, starting_state, llm_function, i)
 
             if Path(fname).exists() and os.stat(fname).st_size != 0:
                 print(f"Loading a tree from {fname}")
