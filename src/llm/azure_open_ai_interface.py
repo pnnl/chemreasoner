@@ -126,6 +126,18 @@ class AzureOpenaiInterface:
                 **kwargs,
             )
         )
+        # except RuntimeError as err:
+        #     if "asyncio.run() cannot be called from a running event loop" in str(err):
+        #         answer_objects = await azure_openai_chat_async_evaluation(
+        #             client,
+        #             prompts,
+        #             system_prompts=system_prompts,
+        #             model=self.model,
+        #             **kwargs,
+        #         )
+        #     else:
+        #         raise err
+
         answer_strings = [a[0].choices[0].message.content for a in answer_objects]
         usages = [
             {
@@ -139,4 +151,5 @@ class AzureOpenaiInterface:
 
 
 if __name__ == "__main__":
-    run_azure_openai_prompts(["test prompt", "test 2"], ["sys1", "sys2"])
+    interface = AzureOpenaiInterface()
+    print(interface(["test prompt", "test 2"], ["sys1", "sys2"]))

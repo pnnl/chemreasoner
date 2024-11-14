@@ -86,19 +86,34 @@ class OCPMicrostructurePlanner:
         "site_placement": 10,
         "__default__": 1,
     }
-    num_choices = {
+    num_choices_default = {
         "bulk": 4,
         "millers": 4,
         "site_placement": 4,
     }
 
     def __init__(
-        self, llm_function=callable, debug: bool = False, num_choices: dict = {}
+        self,
+        llm_function=callable,
+        debug: bool = False,
+        num_choices: dict = {},
+        retries: dict = {},
     ):
         """Init self."""
         self.llm_function = llm_function
         self._site_placements_indices = {}
+
+        self.num_choices = self.num_choices_default.copy()
+        keys = [k for k in num_choices.keys() if k not in self.num_choices.keys()]
+        if len(keys) > 0:
+            raise ValueError(f"Unkown num_choices key {keys}.")
         self.num_choices.update({k: v for k, v in num_choices.items() if v is not None})
+
+        self.retries = self.default_retries.copy()
+        keys = [k for k in retries.keys() if k not in self.default_retries.keys()]
+        if len(keys) > 0:
+            raise ValueError(f"Unkown retries key {keys}.")
+        self.retries.update(retries)
 
     def update_num_choices(self, num_choices: dict[str, int]):
         """Update the num_choices in self with given dictionary."""

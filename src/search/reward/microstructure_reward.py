@@ -67,7 +67,7 @@ class MicrostructureRewardFunction:
         final_values = self._calculate_final_reward(energies=energies)
         return [final_values[s._id] for s in structures]
 
-    def _calculate_final_reward(self, energies: dict[str, float]):
+    def _calculate_final_reward_temperature(self, energies: dict[str, float]):
         """Calculate the final reward associated with the given energies."""
         reactant_energies = self._parse_reactant_energies(energies)
         energy_barriers = self._parse_energy_barriers(energies)
@@ -79,6 +79,24 @@ class MicrostructureRewardFunction:
         }
 
         return rewards
+
+    def _calculate_final_reward(self, energies: dict[str, float]):
+        """Calculate the final reward associated with the given energies."""
+        reactant_energies = self._parse_reactant_energies(energies)
+        energy_barriers = self._parse_energy_barriers(energies)
+        rewards = {  # TODO: Do a better calculation for these
+            k: -1 * (reactant_energies[k] + energy_barriers[k]["best"])
+            for k in reactant_energies.keys()
+        }
+
+        return rewards
+
+    def fetch_calculated_atoms(self, structures: list[CatalystDigitalTwin]) -> Atoms:
+        """Fetch the atoms associated with the given structures, filter by top_p uncertainty."""
+        all_structures, all_names = self.ads_e_calc.fetch_calculated_atoms(
+            catalyst_structures=structures, catalyst_names=[s._id for s in structures]
+        )
+        return all_structures, all_names
 
     def fetch_total_energy_results(self, structures: list[CatalystDigitalTwin]):
         """Fetch the energies associated with the given structures."""
