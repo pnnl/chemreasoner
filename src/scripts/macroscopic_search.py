@@ -135,7 +135,7 @@ def get_reward_function(config, state, llm_function, query_index):
             flip_negative=args.flip_negative,
             **nnp_kwargs,
         )
-    elif config.get("REWARD", "reward-function") == "microstructure-reward":
+    elif config.get("REWARD", "reward-function") == "microstructure-search-reward":
         search_dir = Path(
             config.get("MACRO SEARCH", "save-dir"), f"query_{query_index}"
         )
