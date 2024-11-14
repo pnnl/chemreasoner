@@ -4,6 +4,7 @@ import time
 
 start = time.time()
 import argparse
+import configparser
 import json
 import logging
 import os
@@ -48,36 +49,37 @@ class NpEncoder(json.JSONEncoder):
         return super(NpEncoder, self).default(obj)
 
 
-def get_search_method(args, data, policy, reward_fn):
+def get_search_method(config, data, policy, reward_fn):
     """Get the search method provided in args."""
-    if args.search_method == "beam-search":
-        assert isinstance(args.num_keep, int) and args.num_keep > 0, "invalid parameter"
-        assert (
-            isinstance(args.num_generate, int) and args.num_generate > 0
-        ), "invalid parameter"
+    if config.get("SEARCH", "search-method") == "beam-search":
+        num_keep = config.getint("BEAM SEARCH", "num-keep")
+        num_generate = config.getint("BEAM SEARCH", "num-generate")
+        assert num_keep > 0, "invalid parameter"
+        assert num_generate > 0, "invalid parameter"
         return BeamSearchTree(
             data,
             policy,
             reward_fn,
-            num_generate=args.num_generate,
-            num_keep=args.num_keep,
+            num_generate=num_generate,
+            num_keep=num_keep,
         )
-    elif args.search_method == "mcts":
+    elif config.get("SEARCH", "search-method") == "mcts":
         raise NotImplementedError("Monte Carlo Tree Search is not implemented, yet.")
     else:
-        raise NotImplementedError(f"Unkown Search strategy {args.search_method}.")
+        raise NotImplementedError(
+            f"Unkown Search strategy {config.get('SEARCH', 'search-method')}."
+        )
 
 
-def get_reward_function(args, state, llm_function):
+def get_reward_function(config, state, llm_function):
     """Get the reward function provided in args."""
-    assert (
-        isinstance(args.penalty_value, float) and args.penalty_value < 0
-    ), "invalid parameter"
-    assert (
-        isinstance(args.reward_max_attempts, int) and args.reward_max_attempts > 0
-    ), "invalid parameter"
+    penalty_value = config.getfloat("REWARD", "reward-function")
+    assert penalty_value < 0, "invalid parameter"
+    reward_max_attempts = config.getint("REWARD", "reward-max-attempts")
+    assert reward_max_attempts > 0, "invalid parameter"
 
-    if args.reward_function == "simulation-reward":
+    # TODO: make these args follow config
+    if config.get("REWARD", "reward_function") == "simulation-reward":
         assert (
             isinstance(args.nnp_class, str) and args.nnp_class == "oc"
         ), "invalid parameter"
@@ -134,64 +136,14 @@ def get_reward_function(args, state, llm_function):
             flip_negative=args.flip_negative,
             **nnp_kwargs,
         )
-    elif args.reward_function == "microstructure-reward":
-        assert (
-            isinstance(args.nnp_class, str) and args.nnp_class == "oc"
-        ), "invalid parameter"
-        assert (
-            isinstance(args.num_bulks, int) and args.num_bulks > 0
-        ), "invalid parameter"
-        assert (
-            isinstance(args.num_millers, int) and args.num_millerss > 0
-        ), "invalid parameter"
-        assert (
-            isinstance(args.num_site_placements, int) and args.num_site_placements > 0
-        ), "invalid parameter"
-        assert isinstance(args.microstructure_results_dir, str), "invalid parameter"
-
-        # check nnp_kwargs
-        assert (
-            isinstance(args.reward_max_attempts, int) and args.reward_max_attempts > 0
-        ), "invalid parameter"
-        assert args.gnn_model in [
-            "gemnet-oc-22",
-        ], "invalid parameter"
-        assert isinstance(args.gnn_traj_dir, str), "invalid parameter"
-        assert (
-            isinstance(args.gnn_batch_size, int) and args.gnn_batch_size > 0
-        ), "invalid parameter"
-        assert isinstance(args.gnn_device, str) and (
-            args.gnn_device == "cpu" or args.gnn_device == "cuda"
-        ), "invalid parameter"
-        assert (
-            isinstance(args.gnn_ads_tag, int) and args.gnn_ads_tag == 2
-        ), "invalid parameter"
-        assert (
-            isinstance(args.gnn_fmax, float) and args.gnn_fmax > 0
-        ), "invalid parameter"
-        assert (
-            isinstance(args.gnn_steps, int) and args.gnn_steps >= 0
-        ), "invalid parameter"
-        nnp_kwargs = {
-            "model": args.gnn_model,
-            "batch_size": args.gnn_batch_size,
-            "device": args.gnn_device,
-            "ads_tag": args.gnn_ads_tag,
-            "fmax": args.gnn_fmax,
-            "steps": args.gnn_steps,
-        }
+    elif config.get("REWARD", "reward_function") == "microstructure-reward":
         return microstructure_search_reward.StructureReward(
             llm_function=llm_function,
             microstructure_results_dir=Path(args.microstructure_results_dir),
-            num_bulks=args.num_bulks,
-            num_millers=args.num_millers,
-            num_site_placements=args.num_site_placements,
-            penalty_value=args.penalty_value,
-            max_attempts=args.max_attempts,
-            **nnp_kwargs,
+            config=config,
         )
 
-    elif args.reward_function == "llm-reward":
+    elif config.get("REWARD", "reward_function") == "llm-reward":
         assert isinstance(args.reward_limit, float), "invalid parameter"
         return llm_reward.LLMRewardFunction(
             llm_function,
@@ -203,16 +155,18 @@ def get_reward_function(args, state, llm_function):
         raise NotImplementedError(f"Unknown reward function {args.reward_function}.")
 
 
-def get_policy(args, llm_function: callable = None):
+def get_policy(config, llm_function: callable = None):
     """Get the policy provided in args."""
-    if args.policy == "coherent-policy":
-        assert isinstance(args.max_num_actions, int) and args.max_num_actions > 0
-        assert (
-            isinstance(args.policy_max_attempts, int) and args.policy_max_attempts > 0
-        )
+    if config.get("POLICY", "policy") == "coherent-policy":
+        max_num_actions = config.getint("COHERENT POLICY", "max-num-actions")
+        assert max_num_actions > 0
+        policy_max_attempts = config.getint("COHERENT POLICY", "policy-max-attempts")
+        assert policy_max_attempts > 0
         assert llm_function is not None
-        return coherent_policy.CoherentPolicy(llm_function, args.max_num_actions)
-    elif args.policy == "reasoner-policy":
+        return coherent_policy.CoherentPolicy(
+            llm_function, max_num_actions, max_attempts=policy_max_attempts
+        )
+    elif config.get("POLICY", "policy") == "reasoner-policy":
         return reasoner_policy.ReasonerPolicy(try_oxides=False)
 
 
@@ -223,96 +177,57 @@ def get_state_from_idx(idx, df: pd.DataFrame):
     return reasoner_data_loader.get_state(dataset, query, chain_of_thought=True)
 
 
-def get_llm_function(args):
+def get_llm_function(config):
     """Get the llm function specified by args."""
-    assert isinstance(args.dotenv_path, str)
-    assert isinstance(args.llm, str)
-    if args.llm in ["gpt-4", "gpt-3.5-turbo"]:
-        llm_function = AzureOpenaiInterface(args.dotenv_path, model=args.llm)
-    elif args.llm == "llama2-13b":
+    assert isinstance(config.get("MACRO SEARCH", "dotenv-path"), str)
+    assert isinstance(config.get("MACRO SEARCH", "llm"), str)
+    if config.get("MACRO SEARCH", "llm") in ["gpt-4", "gpt-3.5-turbo"]:
+        llm_function = AzureOpenaiInterface(
+            config.get("MACRO SEARCH", "dotenv-path"),
+            model=config.get("MACRO SEARCH", "llm"),
+        )
+    elif config.get("MACRO SEARCH", "llm") == "llama2-13b":
         llm_function = LlamaLLM(
             "meta-llama/Llama-2-13b-chat-hf",
             num_gpus=1,
         )
     else:
-        raise ValueError(f"Unkown LLM {args.llm}.")
+        raise ValueError(f"Unkown LLM {config.get('MACRO SEARCH', 'llm')}.")
 
     return llm_function
 
 
-def get_indeces(args):
+def get_indeces(config):
     """Get the state indeces provided in args."""
-    assert isinstance(args.start_query, int) and args.start_query >= 0
-    assert isinstance(args.end_query, int) and args.end_query > args.start_query
-    return list(range(args.start_query, args.end_query))
+    start_query = config.getint("MACRO SEARCH", "start-query")
+    assert args.start_query >= 0
+    end_query = config.getint("MACRO SEARCH", "end-query")
+    assert start_query > start_query
+    return list(range(start_query, end_query))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--savedir", type=str, default=None)
-    parser.add_argument("--dataset-path", type=str, default=None)
-    parser.add_argument("--start-query", type=int)
-    parser.add_argument("--end-query", type=int)
-    parser.add_argument("--depth", type=int, default=None)
-    parser.add_argument("--opt-debug", type=bool, default=False)
-    parser.add_argument("--dotenv-path", type=str, default=None)
-    parser.add_argument("--llm", type=str, default=None)
-
-    # Policy
-    parser.add_argument("--policy", type=str, default=None)
-
-    # Coherent Policy
-    parser.add_argument("--policy-max-attempts", type=int, default=None)
-    parser.add_argument("--max-num-actions", type=int, default=None)
-
-    # Reward function
-    parser.add_argument("--reward-function", type=str, default=None)
-    parser.add_argument("--penalty-value", type=float, default=None)
-    parser.add_argument("--reward-max-attempts", type=int, default=None)
-
-    # Simulation reward
-    parser.add_argument("--nnp-class", type=str, default=None)
-    parser.add_argument("--num-slab-samples", type=int, default=None)
-    parser.add_argument("--num-adslab-samples", type=int, default=None)
-    parser.add_argument("--gnn-service-port", type=int, default=None)
-    parser.add_argument("--flip-negative", action="store_true")
-
-    # Microstructre Search Reward
-    parser.add_argument("--num-bulks", type=int, default=None)
-    parser.add_argument("--num-millers", type=int, default=None)
-    parser.add_argument("--num-site-placements", type=int, default=None)
-    parser.add_argument("--microstructure-results-dir", type=str, default=None)
-
-    # nnp_kwargs
-    parser.add_argument("--gnn-model", type=str, default=None)
-    parser.add_argument("--gnn-traj-dir", type=str, default=None)
-    parser.add_argument("--gnn-batch-size", type=int, default=None)
-    parser.add_argument("--gnn-device", type=str, default=None)
-    parser.add_argument("--gnn-ads-tag", type=int, default=None)
-    parser.add_argument("--gnn-fmax", type=float, default=None)
-    parser.add_argument("--gnn-steps", type=int, default=None)
-    parser.add_argument("--gnn-port", type=int, default=None)
-
-    parser.add_argument("--search-method", type=str, default=None)
-    parser.add_argument("--num-keep", type=int, default=None)
-    parser.add_argument("--num-generate", type=int, default=None)
-
-    # llm reward
-    parser.add_argument("--reward-limit", type=float, default=None)
+    parser.add_argument("--config_path", type=str, default=None)
 
     args = parser.parse_args()
 
-    assert isinstance(args.depth, int) and args.depth > 0
+    config = configparser.ConfigParser()
+
+    config.read(args.config_path)
+
+    depth = config.getint("MACRO SEARCH", "depth")
+    assert depth > 0
 
     start = time.time()
-    save_dir = Path(args.savedir)
+    save_dir = Path(config.get)
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    llm_function = get_llm_function(args)
+    llm_function = get_llm_function(config)
 
-    df = pd.read_csv(args.dataset_path)
-    indeces = get_indeces(args)
+    df = pd.read_csv(config.get("MACRO SEARCH", "dataset-path"))
+    indeces = get_indeces(config)
     end = time.time()
     logging.info(f"TIMING: Initialization time: {end-start}")
 
@@ -326,8 +241,8 @@ if __name__ == "__main__":
             fname = save_dir / f"search_tree_{i}.json"
             starting_state = get_state_from_idx(i, df)
 
-            policy = get_policy(args, llm_function)
-            reward_fn = get_reward_function(args, starting_state, llm_function)
+            policy = get_policy(config, llm_function)
+            reward_fn = get_reward_function(config, starting_state, llm_function)
 
             if Path(fname).exists() and os.stat(fname).st_size != 0:
                 print(f"Loading a tree from {fname}")
@@ -340,16 +255,13 @@ if __name__ == "__main__":
                         reward_fn,
                         node_constructor=ReasonerState.from_dict,
                     )
-                    assert (
-                        isinstance(args.num_keep, int)
-                        and args.num_keep == search.num_keep
-                    ), "mismatch parameter"
-                    assert (
-                        isinstance(args.num_generate, int)
-                        and args.num_generate == search.num_generate
-                    ), "mismatch parameter"
+                    num_keep = config.getint("BEAM SEARCH", "num-keep")
+                    assert num_keep == search.num_keep, "mismatch parameter"
+
+                    num_generate = config.getint("BEAM SEARCH", "num-generate")
+                    assert num_generate == search.num_generate, "mismatch parameter"
             else:
-                search = get_search_method(args, starting_state, policy, reward_fn)
+                search = get_search_method(config, starting_state, policy, reward_fn)
 
             end = time.time()
             logging.info(f"TIMING: Time to set up query: {end-start}")
@@ -357,7 +269,7 @@ if __name__ == "__main__":
             start_time = time.time()
             timing_data = [start_time]
             continue_searching = True
-            while len(search) < args.depth and continue_searching:
+            while len(search) < depth and continue_searching:
                 start = time.time()
 
                 data = search.step_return()
