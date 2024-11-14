@@ -143,7 +143,7 @@ def get_reward_function(config, state, llm_function, query_index):
             config=config,
             microstructure_results_dir=search_dir,
             penalty_value=penalty_value,
-            reward_max_attempts=reward_max_attempts,
+            max_attempts=reward_max_attempts,
         )
 
     elif config.get("REWARD", "reward-function") == "llm-reward":
