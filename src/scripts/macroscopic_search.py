@@ -78,7 +78,7 @@ def get_reward_function(config, state, llm_function, query_index):
     assert reward_max_attempts > 0, "invalid parameter"
 
     # TODO: make these args follow config
-    if config.get("REWARD", "reward_function") == "simulation-reward":
+    if config.get("REWARD", "reward-function") == "simulation-reward":
         assert (
             isinstance(args.nnp_class, str) and args.nnp_class == "oc"
         ), "invalid parameter"
@@ -135,7 +135,7 @@ def get_reward_function(config, state, llm_function, query_index):
             flip_negative=args.flip_negative,
             **nnp_kwargs,
         )
-    elif config.get("REWARD", "reward_function") == "microstructure-reward":
+    elif config.get("REWARD", "reward-function") == "microstructure-reward":
         search_dir = Path(
             config.get("MACRO SEARCH", "save-dir"), f"query_{query_index}"
         )
@@ -148,7 +148,7 @@ def get_reward_function(config, state, llm_function, query_index):
             reward_max_attempts=reward_max_attempts,
         )
 
-    elif config.get("REWARD", "reward_function") == "llm-reward":
+    elif config.get("REWARD", "reward-function") == "llm-reward":
         assert isinstance(args.reward_limit, float), "invalid parameter"
         return llm_reward.LLMRewardFunction(
             llm_function,
@@ -157,7 +157,9 @@ def get_reward_function(config, state, llm_function, query_index):
             penalty_value=args.penalty_value,
         )
     else:
-        raise NotImplementedError(f"Unknown reward function {args.reward_function}.")
+        raise NotImplementedError(
+            f"Unknown reward function {config.get('REWARD', 'reward-function')}."
+        )
 
 
 def get_policy(config, llm_function: callable = None):
