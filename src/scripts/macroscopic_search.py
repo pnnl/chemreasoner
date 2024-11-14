@@ -72,7 +72,7 @@ def get_search_method(config, data, policy, reward_fn):
 
 def get_reward_function(config, state, llm_function, query_index):
     """Get the reward function provided in args."""
-    penalty_value = config.getfloat("REWARD", "reward-function")
+    penalty_value = config.getfloat("REWARD", "penalty-value")
     assert penalty_value < 0, "invalid parameter"
     reward_max_attempts = config.getint("REWARD", "reward-max-attempts")
     assert reward_max_attempts > 0, "invalid parameter"
