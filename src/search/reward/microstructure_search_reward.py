@@ -171,20 +171,21 @@ class StructureReward(BaseReward):
                             raise StructureGenerationError(
                                 f"Cannot create bulk with slab_syms {symbols}."
                             )
-                        elif len(get_available_bulks(symbols)) == 0:
-                            raise StructureGenerationError(
-                                f"No available bulks for the symbols {symbols}."
-                            )
                         results_dir = (
                             self.microstructure_results_dir
                             / f"{'_'.join([s.lower() for s in symbols])}_{query_name}"
                         )
                         rewards_csv_path = results_dir / "reward_values.csv"
                         if not rewards_csv_path.exists():
-                            results_dir.mkdir(parents=True, exist_ok=True)
-                            dataframe = run_microstructure_search(
-                                self.config, symbols, results_dir
-                            )
+                            if len(get_available_bulks(symbols)) == 0:
+                                raise StructureGenerationError(
+                                    f"No available bulks for the symbols {symbols}."
+                                )
+                            else:
+                                results_dir.mkdir(parents=True, exist_ok=True)
+                                dataframe = run_microstructure_search(
+                                    self.config, symbols, results_dir
+                                )
                         else:
                             dataframe = pd.read_csv(rewards_csv_path)
                         node_rewards_data[candidate] = self.process_dataframe(dataframe)
@@ -199,8 +200,6 @@ class StructureReward(BaseReward):
                 state_rewards.append(final_reward)
         return state_rewards
 
-
-
     def process_dataframe(self, dataframe):
         """Process a reward from the given dataframe."""
         return np.max(dataframe["reward"])
@@ -209,7 +208,6 @@ class StructureReward(BaseReward):
         """Turn node rewards into a reward value."""
         print(node_rewards)
         return np.mean(list(node_rewards.values()))
-
 
 
 def get_available_bulks(syms):
