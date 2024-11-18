@@ -156,6 +156,7 @@ class StructureReward(BaseReward):
                 )
                 state_rewards.append(self.penalty_value)
             else:
+                retry_logs = []
                 for j, candidate, symbols in zip(
                     range(len(candidates_list)), candidates_list, slab_syms[i]
                 ):
@@ -183,16 +184,35 @@ class StructureReward(BaseReward):
                                 )
                             else:
                                 results_dir.mkdir(parents=True, exist_ok=True)
-                                dataframe = run_microstructure_search(
-                                    self.config, symbols, results_dir
-                                )
+                                attempts = 0
+                                while attempts < self.max_attempts:
+                                    try:
+                                        attempts += 1
+                                        dataframe = run_microstructure_search(
+                                            self.config, symbols, results_dir
+                                        )
+                                        node_rewards_data[candidate] = (
+                                            self.process_dataframe(dataframe)
+                                        )
+                                    except Exception as err:
+                                        if attempts == self.max_attempts:
+                                            node_rewards_data[candidate] = (
+                                                self.penalty_value
+                                            )
+                                        logging.warning(
+                                            f"Microstructure Search failed with error {err}."
+                                        )
+                                        retry_logs.append(
+                                            f"Microstructure Search failed with error {err}."
+                                        )
                         else:
                             dataframe = pd.read_csv(rewards_csv_path)
-                        node_rewards_data[candidate] = self.process_dataframe(dataframe)
+                            node_rewards_data[candidate] = self.process_dataframe(
+                                dataframe
+                            )
 
                     except StructureGenerationError as err:
                         logging.warning(err)
-                        slab_syms[i] = None
                         node_rewards_data[candidate] = self.penalty_value
                 # Logging here to save any info from micro search in state s
 
