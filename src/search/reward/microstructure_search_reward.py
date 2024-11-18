@@ -185,7 +185,8 @@ class StructureReward(BaseReward):
                             else:
                                 results_dir.mkdir(parents=True, exist_ok=True)
                                 attempts = 0
-                                while attempts < self.max_attempts:
+                                successful = False
+                                while attempts < self.max_attempts and not successful:
                                     try:
                                         attempts += 1
                                         dataframe = run_microstructure_search(
@@ -194,6 +195,7 @@ class StructureReward(BaseReward):
                                         node_rewards_data[candidate] = (
                                             self.process_dataframe(dataframe)
                                         )
+                                        successful = True
                                     except Exception as err:
                                         if attempts == self.max_attempts:
                                             node_rewards_data[candidate] = (
