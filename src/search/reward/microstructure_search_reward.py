@@ -206,6 +206,9 @@ class StructureReward(BaseReward):
                                             f"Microstructure Search failed with error {err}."
                                         )
                         else:
+                            logging.info(
+                                f"Reading results for {candidate} from file {rewards_csv_path}."
+                            )
                             dataframe = pd.read_csv(rewards_csv_path)
                             node_rewards_data[candidate] = self.process_dataframe(
                                 dataframe
