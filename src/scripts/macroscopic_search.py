@@ -267,31 +267,59 @@ if __name__ == "__main__":
 
                     num_generate = config.getint("BEAM SEARCH", "num-generate")
                     assert num_generate == search.num_generate, "mismatch parameter"
+                step_times_list = tree_data["step_times"]
+                timing_data = {
+                    "total_time": tree_data["total_time"],
+                    "step_times": step_times_list,
+                }
             else:
+                logging.info("RUNNING THE ROOT NODE")
+                tree_start_time = time.time()
+                step_start_time = time.time()
+
                 search = get_search_method(config, starting_state, policy, reward_fn)
 
+                step_end_time = time.time()
+                step_times_list = [step_end_time - step_start_time]
+                timing_data = {
+                    "total_time": step_end_time - tree_start_time,
+                    "step_times": step_times_list,
+                }
+                logging.info(
+                    f"TIMING: Time to set up query: {step_end_time - step_start_time} (s)"
+                )
+
             end = time.time()
-            logging.info(f"TIMING: Time to set up query: {end-start}")
-
             start_time = time.time()
-            timing_data = [start_time]
             continue_searching = True
+            data = search.get_processed_data()
             while len(search) < depth and continue_searching:
-                start = time.time()
-
-                data = search.step_return()
-                end_time = time.time()
-                timing_data.append(end_time - timing_data[-1])
+                print(data)
                 with open(fname, "w") as f:
-                    data.update(
-                        {"total_time": end_time - start_time, "step_times": timing_data}
-                    )
+                    data.update(timing_data)
                     json.dump(data, f, cls=NpEncoder)
 
-                end = time.time()
-                logging.info(f"TIMING: One search iteration: {end-start}")
+                step_start_time = time.time()
 
+                data = search.step_return()
+                step_end_time = time.time()
+                step_times_list.append(step_end_time - step_start_time)
+
+                timing_data = {
+                    "total_time": step_end_time - tree_start_time,
+                    "step_times": step_times_list,
+                }
+
+                logging.info(
+                    f"TIMING: One search iteration: {step_end_time - tree_start_time} (s)"
+                )
                 logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
+
+            logging.info(f"FINISHED TREE SEARCH FOR QUERY {i}.")
+            with open(fname, "w") as f:
+                data.update(timing_data)
+                json.dump(data, f, cls=NpEncoder)
+
         except Exception as err:
             logging.warning(f"Could not complete search with error: {err}")
             logging.warning(format_exc())

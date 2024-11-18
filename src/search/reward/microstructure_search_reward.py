@@ -130,7 +130,6 @@ class StructureReward(BaseReward):
         query_name="co_to_methanol",
     ):
         """Run the microstructure planner for the predicted catalysts."""
-        rewards_data = {}
         slab_syms = [None] * len(states)
         attempts = 0
         start = time.time()
@@ -145,8 +144,9 @@ class StructureReward(BaseReward):
         logging.info(
             f"TIMING: Candidate/symbol generation finished in reward function {end-start}"
         )
-
+        state_rewards = []
         for i, s in enumerate(states):
+            node_rewards_data = {}
             candidates_list = s.candidates
             if slab_syms[i] is None:
                 logging.warning(
@@ -154,6 +154,7 @@ class StructureReward(BaseReward):
                     "\n\nInto catalyst symbols. "
                     "Returning the penalty value for that answer."
                 )
+                state_rewards.append(self.penalty_value)
             else:
                 for j, candidate, symbols in zip(
                     range(len(candidates_list)), candidates_list, slab_syms[i]
@@ -176,7 +177,7 @@ class StructureReward(BaseReward):
                             )
                         results_dir = (
                             self.microstructure_results_dir
-                            / f"{'_'.join([s.lower for s in symbols])}_{query_name}"
+                            / f"{'_'.join([s.lower() for s in symbols])}_{query_name}"
                         )
                         rewards_csv_path = results_dir / "reward_values.csv"
                         if not rewards_csv_path.exists():
@@ -185,17 +186,30 @@ class StructureReward(BaseReward):
                                 self.config, symbols, results_dir
                             )
                         else:
-                            dataframe = pd.read_csv(dataframe)
-                        rewards_data[candidate] = self.process_dataframe(dataframe)
+                            dataframe = pd.read_csv(rewards_csv_path)
+                        node_rewards_data[candidate] = self.process_dataframe(dataframe)
 
                     except StructureGenerationError as err:
                         logging.warning(err)
                         slab_syms[i] = None
-                        rewards_data[candidate] = self.penalty_value
+                        node_rewards_data[candidate] = self.penalty_value
+                # Logging here to save any info from micro search in state s
+
+                final_reward = self.aggregate_rewards(node_rewards_data)
+                state_rewards.append(final_reward)
+        return state_rewards
+
+
 
     def process_dataframe(self, dataframe):
         """Process a reward from the given dataframe."""
         return np.max(dataframe["reward"])
+
+    def aggregate_rewards(self, node_rewards):
+        """Turn node rewards into a reward value."""
+        print(node_rewards)
+        return np.mean(list(node_rewards.values()))
+
 
 
 def get_available_bulks(syms):

@@ -273,7 +273,7 @@ def microstructure_search(
     ):
         nodes = [tree.nodes[root_id]]
         # bulks_idxs = [[0, 1, 2]] * len(nodes)
-        bulks_idxs = ms_planner.run_bulk_prompt(nodes)
+        bulks_idxs = microstructure_planner.run_bulk_prompt(nodes)
         for i in range(len(nodes)):
             parent_node = nodes[i]
 
@@ -293,7 +293,7 @@ def microstructure_search(
     # millers_choices = [[(1, 1, 1), (1, 1, 0), (1, 1, 1), (2, 1, 1)]] * len(
     #     nodes
     # )
-    millers_choices = ms_planner.run_millers_prompt(nodes)
+    millers_choices = microstructure_planner.run_millers_prompt(nodes)
     print(millers_choices)
     for i in range(len(nodes)):
         parent_node = nodes[i]
@@ -314,7 +314,7 @@ def microstructure_search(
     # get the nodes
     nodes = [tree.nodes[child] for n in nodes for child in tree.get_children(n._id)]
     # site_placement_choices = [n.get_site_placements()[:8] for n in nodes]
-    site_placement_choices = ms_planner.run_site_placement_prompt(nodes)
+    site_placement_choices = microstructure_planner.run_site_placement_prompt(nodes)
     for i in range(len(nodes)):
         parent_node = nodes[i]
 
@@ -511,7 +511,7 @@ class MicrostructureRewardAnalyzer:
 def get_reward_data(
     tree: MicrostructureTree,
     reward_func: MicrostructureRewardFunction,
-    uq_func: MicrostructureUncertaintyFunction,
+    uq_func: MicrostructureUncertaintyFunction = None,
 ) -> pd.DataFrame:
     """Get the reward data for the nodes in the given tree as dataframe."""
     nodes = [tree.nodes[n] for n in tree.get_leaf_nodes()]
@@ -520,7 +520,8 @@ def get_reward_data(
     energy_data = reward_func.fetch_adsorption_energy_results(nodes)
     relaxation_error_code = reward_func.fetch_error_codes(nodes)
     reward_data = reward_func.fetch_reward_results(nodes)
-    uncertainty_data = uq_func.fetch_uncertainty_results(nodes)
+    if uq_func is not None:
+        uncertainty_data = uq_func.fetch_uncertainty_results(nodes)
     for n in nodes:
         row = n.return_row()
         row["bulk_composition"] = n.computational_objects["bulk"].formula_pretty
@@ -537,19 +538,21 @@ def get_reward_data(
         error_code_row = {
             f"error_code_{k}": v for k, v in relaxation_error_code[n._id].items()
         }
-        uq_row = {f"uncertainty_{k}": v for k, v in uncertainty_data[n._id].items()}
+        if uq_func is not None:
+            uq_row = {f"uncertainty_{k}": v for k, v in uncertainty_data[n._id].items()}
 
         row.update(reward_row)
         row.update(energy_row)
         row.update(error_code_row)
         logging.info(error_code_row)
-        row.update(uq_row)
+        if uq_func is not None:
+            row.update(uq_row)
 
         df.append(row)
     return pd.DataFrame(df)
 
 
-if __name__ == "__main__":
+def run_microstructure_search(config, catalyst_symbols, save_dir):
     # df = pd.read_csv("../cu_zn_with_H_uq/reward_values.csv")
     # priors, samples = extract_dft_candidates(df, 100)
     # print(priors)
@@ -564,33 +567,10 @@ if __name__ == "__main__":
     def list_of_strings(arg):
         return arg.split(",")
 
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument("--save-dir", type=str, default=None)
-    parser.add_argument("--pathway-file", type=str, default=None)
-    parser.add_argument("--attempts", type=int, default=25)
-    parser.add_argument("--root-prompt", type=str, default=None)
-    parser.add_argument("--temperature", type=float, default=None)
-
-    parser.add_argument("--num-bulks", type=int, default=None)
-    parser.add_argument("--num-millers", type=int, default=None)
-    parser.add_argument("--num-site-compositions", type=int, default=None)
-
-    parser.add_argument("--gnn-model", type=str, default=None)
-    parser.add_argument("--gnn-batch-size", type=int, default=None)
-    parser.add_argument("--gnn-device", type=str, default=None)
-    parser.add_argument("--gnn-ads-tag", type=int, default=None)
-    parser.add_argument("--gnn-fmax", type=float, default=None)
-    parser.add_argument("--gnn-steps", type=int, default=None)
-    parser.add_argument("--gnn-port", type=int, default=None)
-    parser.add_argument("--catalyst-symbols", type=list_of_strings)
-
-    args = parser.parse_args()
-
-    save_path = Path(args.save_dir)
+    save_path = Path(save_dir)
     save_path.mkdir(parents=True, exist_ok=True)
 
-    for syms in args.catalyst_symbols:
+    for syms in catalyst_symbols:
         if syms not in chemical_symbols:
             raise ValueError(f"Unkown chemical symbol {syms}.")
 
@@ -600,17 +580,15 @@ if __name__ == "__main__":
             prompt: str = "Propose a catalyst for the conversion of CO to methanol.",
         ):
             """Initialize self with the given root prompt."""
+
+            print(config)
             assert isinstance(
                 prompt, str
             ), f"Prompt is of type {type(prompt)}, not string."
             self.root_prompt = prompt
 
     # Create the reward function
-    # pathways = [
-    #     ["*CO", "*COH", "*CHOH", "*CH2OH", "*OHCH3"],
-    #     ["*CO", "*CHO", "*CHOH", "*CH2OH", "*OHCH3"],
-    # ]
-    with open(args.pathway_file, "r") as f:
+    with open(config.get("DEFAULT", "pathway-file"), "r") as f:
         pathways = json.load(f)
     # Save the pathways in the data
     with open(save_path / "pathways.json", "w") as f:
@@ -618,31 +596,43 @@ if __name__ == "__main__":
 
     calc = OCAdsorptionCalculator(
         **{
-            "model": args.gnn_model,
+            "model": config.get("GNN", "gnn-model"),
             "traj_dir": save_path / "trajectories",
-            "batch_size": args.gnn_batch_size,
-            "device": args.gnn_device,
-            "ads_tag": args.gnn_ads_tag,
-            "fmax": args.gnn_fmax,
-            "steps": args.gnn_steps,
+            "batch_size": config.getint("GNN", "gnn-batch-size"),
+            "device": config.get("GNN", "gnn-device"),
+            "ads_tag": config.getint("GNN", "gnn-ads-tag"),
+            "fmax": config.getfloat("GNN", "gnn-fmax"),
+            "steps": config.getint("GNN", "gnn-steps"),
         }
     )
     reward_func = MicrostructureRewardFunction(
-        pathways, calc, num_augmentations_per_site=1, T=args.temperature
+        pathways,
+        calc,
+        num_augmentations_per_site=1,
+        T=config.get("DEFAULT", "temperature"),
     )
-    uq_calc = UncertaintyCalculator(
-        calc, "data/uq_model_weights/GBMRegressor-peratom_energy.pkl", 0.1, 0.9, 100
-    )
-    UncertaintyCalculator.traj_dir = save_path / "trajectories"
-    uq_func = MicrostructureUncertaintyFunction(
-        reaction_pathways=pathways, calc=uq_calc
-    )
+    # uq_calc = UncertaintyCalculator(
+    #     calc, "data/uq_model_weights/GBMRegressor-peratom_energy.pkl", 0.1, 0.9, 100
+    # )
+    # UncertaintyCalculator.traj_dir = save_path / "trajectories"
+    # uq_func = MicrostructureUncertaintyFunction(
+    #     reaction_pathways=pathways, calc=uq_calc
+    # )
     # uq_func = UQfunc()
 
-    state = TestState(args.root_prompt)
+    state = TestState(config.get("DEFAULT", "root-prompt"))
     # Create the LLM and microstructure planner
     llm_function = AzureOpenaiInterface(dotenv_path=".env", model="gpt-4")
-    ms_planner = OCPMicrostructurePlanner(llm_function=llm_function)
+    ms_planner = OCPMicrostructurePlanner(
+        llm_function=llm_function,
+        num_choices={
+            "bulk": config.getint("MICROSTRUCTURE SEARCH REWARD", "num-bulks"),
+            "millers": config.getint("MICROSTRUCTURE SEARCH REWARD", "num-millers"),
+            "site_placement": config.getint(
+                "MICROSTRUCTURE SEARCH REWARD", "num-site-placements"
+            ),
+        },
+    )
     ms_planner.set_state(state)
 
     if (save_path / "test_node_data.csv").exists() and (
@@ -659,10 +649,11 @@ if __name__ == "__main__":
     else:
         attempts = 0
         complete = False
-        while not complete:
+        while not complete and attempts < config.getint("DEFAULT", "attempts"):
+            attempts += 1
             try:
                 dt = CatalystDigitalTwin()
-                syms = args.catalyst_symbols
+                syms = catalyst_symbols
                 dt.computational_params["symbols"] = syms
                 dt.computational_objects["symbols"] = syms
 
@@ -685,22 +676,22 @@ if __name__ == "__main__":
     print(10 * "" + "finished!" + "*" * 10)
 
     rewards = reward_func(nodes)
-    uq_values = uq_func(nodes)
-    for r, u, n in zip(rewards, uq_values, nodes):
+    # uq_values = uq_func(nodes)
+    for r, n in zip(rewards, nodes):  # zip(rewards, uq_values, nodes):
         n.set_reward(r)
-        n.set_uncertainty(u)
+        # n.set_uncertainty(u)
 
     # Get which nodes to run DFT with
-    dft_nodes = microstructure_finetune_selection(
-        tree=tree, top_k=4, percentile_reward=0.75
-    )
+    # dft_nodes = microstructure_finetune_selection(
+    #     tree=tree, top_k=4, percentile_reward=0.75
+    # )
 
-    dft_atoms, dft_names = uq_func.fetch_calculated_atoms(
-        [tree.nodes[n] for n in dft_nodes]
-    )
-    with open(save_path / "structures_for_dft.json", "w") as f:
-        json.dump(dft_names, f)
-    all_atoms, all_names = uq_func.fetch_calculated_atoms(
+    # dft_atoms, dft_names = uq_func.fetch_calculated_atoms(
+    #     [tree.nodes[n] for n in dft_nodes]
+    # )
+    # with open(save_path / "structures_for_dft.json", "w") as f:
+    #     json.dump(dft_names, f)
+    all_atoms, all_names = reward_func.fetch_calculated_atoms(
         [tree.nodes[n] for n in tree.get_leaf_nodes()]
     )
     dft_dir = save_path / "relaxed_structures"
@@ -712,19 +703,19 @@ if __name__ == "__main__":
         write(str(p), ats)
 
     # Save reward and energy information to disk
-
     dataframe = get_reward_data(
         tree=tree,
         reward_func=reward_func,
-        uq_func=uq_func,
+        # uq_func=uq_func,
     )
     dataframe.to_csv(save_path / "reward_values.csv", na_rep="NaN")
 
     print(rewards)
 
-    visualize_tree(tree=tree)
+    #visualize_tree(tree=tree)
     plt.title("**Placeholder values for rewards and catalyst values**")
 
     plt.gcf().set_size_inches(18.5, 10.5)
     plt.savefig(save_path / "test_tree.png", dpi=300)
-    plt.show()
+
+    return dataframe
