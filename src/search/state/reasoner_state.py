@@ -1,4 +1,5 @@
 """Create a class for a reasoner state."""
+
 import json
 import logging
 import re
@@ -175,7 +176,7 @@ class ReasonerState:
             "and adsorbate(s). Make specific recommendations for catalysts, including "
             "their chemical composition. Make sure to follow the formatting "
             "instructions. Do not provide disclaimers or notes about your knowledge of "
-            "catalysis. Your answers should not include ionic compounds."
+            "catalysis. Your answers should not include ionic compounds, metal oxides, or supported metal compounds."
         )
 
     @property
