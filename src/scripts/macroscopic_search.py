@@ -293,7 +293,6 @@ if __name__ == "__main__":
             continue_searching = True
             data = search.get_processed_data()
             while len(search) < depth and continue_searching:
-                print(data)
                 with open(fname, "w") as f:
                     data.update(timing_data)
                     json.dump(data, f, cls=NpEncoder)
