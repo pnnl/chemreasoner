@@ -274,7 +274,6 @@ if __name__ == "__main__":
                 }
             else:
                 logging.info("RUNNING THE ROOT NODE")
-                tree_start_time = time.time()
                 step_start_time = time.time()
 
                 search = get_search_method(config, starting_state, policy, reward_fn)
@@ -282,7 +281,7 @@ if __name__ == "__main__":
                 step_end_time = time.time()
                 step_times_list = [step_end_time - step_start_time]
                 timing_data = {
-                    "total_time": step_end_time - tree_start_time,
+                    "total_time": step_end_time - step_start_time,
                     "step_times": step_times_list,
                 }
                 logging.info(
@@ -306,12 +305,13 @@ if __name__ == "__main__":
                 step_times_list.append(step_end_time - step_start_time)
 
                 timing_data = {
-                    "total_time": step_end_time - tree_start_time,
+                    "total_time": timing_data["total_time"]
+                    + (step_end_time - step_start_time),
                     "step_times": step_times_list,
                 }
 
                 logging.info(
-                    f"TIMING: One search iteration: {step_end_time - tree_start_time} (s)"
+                    f"TIMING: One search iteration: {step_end_time - step_start_time} (s)"
                 )
                 logging.info("=" * 20 + " " + str(i) + " " + "=" * 20)
 
