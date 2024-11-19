@@ -211,8 +211,8 @@ class StructureReward(BaseReward):
                                         microstructure_logs_path = (
                                             results_dir / "logs.json"
                                         )
-                                        # with open(microstructure_logs_path, "r") as f:
-                                        #     logs = json.load(f)
+                                        with open(microstructure_logs_path, "r") as f:
+                                            logs = json.load(f)
                                         microstructure_logs[candidate] = logs
                                         successful = True
                                     except Exception as err:

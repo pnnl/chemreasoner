@@ -310,7 +310,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 # device="cuda:1",
             )
             end = time.time()
-            self.gnn_calls += self.steps
+            self.gnn_calls = self.torch_calc.model.gnn_calls
             self.gnn_relaxed += len(atoms)
             self.gnn_time += end - start
 
@@ -929,6 +929,10 @@ class BatchDataParallelPassthrough(BatchDataParallel):
 
     def __getattr__(self, name):
         """Try using DataParallel methods, which to stored module if failed."""
+        if name == "__init__":
+            self.gnn_calls = 0
+        elif name == "predict":
+            self.gnn_calls += 1
         try:
             return super().__getattr__(name)
         except AttributeError:

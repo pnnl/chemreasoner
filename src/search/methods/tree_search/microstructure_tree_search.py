@@ -702,6 +702,20 @@ def run_microstructure_search(config, catalyst_symbols, save_dir):
         p.parent.mkdir(parents=True, exist_ok=True)
         write(str(p), ats)
 
+    # Collect logs from each node
+    microstructure_logs = {"node_logs": {n._id: n.info for n in tree.nodes.values()}}
+    microstructure_logs.update(
+        {
+            "store_gnn_logs": {
+                "gnn_calls": calc.gnn_calls,
+                "gnn_time": calc.gnn_time,
+                "gnn_relaxed": calc.gnn_relaxed,
+            }
+        }
+    )
+    with open(save_path / "logs.json", "w") as f:
+        json.dump(microstructure_logs, f)
+
     # Save reward and energy information to disk
     dataframe = get_reward_data(
         tree=tree,
@@ -712,7 +726,7 @@ def run_microstructure_search(config, catalyst_symbols, save_dir):
 
     print(rewards)
 
-    #visualize_tree(tree=tree)
+    # visualize_tree(tree=tree)
     plt.title("**Placeholder values for rewards and catalyst values**")
 
     plt.gcf().set_size_inches(18.5, 10.5)
