@@ -247,6 +247,7 @@ class StructureReward(BaseReward):
             state_log.update({"microstructure_path_logs": microstructure_path_logs})
             state_log.update({"microstructure_logs": microstructure_logs})
             state_log.update({"symbols_logs": symbols_logs})
+            s.info.update({"microstructure_search": state_log})
         return state_rewards
 
     def process_dataframe(self, dataframe):
