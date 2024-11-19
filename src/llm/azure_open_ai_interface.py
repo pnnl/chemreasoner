@@ -116,7 +116,7 @@ class AzureOpenaiInterface:
 
         if system_prompts is None:
             system_prompts = [None] * len(prompts)
-        logging.info(prompts)
+        print(prompts)
         answer_objects = asyncio.run(
             azure_openai_chat_async_evaluation(
                 client,
