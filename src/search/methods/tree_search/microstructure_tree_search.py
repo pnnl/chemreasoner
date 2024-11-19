@@ -552,7 +552,12 @@ def get_reward_data(
     return pd.DataFrame(df)
 
 
-def run_microstructure_search(config, catalyst_symbols, save_dir):
+def run_microstructure_search(
+    config,
+    catalyst_symbols,
+    save_dir,
+    root_prompt="Propose a catalyst for the conversion of CO to methanol.",
+):
     # df = pd.read_csv("../cu_zn_with_H_uq/reward_values.csv")
     # priors, samples = extract_dft_candidates(df, 100)
     # print(priors)
@@ -620,7 +625,7 @@ def run_microstructure_search(config, catalyst_symbols, save_dir):
     # )
     # uq_func = UQfunc()
 
-    state = TestState(config.get("DEFAULT", "root-prompt"))
+    state = TestState(root_prompt)
     # Create the LLM and microstructure planner
     llm_function = AzureOpenaiInterface(dotenv_path=".env", model="gpt-4")
     ms_planner = OCPMicrostructurePlanner(

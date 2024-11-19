@@ -203,7 +203,10 @@ class StructureReward(BaseReward):
                                     try:
                                         attempts += 1
                                         dataframe = run_microstructure_search(
-                                            self.config, symbols, results_dir
+                                            self.config,
+                                            symbols,
+                                            results_dir,
+                                            root_prompt=s.root_prompt,
                                         )
                                         node_rewards_data[candidate] = (
                                             self.process_dataframe(dataframe)
