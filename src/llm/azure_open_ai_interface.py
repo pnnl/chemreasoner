@@ -116,7 +116,7 @@ class AzureOpenaiInterface:
 
         if system_prompts is None:
             system_prompts = [None] * len(prompts)
-
+        logging.info(prompts)
         answer_objects = asyncio.run(
             azure_openai_chat_async_evaluation(
                 client,
@@ -126,7 +126,6 @@ class AzureOpenaiInterface:
                 **kwargs,
             )
         )
-        logging.info(prompts)
         # except RuntimeError as err:
         #     if "asyncio.run() cannot be called from a running event loop" in str(err):
         #         answer_objects = await azure_openai_chat_async_evaluation(
