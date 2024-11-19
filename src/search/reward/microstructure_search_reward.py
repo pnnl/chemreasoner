@@ -1,5 +1,6 @@
 """Module for reward function by calculation of adsorption energies in simulation."""
 
+import json
 import logging
 import os
 import sys
@@ -146,8 +147,13 @@ class StructureReward(BaseReward):
         )
         state_rewards = []
         for i, s in enumerate(states):
+            state_log = {}
             node_rewards_data = {}
             candidates_list = s.candidates
+            error_logs = {}
+            microstructure_path_logs = None
+            microstructure_logs = None
+            symbols_logs = None
             if slab_syms[i] is None:
                 logging.warning(
                     f"Unable to parse the answer:\n\n {s.answer}."
@@ -156,10 +162,16 @@ class StructureReward(BaseReward):
                 )
                 state_rewards.append(self.penalty_value)
             else:
-                retry_logs = []
+                microstructure_path_logs = {}
+                microstructure_logs = {}
+                symbols_logs = {}
                 for j, candidate, symbols in zip(
                     range(len(candidates_list)), candidates_list, slab_syms[i]
                 ):
+                    microstructure_logs[candidate] = None
+                    microstructure_path_logs[candidate] = None
+                    symbols_logs[candidate] = symbols
+                    error_logs[candidate] = []
                     try:
                         if any(
                             [
@@ -176,6 +188,7 @@ class StructureReward(BaseReward):
                             self.microstructure_results_dir
                             / f"{'_'.join([s.lower() for s in symbols])}_{query_name}"
                         )
+                        microstructure_path_logs[candidate] = str(results_dir)
                         rewards_csv_path = results_dir / "reward_values.csv"
                         if not rewards_csv_path.exists():
                             if len(get_available_bulks(symbols)) == 0:
@@ -195,6 +208,12 @@ class StructureReward(BaseReward):
                                         node_rewards_data[candidate] = (
                                             self.process_dataframe(dataframe)
                                         )
+                                        microstructure_logs_path = (
+                                            results_dir / "logs.json"
+                                        )
+                                        # with open(microstructure_logs_path, "r") as f:
+                                        #     logs = json.load(f)
+                                        microstructure_logs[candidate] = logs
                                         successful = True
                                     except Exception as err:
                                         if attempts == self.max_attempts:
@@ -202,10 +221,10 @@ class StructureReward(BaseReward):
                                                 self.penalty_value
                                             )
                                         logging.warning(
-                                            f"Microstructure Search failed with error {err}."
+                                            f"Microstructure Search failed with error {err} on attempt {attempts}."
                                         )
-                                        retry_logs.append(
-                                            f"Microstructure Search failed with error {err}."
+                                        error_logs[candidate].append(
+                                            f"Microstructure Search failed with error {err} on attempt {attempts}."
                                         )
                         else:
                             logging.info(
@@ -218,11 +237,16 @@ class StructureReward(BaseReward):
 
                     except StructureGenerationError as err:
                         logging.warning(err)
+                        error_logs[candidate].append(str(err))
                         node_rewards_data[candidate] = self.penalty_value
                 # Logging here to save any info from micro search in state s
 
                 final_reward = self.aggregate_rewards(node_rewards_data)
                 state_rewards.append(final_reward)
+            state_log.update({"error_logs": error_logs})
+            state_log.update({"microstructure_path_logs": microstructure_path_logs})
+            state_log.update({"microstructure_logs": microstructure_logs})
+            state_log.update({"symbols_logs": symbols_logs})
         return state_rewards
 
     def process_dataframe(self, dataframe):
