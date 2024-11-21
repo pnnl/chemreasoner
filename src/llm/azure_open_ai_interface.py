@@ -15,14 +15,13 @@ logging.getLogger().setLevel(logging.INFO)
 
 def init_azure_openai(model, dotenv_path):
     """Initialize connection to OpenAI."""
-    load_dotenv(dotenv_path=dotenv_path)
+    load_dotenv(dotenv_path=dotenv_path, override=True)
     client = AsyncAzureOpenAI(
         api_key=os.environ["AZURE_OPENAI_API_KEY"],
         api_version=os.environ["AZURE_OPENAI_API_VERSION"],
         azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
         azure_deployment=os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"],
     )
-    logging.info(os.environ["AZURE_OPENAI_API_KEY"])
     return client
 
 
@@ -112,7 +111,7 @@ class AzureOpenaiInterface:
         # Apply defaults to kwargs
         kwargs["temperature"] = kwargs.get("temperature", 0.75)
         kwargs["top_p"] = kwargs.get("top_p", 0.95)
-        kwargs["max_tokens"] = kwargs.get("max_tokens", 7000)
+        kwargs["max_tokens"] = kwargs.get("max_tokens", 3000)
 
         if system_prompts is None:
             system_prompts = [None] * len(prompts)

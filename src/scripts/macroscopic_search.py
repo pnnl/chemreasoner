@@ -136,7 +136,7 @@ def get_reward_function(config, state, llm_function, query_index):
             **nnp_kwargs,
         )
     elif config.get("REWARD", "reward-function") == "microstructure-search-reward":
-        search_dir = Path(config.get("MACRO SEARCH", "savedir"), f"query_{query_index}")
+        search_dir = Path(config.get("DEFAULT", "savedir"), f"query_{query_index}")
         search_dir.mkdir(parents=True, exist_ok=True)
         return microstructure_search_reward.StructureReward(
             llm_function=llm_function,
@@ -184,14 +184,14 @@ def get_state_from_idx(idx, df: pd.DataFrame):
 
 def get_llm_function(config):
     """Get the llm function specified by args."""
-    assert isinstance(config.get("MACRO SEARCH", "dotenv-path"), str)
-    assert isinstance(config.get("MACRO SEARCH", "llm"), str)
-    if config.get("MACRO SEARCH", "llm") in ["gpt-4", "gpt-3.5-turbo"]:
+    assert isinstance(config.get("DEFAULT", "dotenv-path"), str)
+    assert isinstance(config.get("DEFAULT", "llm"), str)
+    if config.get("DEFAULT", "llm") in ["gpt-4", "gpt-3.5-turbo"]:
         llm_function = AzureOpenaiInterface(
-            config.get("MACRO SEARCH", "dotenv-path"),
-            model=config.get("MACRO SEARCH", "llm"),
+            config.get("DEFAULT", "dotenv-path"),
+            model=config.get("DEFAULT", "llm"),
         )
-    elif config.get("MACRO SEARCH", "llm") == "llama2-13b":
+    elif config.get("DEFAULT", "llm") == "llama2-13b":
         from llm.llama2_vllm_chemreasoner import LlamaLLM  # noqa:E402
 
         llm_function = LlamaLLM(
@@ -199,7 +199,7 @@ def get_llm_function(config):
             num_gpus=1,
         )
     else:
-        raise ValueError(f"Unkown LLM {config.get('MACRO SEARCH', 'llm')}.")
+        raise ValueError(f"Unkown LLM {config.get('DEFAULT', 'llm')}.")
 
     return llm_function
 
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     assert depth > 0
 
     start = time.time()
-    save_dir = Path(config.get("MACRO SEARCH", "savedir"))
+    save_dir = Path(config.get("DEFAULT", "savedir"))
     save_dir.mkdir(parents=True, exist_ok=True)
 
     llm_function = get_llm_function(config)
