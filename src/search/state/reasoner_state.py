@@ -17,7 +17,7 @@ logging.getLogger().setLevel(logging.INFO)
 _example_generation_answer = """5. Zinc oxide (ZnO):
 Zinc oxide is another metal oxide catalyst that can effectively adsorb CHOHCH2. It has a high surface area and can form hydrogen bonds with CHOHCH2, facilitating its adsorption. Zinc oxide catalysts are also cost-effective and commonly used in various catalytic processes.
 
-Finally, here is the Python list final_answer of the top-5 catalysts for the adsorption of CHOHCH2:
+Finally, here is the Python list final_answer of the top-3 catalysts for the adsorption of CHOHCH2:
 
 final_answer = ["Platinum (Pt)", "Palladium (Pd)", "Copper (Cu)", "Iron oxide (Fe2O3)", "Zinc oxide (ZnO)"]"""
 
@@ -797,7 +797,7 @@ if __name__ == "__main__":
 
     answers = [
         None,
-        """To generate a list of top-5 catalysts for the adsorption of *OHCH3 with high selectivity, I considered catalysts that are known to have strong interactions with the adsorbate and facilitate its adsorption. Here are the top-5 catalysts along with scientific explanations:
+        """To generate a list of top-3 catalysts for the adsorption of *OHCH3 with high selectivity, I considered catalysts that are known to have strong interactions with the adsorbate and facilitate its adsorption. Here are the top-3 catalysts along with scientific explanations:
 
 Platinum (Pt): Platinum is an excellent catalyst for the adsorption of *OHCH3 due to its high reactivity and strong affinity towards oxygen-containing species. It can facilitate the binding of *OHCH3 by forming strong Pt-O bonds, which enhances the selectivity of the reaction.
 
@@ -828,7 +828,7 @@ Cobalt (Co): Cobalt-based catalysts have shown excellent catalytic performance i
 
 It is important to note that the recommended catalysts may interact differently with specific reactants or adsorbates, and the choice of catalyst should align with the desired reaction and reaction conditions.
 final_answer = ["Rhodium (Rh)", "Iron (Fe)", "Copper (Cu)", "Nickel (Ni)", "Cobalt (Co)"]""",
-        """Based on the given criteria, here are the top-5 catalysts for the adsorption of *OHCH3, excluding the catalysts from the initial list:
+        """Based on the given criteria, here are the top-3 catalysts for the adsorption of *OHCH3, excluding the catalysts from the initial list:
 
 Palladium (Pd): Palladium is a highly selective catalyst for *OHCH3 adsorption due to its ability to form stable complexes with oxygen-containing species. It can adsorb *OHCH3 through the dissociation of the O-H bond on its surface, forming a Pd-O species.
 
@@ -841,7 +841,7 @@ Ruthenium (Ru): Ruthenium is known for its strong interaction with oxygen-contai
 Titanium dioxide (TiO2): TiO2 is a non-toxic catalyst with high selectivity for *OHCH3 adsorption. It can form stable bonds with *OHCH3 through surface hydroxide species, resulting in the formation of a Ti-O species. TiO2 catalysts are widely used and considered environmentally friendly.
 
 Final Answer: ['Palladium (Pd)', 'Platinum (Pt)', 'Silver (Ag)', 'Ruthenium (Ru)', 'Titanium dioxide (TiO2)']""",
-        """Based on the provided list, I recommend the following top-5 catalysts for the adsorption of *OHCH3, prioritizing high selectivity and excluding catalysts with high toxicity:
+        """Based on the provided list, I recommend the following top-3 catalysts for the adsorption of *OHCH3, prioritizing high selectivity and excluding catalysts with high toxicity:
 
 Gold (Au): Gold is an excellent choice for adsorbing *OHCH3 due to its high selectivity and low toxicity. The interaction between *OHCH3 and gold involves a weak chemisorption bond, facilitated by the polarizability of gold atoms. This interaction occurs through the donation of electron density from the lone pairs of oxygen atoms in *OHCH3 to vacant d-orbitals of gold atoms.
 
@@ -854,7 +854,7 @@ Iron oxide (Fe2O3): Iron oxide is an effective catalyst with high selectivity an
 Manganese dioxide (MnO2): MnO2 is a desirable catalyst with high selectivity and low toxicity for *OHCH3 adsorption. The adsorption mechanism involves the formation of hydrogen bonds between *OHCH3 and manganese dioxide, where the oxygen atom of *OHCH3 interacts with the oxygen atom of MnO2. This interaction strengthens the adsorption and improves selectivity.
 
 Final answer: ['Gold (Au)', 'Zinc oxide (ZnO)', 'Copper (Cu)', 'Iron oxide (Fe2O3)', 'Manganese dioxide (MnO2)']""",
-        """To generate a list of top-5 catalysts for the adsorption of *OHCH3 with high selectivity, excluding catalysts with high toxicity and low activity, we will evaluate the suitability of each candidate catalyst. Here are scientific explanations for each of the catalysts:
+        """To generate a list of top-3 catalysts for the adsorption of *OHCH3 with high selectivity, excluding catalysts with high toxicity and low activity, we will evaluate the suitability of each candidate catalyst. Here are scientific explanations for each of the catalysts:
 
 Palladium (Pd): Palladium is a widely used catalyst for various organic transformations due to its high catalytic activity and selectivity. It can adsorb *OHCH3 effectively on its surface, allowing for efficient reaction rates. Palladium catalysts are generally nontoxic, making them suitable for use in catalytic processes.
 
@@ -871,7 +871,7 @@ Now let's generate the final list:
 final_answer = ['Palladium (Pd)', 'Ruthenium (Ru)', 'Platinum (Pt)', 'Rhodium (Rh)', 'Titanium dioxide (TiO2)']
 
 Please note that these catalysts have been selected based on their properties of high selectivity, low toxicity, and high activity, making them suitable for the adsorption of *OHCH3.""",
-        """To generate a list of top-5 catalysts for the adsorption of *OHCH3 with high selectivity and activity, we will first review the properties of the catalysts in the initial list: ['Palladium (Pd)', 'Ruthenium (Ru)', 'Platinum (Pt)', 'Rhodium (Rh)', 'Titanium dioxide (TiO2)'].
+        """To generate a list of top-3 catalysts for the adsorption of *OHCH3 with high selectivity and activity, we will first review the properties of the catalysts in the initial list: ['Palladium (Pd)', 'Ruthenium (Ru)', 'Platinum (Pt)', 'Rhodium (Rh)', 'Titanium dioxide (TiO2)'].
 
 Palladium (Pd): Palladium is a highly efficient catalyst for various reactions due to its ability to adsorb reactants on its surface and facilitate their conversion. For the adsorption of *OHCH3, we can consider a Pd catalyst supported on titanium(IV) oxide (Pd/TiO2). The Pd surface acts as the active site where the *OHCH3 adsorbs, while the role of TiO2 is to provide stability and increase the selectivity by preventing side reactions.
 
@@ -883,7 +883,7 @@ Rhodium (Rh): Rhodium is highly active and exhibits excellent catalytic properti
 
 Zirconium dioxide (ZrO2): To expand our options further, we can consider a ZrO2 catalyst. Zirconium dioxide has shown promising catalytic properties in various reactions. In this case, we can recommend a ZrO2 catalyst modified with platinum (Pt/ZrO2). The ZrO2 surface provides potential adsorption sites, and the modification with Pt enhances activity and selectivity through synergistic effects and improved reactant-substrate interactions.
 
-With the consideration of these catalysts, we can generate the final list of top-5 catalysts as follows:
+With the consideration of these catalysts, we can generate the final list of top-3 catalysts as follows:
 
 final_answer = ['Palladium supported on titanium dioxide (Pd/TiO2)', 'Ruthenium supported on carbon (Ru/C)', 'Platinum supported on alumina (Pt/Al2O3)', 'Rhodium supported on silica (Rh/SiO2)', 'Platinum modified zirconia (Pt/ZrO2)']
 

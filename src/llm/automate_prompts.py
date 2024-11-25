@@ -55,7 +55,7 @@ def get_template(question, chain_of_thought):
         template += (
             " {include_statement}{exclude_statement}"
             "Provide scientific explanations for each of the {catalyst_label}. "
-            "Finally, return a python list named final_answer which contains the top-5 {catalyst_label}. "
+            "Finally, return a python list named final_answer which contains the top-3 {catalyst_label}. "
             "{candidate_list_statement}"
             r"\n\nTake a deep breath and let's think step-by-step. Remember, you need to return a python list named final_answer!"
         )
@@ -63,7 +63,7 @@ def get_template(question, chain_of_thought):
         template += (
             "{include_statement} {exclude_statement}"
             "{candidate_list_statement}"
-            r"\n\nReturn a python list named final_answer which contains the top-5 {catalyst_label}."
+            r"\n\nReturn a python list named final_answer which contains the top-3 {catalyst_label}."
         )
     return template
 
