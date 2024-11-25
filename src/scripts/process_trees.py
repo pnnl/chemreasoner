@@ -56,33 +56,28 @@ def _clean_json(data: dict):
 
 def process_tree(tree_data):
     """Process the tree data to a json tree."""
-    with open(
-        fname,
-        "r",
-    ) as f:
-        data = json.load(f)
     # print(len(data["node_rewards"]))
 
-    for i in range(len(data["nodes"])):
-        for j in range(len(data["nodes"][i])):
-            reasoner_state = ReasonerState.from_dict(data["nodes"][i][j])
-            data["nodes"][i][j].update(
+    for i in range(len(tree_data["nodes"])):
+        for j in range(len(tree_data["nodes"][i])):
+            reasoner_state = ReasonerState.from_dict(tree_data["nodes"][i][j])
+            tree_data["nodes"][i][j].update(
                 {
                     "generation_prompt": reasoner_state.generation_prompt,
                     "generation_system_prompt": reasoner_state.generation_system_prompt,
                 }
             )
-    for i in range(len(data["generated_nodes"])):
-        for j in range(len(data["generated_nodes"][i])):
-            reasoner_state = ReasonerState.from_dict(data["generated_nodes"][i][j])
-            data["generated_nodes"][i][j].update(
+    for i in range(len(tree_data["generated_nodes"])):
+        for j in range(len(tree_data["generated_nodes"][i])):
+            reasoner_state = ReasonerState.from_dict(tree_data["generated_nodes"][i][j])
+            tree_data["generated_nodes"][i][j].update(
                 {
                     "generation_prompt": reasoner_state.generation_prompt,
                     "generation_system_prompt": reasoner_state.generation_system_prompt,
                 }
             )
 
-    T = bfs_to_nx(data)
+    T = bfs_to_nx(tree_data)
 
     DT = nx.DiGraph()
     DT.add_nodes_from(T.nodes(data=True))
