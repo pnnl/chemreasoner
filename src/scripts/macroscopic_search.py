@@ -239,6 +239,8 @@ if __name__ == "__main__":
     logging.info(f"TIMING: Initialization time: {end-start}")
     root_prompts = []
     system_prompts = []
+    ids = []
+    criteria = []
     for i in indices:
         continue_searching = True
         try:
@@ -249,9 +251,11 @@ if __name__ == "__main__":
             fname = save_dir / f"search_tree_{i}.json"
             starting_state = get_state_from_idx(i, df)
             print(starting_state.root_prompt)
-            root_prompts.append(starting_state.root_prompt)
-            system_prompts.append(starting_state.generation_system_prompt)
-            continue
+            # root_prompts.append(starting_state.root_prompt)
+            # system_prompts.append(starting_state.generation_system_prompt)
+            # ids.append(i)
+            # criteria.append(starting_state.include_list)
+            # continue
 
             policy = get_policy(config, llm_function)
             reward_fn = get_reward_function(config, starting_state, llm_function, i)
@@ -329,5 +333,13 @@ if __name__ == "__main__":
             logging.warning(format_exc())
             continue_searching = False
 
-    with open("root_prompts.json", "w") as f:
-        json.dump({"root_prompts": root_prompts, "system_prompts": system_prompts}, f)
+    # with open("root_prompts.json", "w") as f:
+    #     json.dump(
+    #         {
+    #             "root_prompts": root_prompts,
+    #             "system_prompts": system_prompts,
+    #             "ids": ids,
+    #             "inclusion_criteria": criteria,
+    #         },
+    #         f,
+    #     )
