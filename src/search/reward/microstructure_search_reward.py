@@ -219,6 +219,7 @@ class StructureReward(BaseReward):
                                         microstructure_logs[candidate] = logs
                                         successful = True
                                     except Exception as err:
+                                        raise err
                                         if attempts == self.max_attempts:
                                             node_rewards_data[candidate] = (
                                                 self.penalty_value
