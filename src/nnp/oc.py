@@ -310,7 +310,7 @@ class OCAdsorptionCalculator(BaseAdsorptionCalculator):
                 # device="cuda:1",
             )
             end = time.time()
-            self.gnn_calls = self.torch_calc.model.gnn_calls
+            self.gnn_calls = trainer.model.gnn_calls
             self.gnn_relaxed += len(atoms)
             self.gnn_time += end - start
 
@@ -935,8 +935,11 @@ class BatchDataParallelPassthrough(BatchDataParallel):
             self.gnn_calls += 1
         try:
             return super().__getattr__(name)
-        except AttributeError:
-            return getattr(self.module, name)
+        except AttributeError as err:
+            if "gnn_calls" not in err:
+                return getattr(self.module, name)
+            else:
+                return self.gnn_calls
 
 
 def order_of_magnitude(number):
