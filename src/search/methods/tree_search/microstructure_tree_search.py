@@ -614,7 +614,6 @@ def run_microstructure_search(
         pathways,
         calc,
         num_augmentations_per_site=1,
-        T=config.get("DEFAULT", "temperature"),
     )
     # uq_calc = UncertaintyCalculator(
     #     calc, "data/uq_model_weights/GBMRegressor-peratom_energy.pkl", 0.1, 0.9, 100
