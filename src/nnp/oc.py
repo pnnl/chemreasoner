@@ -936,7 +936,7 @@ class BatchDataParallelPassthrough(BatchDataParallel):
         try:
             return super().__getattr__(name)
         except AttributeError as err:
-            if "gnn_calls" not in err:
+            if "gnn_calls" not in str(err):
                 return getattr(self.module, name)
             else:
                 return self.gnn_calls
