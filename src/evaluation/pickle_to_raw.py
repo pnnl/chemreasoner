@@ -1,4 +1,5 @@
 """Take pickle file output and return networkx graphs."""
+
 import copy
 import json
 import pickle
@@ -222,17 +223,17 @@ def graph_get_trace(graph: nx.Graph):
     return messages
 
 
-with open("all_adsorption_energies.json", "r") as f:
-    adsorption_energy_data = json.load(f)
-
-search_results = pd.DataFrame(
-    columns=["llm", "method", "policy", "reward_function", "best_reward", "query"]
-)
-data_for_plots = []
-with open("iclr_traces.txt", "w"):  # clear the file
-    pass
-usage_statistics = []
 if __name__ == "__main__":
+    with open("all_adsorption_energies.json", "r") as f:
+        adsorption_energy_data = json.load(f)
+
+    search_results = pd.DataFrame(
+        columns=["llm", "method", "policy", "reward_function", "best_reward", "query"]
+    )
+    data_for_plots = []
+    with open("iclr_traces.txt", "w"):  # clear the file
+        pass
+    usage_statistics = []
     for llm in ["gpt", "llama"]:
         for p in Path("data", "output", f"iclr_{llm}_timing", "").rglob("*.pkl"):
             file_name = str(p).split("reward_")[-1].split(".")[0]
