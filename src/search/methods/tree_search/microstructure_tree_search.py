@@ -630,10 +630,10 @@ def run_microstructure_search(
     ms_planner = OCPMicrostructurePlanner(
         llm_function=llm_function,
         num_choices={
-            "bulk": config.getint("MICROSTRUCTURE SEARCH REWARD", "num-bulks"),
-            "millers": config.getint("MICROSTRUCTURE SEARCH REWARD", "num-millers"),
+            "bulk": config.getint("MICROSTRUCTURE SEARCH", "num-bulks"),
+            "millers": config.getint("MICROSTRUCTURE SEARCH", "num-millers"),
             "site_placement": config.getint(
-                "MICROSTRUCTURE SEARCH REWARD", "num-site-placements"
+                "MICROSTRUCTURE SEARCH", "num-site-placements"
             ),
         },
     )
