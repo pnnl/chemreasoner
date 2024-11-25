@@ -131,15 +131,22 @@ def get_initial_state_rwgs(
     chain_of_thought=True,
 ):
     """Parse the rwgs reaction questions."""
-    catalyst_type, cheap_statement = parse_parameters_from_question(question)
+    catalyst_type, extra_parameters = parse_parameters_from_question(question)
     question = question.replace(catalyst_type, "{catalyst_label}")
 
-    if cheap_statement is not None:
-        if "cheap" in cheap_statement:
-            include_list = ["low cost"]
-            question = question.replace("[", "").replace("]", "")
-        else:
-            raise ValueError(f"Unkown value {cheap_statement}")
+    if extra_parameters is not None:
+        # if "cheap" in cheap_statement and False:
+        #     include_list = ["low cost"]
+        #     question = question.replace("[", "").replace("]", "")
+
+        include_list = [
+            s2.replace("[", "").replace("]", "").strip()
+            for s1 in extra_parameters.split(",")
+            for s2 in s1.split("and")
+        ]
+        question = question.replace("[", "").replace("]", "")
+        print(include_list)
+        # raise ValueError(f"Unkown value {cheap_statement}")
 
     else:
         include_list = []
@@ -181,15 +188,22 @@ def get_initial_state_methanol(
     chain_of_thought=True,
 ):
     """Parse the rwgs reaction questions."""
-    catalyst_type, cheap_statement = parse_parameters_from_question(question)
+    catalyst_type, extra_parameters = parse_parameters_from_question(question)
     question = question.replace(catalyst_type, "{catalyst_label}")
 
-    if cheap_statement is not None:
-        if "cheap" in cheap_statement:
-            include_list = ["low cost"]
-            question = question.replace("[", "").replace("]", "")
-        else:
-            raise ValueError(f"Unkown value {cheap_statement}")
+    if extra_parameters is not None:
+        # if "cheap" in cheap_statement and False:
+        #     include_list = ["low cost"]
+        #     question = question.replace("[", "").replace("]", "")
+
+        include_list = [
+            s2.replace("[", "").replace("]", "").strip()
+            for s1 in extra_parameters.split(",")
+            for s2 in s1.split("and")
+        ]
+        question = question.replace("[", "").replace("]", "")
+        print(include_list)
+        # raise ValueError(f"Unkown value {cheap_statement}")
 
     else:
         include_list = []
@@ -244,15 +258,22 @@ def get_initial_state_ethanol(
     chain_of_thought=True,
 ):
     """Parse the rwgs reaction questions."""
-    catalyst_type, cheap_statement = parse_parameters_from_question(question)
+    catalyst_type, extra_parameters = parse_parameters_from_question(question)
     question = question.replace(catalyst_type, "{catalyst_label}")
 
-    if cheap_statement is not None:
-        if "cheap" in cheap_statement:
-            include_list = ["low cost"]
-            question = question.replace("[", "").replace("]", "")
-        else:
-            raise ValueError(f"Unkown value {cheap_statement}")
+    if extra_parameters is not None:
+        # if "cheap" in cheap_statement and False:
+        #     include_list = ["low cost"]
+        #     question = question.replace("[", "").replace("]", "")
+
+        include_list = [
+            s2.replace("[", "").replace("]", "").strip()
+            for s1 in extra_parameters.split(",")
+            for s2 in s1.split("and")
+        ]
+        question = question.replace("[", "").replace("]", "")
+        print(include_list)
+        # raise ValueError(f"Unkown value {cheap_statement}")
 
     else:
         include_list = []

@@ -1,11 +1,11 @@
 dataset,query,idx
-COToMethanol,What are the top-3{ bimetallic catalysts} for converting CO to methanol?,0
-COToMethanol,"What are the top-3{ bimetallic catalysts} that are[ commercially available, cheap and stable] for converting CO to methanol?",1
-COToMethanol,What are the top-3{ commercially available bimetallic catalysts} for converting CO to methanol?,2
-COToMethanol,What are the top-3{ bimetallic catalysts} that[ exhibit strong adsorption energy for CO (the reactant)] to convert to methanol?,3
-COToMethanol,What are top-3{ bimetallic catalysts} that consist of[ cheap metals] for converting CO to methanol,4
-COToMethanol,What are the top-3{ bimetallic catalyst} that are[ stable] for converting CO to methanol?,5
-COToMethanol,What are the top-3{ bimetallic catalysts} that performs CO to methanol conversion at lower temperature?,6
-COToMethanol,"What are the top-3{ bimetallic catalysts} for converting CO to methanol, considering catalysts that are[ commercialy availabile]?",7
-COToMethanol,"What are the top-3{ bimetallic catalysts} for converting CO to methanol, considering catalysts that are[ cheap (do not contain noble metals)]?",8
-COToMethanol,"What are the top-3{ bimetallic catalysts} for converting CO to methanol, considering catalysts that are[ stable for this reaction]?",9
+COToMethanol,What are the top-3 {bimetallic catalysts} for converting CO to methanol?,0
+COToMethanol,"What are the top-3 {bimetallic catalysts} that are[ commercially available, cheap and stable] for converting CO to methanol?",1
+COToMethanol,What are the top-3 {commercially available bimetallic catalysts} for converting CO to methanol?,2
+COToMethanol,What are the top-3 {bimetallic catalysts} that[ exhibit strong adsorption energy for CO (the reactant)] to convert to methanol?,3
+COToMethanol,What are top-3 {bimetallic catalysts} that consist of[ cheap metals] for converting CO to methanol,4
+COToMethanol,What are the top-3 {bimetallic catalyst} that are[ stable] for converting CO to methanol?,5
+COToMethanol,What are the top-3 {bimetallic catalysts} that performs CO to methanol conversion at lower temperature?,6
+COToMethanol,"What are the top-3 {bimetallic catalysts} for converting CO to methanol, considering catalysts that are[ commercialy available]?",7
+COToMethanol,"What are the top-3 {bimetallic catalysts} for converting CO to methanol, considering catalysts that are[ cheap (do not contain noble metals)]?",8
+COToMethanol,"What are the top-3 {bimetallic catalysts} for converting CO to methanol, considering catalysts that are[ stable for this reaction]?",9
