@@ -27,6 +27,7 @@ from search.reward import (
 )  # noqa:E402
 from search.methods.tree_search.beam_search import BeamSearchTree  # noqa:E402
 from search.state.reasoner_state import ReasonerState  # noqa:E402
+from scripts.process_trees import process_tree
 
 end = time.time()
 
@@ -327,6 +328,9 @@ if __name__ == "__main__":
             with open(fname, "w") as f:
                 data.update(timing_data)
                 json.dump(data, f, cls=NpEncoder)
+
+            with open(fname.parent / (fname.stem + "processed.json"), "w") as f:
+                json.dump(process_tree(data), f)
 
         except Exception as err:
             logging.warning(f"Could not complete search with error: {err}")
