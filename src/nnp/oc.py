@@ -927,6 +927,10 @@ class BatchDataParallelPassthrough(BatchDataParallel):
     https://github.com/pytorch/pytorch/issues/16885#issuecomment-551779897
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.gnn_calls = 0
+
     def __getattr__(self, name):
         """Try using DataParallel methods, which to stored module if failed."""
         if name == "__init__":
@@ -935,11 +939,8 @@ class BatchDataParallelPassthrough(BatchDataParallel):
             self.gnn_calls += 1
         try:
             return super().__getattr__(name)
-        except AttributeError as err:
-            if "gnn_calls" not in str(err):
-                return getattr(self.module, name)
-            else:
-                return self.gnn_calls
+        except AttributeError:
+            return getattr(self.module, name)
 
 
 def order_of_magnitude(number):
