@@ -64,6 +64,9 @@ Once you have set up the run script, the .env file, and started the local redis 
 
 
 ## News/Presentations/Publications
+* AAAI 2025: S. Beus, H. W. Sprueill, R. Meyur, M. V. Olarte, K. Agarwal, D. Zhang, U. Sanyal, J. Lercher, S. Choudhury, "Human-AI Interaction using Linguistic Reasoning and Computational Chemistry for Trustworthy Materials Discovery"
+* PNNL Article: [Accelerating Materials Discovery with AI](https://www.pnnl.gov/publications/accelerating-materials-discovery-ai)
+* PNNL Article: [Novel Computing Tool Learns the Language of Chemistry](https://www.pnnl.gov/publications/novel-computing-tool-learns-language-chemistry)
 * ICML 2024: "Heuristic Search over a Large Language Model's Knowledge Space using Quantum-Chemical Feedback" [arXiv](https://arxiv.org/abs/2402.10980)
 * Presentation at [MLCommons Science Working Group](https://sutanay.github.io/publications/ChemReasoner-SciMLCommons.pdf)
 * We will have two presentations at upcoming American Chemical Society Spring 2024 National Meeting!
