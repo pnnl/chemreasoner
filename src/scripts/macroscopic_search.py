@@ -187,7 +187,9 @@ def get_llm_function(config):
     """Get the llm function specified by args."""
     assert isinstance(config.get("DEFAULT", "dotenv-path"), str)
     assert isinstance(config.get("DEFAULT", "llm"), str)
-    if config.get("DEFAULT", "llm") in ["gpt-4", "gpt-3.5-turbo"]:
+    if "gpt" in config.get("DEFAULT", "llm") or "o1-preview" in config.get(
+        "DEFAULT", "llm"
+    ):
         llm_function = AzureOpenaiInterface(
             config.get("DEFAULT", "dotenv-path"),
             model=config.get("DEFAULT", "llm"),
