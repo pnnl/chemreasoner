@@ -85,8 +85,6 @@ if __name__ == "__main__":
 
     config.read(args.config_path)
 
-    os.environ["MP_API_KEY"] = config.get("DEFAULT", "MP-API-KEY")
-
     start = time.time()
     save_dir = Path(config.get("DEFAULT", "savedir"))
     save_dir.mkdir(parents=True, exist_ok=True)
