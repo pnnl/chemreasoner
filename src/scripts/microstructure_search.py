@@ -2,6 +2,7 @@
 
 """Run the queries for ICML."""
 
+import os
 import time
 
 start = time.time()
@@ -83,6 +84,8 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
 
     config.read(args.config_path)
+
+    os.environ["MP_API_KEY"] = config.get("DEFAULT", "MP-API-KEY")
 
     start = time.time()
     save_dir = Path(config.get("DEFAULT", "savedir"))

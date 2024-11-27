@@ -26,8 +26,6 @@ from ocdata.core import Adsorbate, AdsorbateSlabConfig, Bulk, Slab
 
 logging.getLogger().setLevel(logging.INFO)
 
-MP_API_KEY = os.environ["MP_API_KEY"]
-
 retrieved_mp_docs = {}
 
 
@@ -223,6 +221,7 @@ class CatalystDigitalTwin:
     @classmethod
     def get_bulks_id(cls, mp_ids):
         """Get the bulks associated with the given mp_ids."""
+        MP_API_KEY = os.environ["MP_API_KEY"]
         docs = [
             (
                 cls._collected_mp_ids[mp_id]
@@ -254,6 +253,7 @@ class CatalystDigitalTwin:
 
     def get_bulks(self, filter_theoretical=False):
         """The the set of bulk available for self."""
+        MP_API_KEY = os.environ["MP_API_KEY"]
         # Filter for materials with only the specified elements
         if not hasattr(self, "_bulks"):
             with MPRester(MP_API_KEY) as mpr:
