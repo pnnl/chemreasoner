@@ -86,6 +86,8 @@ if __name__ == "__main__":
     save_dir = Path(config.get("DEFAULT", "savedir"))
     save_dir.mkdir(parents=True, exist_ok=True)
 
+    shutil.copy(args.config_path, Path(save_dir) / "config.ini")
+
     llm_function = get_llm_function(config)
 
     if args.catalyst_symbols is None:
