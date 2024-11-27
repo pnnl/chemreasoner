@@ -9,6 +9,7 @@ import argparse
 import configparser
 import json
 import logging
+import shutil
 import sys
 
 from pathlib import Path
@@ -73,7 +74,7 @@ if __name__ == "__main__":
         return arg.split(",")
 
     parser.add_argument("--config-path", type=str, default=None)
-    parser.add_argument("--catalyst-symbols", type=list_of_strings)
+    parser.add_argument("--catalyst-symbols", type=list_of_strings, default=None)
 
     args = parser.parse_args()
 
@@ -87,6 +88,16 @@ if __name__ == "__main__":
 
     llm_function = get_llm_function(config)
 
+    if args.catalyst_symbols is None:
+        catalyst_symbols = json.loads(
+            config.get("MICROSTRUCTURE SEARCH", "catalyst-symbols")
+        )
+    else:
+        catalyst_symbols = args.catalyst_symbols
+
     run_microstructure_search(
-        config=config, save_dir=save_dir, llm_function=llm_function
+        config=config,
+        catalyst_symbols=catalyst_symbols,
+        save_dir=save_dir,
+        llm_function=llm_function,
     )
