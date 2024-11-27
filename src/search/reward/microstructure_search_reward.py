@@ -207,6 +207,7 @@ class StructureReward(BaseReward):
                                             symbols,
                                             results_dir,
                                             root_prompt=s.root_prompt,
+                                            llm_function=self.llm_function,
                                         )
                                         node_rewards_data[candidate] = (
                                             self.process_dataframe(dataframe)

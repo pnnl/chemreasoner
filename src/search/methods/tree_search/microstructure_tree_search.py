@@ -557,6 +557,7 @@ def run_microstructure_search(
     catalyst_symbols,
     save_dir,
     root_prompt="Propose a catalyst for the conversion of CO to methanol.",
+    llm_function=None,
 ):
     # df = pd.read_csv("../cu_zn_with_H_uq/reward_values.csv")
     # priors, samples = extract_dft_candidates(df, 100)
@@ -626,7 +627,8 @@ def run_microstructure_search(
 
     state = TestState(root_prompt)
     # Create the LLM and microstructure planner
-    llm_function = AzureOpenaiInterface(dotenv_path=".env", model="gpt-4")
+    if llm_function is None:
+        llm_function = AzureOpenaiInterface(dotenv_path=".env", model="gpt-4")
     ms_planner = OCPMicrostructurePlanner(
         llm_function=llm_function,
         num_choices={
