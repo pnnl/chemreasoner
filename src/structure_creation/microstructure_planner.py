@@ -32,7 +32,6 @@ from structure_creation.digital_twin import CatalystDigitalTwin
 
 logging.getLogger().setLevel(logging.INFO)
 
-MP_API_KEY = os.environ["MP_API_KEY"]
 
 with open(Path("data", "input_data", "oc", "oc_20_adsorbates.pkl"), "rb") as f:
     oc_20_ads_structures = pickle.load(f)
@@ -500,6 +499,7 @@ class BulkSelector:
     @staticmethod
     def fetch_materials(symbols: list[str]) -> list["MPDataDoc"]:
         """Fetch mateirals in the materials project database with given symbols."""
+        MP_API_KEY = os.environ["MP_API_KEY"]
         with MPRester(MP_API_KEY) as mpr:
             docs = mpr.summary.search(elements=symbols)
 
