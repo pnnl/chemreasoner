@@ -70,6 +70,8 @@ def get_llm_function(config):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
+    logging.info("READING ARGS")
+
     def list_of_strings(arg):
         return arg.split(",")
 
