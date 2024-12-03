@@ -32,7 +32,10 @@ async def parallel_azure_openai_chat_completion(
     logging.info(model)
     messages = []
     if system_prompt is not None:
-        messages.append({"role": "system", "content": system_prompt})
+        if "o1" not in model:
+            messages.append({"role": "system", "content": system_prompt})
+        else:
+            logging.info("Skipping systems prompts becase o1 does not support them.")
     messages.append({"role": "user", "content": prompt})
     try:
         start = time.time()
