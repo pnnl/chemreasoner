@@ -1,0 +1,53 @@
+{
+  "name": "chem-reasoner",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource/alegreya-sans": "^5.0.13",
+    "@fontsource/exo-2": "^5.0.18",
+    "@fontsource/material-icons": "^5.0.18",
+    "3dmol": "2.2.1",
+    "clsx": "^2.1.1",
+    "cytoscape": "^3.30.0",
+    "cytoscape-cise": "^2.0.0",
+    "cytoscape-dagre": "^2.5.0",
+    "cytoscape-fcose": "^2.2.0",
+    "cytoscape-spread": "^3.0.0",
+    "d3-scale": "^4.0.2",
+    "d3-shape": "^3.2.0",
+    "lodash": "^4.17.21",
+    "paneforge": "^0.0.6",
+    "svelte-markdown": "^0.4.1"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.1.1",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.39",
+    "prettier": "^3.3.2",
+    "prettier-plugin-classnames": "^0.7.0",
+    "prettier-plugin-merge": "^0.7.0",
+    "prettier-plugin-svelte": "^3.2.5",
+    "prettier-plugin-tailwindcss": "^0.6.5",
+    "svelte": "^4.2.18",
+    "tailwindcss": "^3.4.4",
+    "vite": "^5.3.1"
+  },
+  "prettier": {
+    "plugins": [
+      "prettier-plugin-svelte",
+      "prettier-plugin-tailwindcss",
+      "prettier-plugin-classnames",
+      "prettier-plugin-merge"
+    ],
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5"
+  }
+}

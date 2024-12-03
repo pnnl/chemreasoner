@@ -13,3 +13,5 @@ data/output_data/
 ext/*/*.yml
 *.env
 src/nnp/*.pkl
+!package*.json
+!*config.json

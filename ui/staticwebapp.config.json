@@ -1,0 +1,9 @@
+{
+  "routes": [
+    {
+      "route": "/api/*",
+      "rewrite": "/api",
+      "methods": ["GET"]
+    }
+  ]
+}
