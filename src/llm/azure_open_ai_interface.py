@@ -112,7 +112,10 @@ class AzureOpenaiInterface:
         """Run the given prompts with the openai interface."""
         client = init_azure_openai(self.model, self.dotenv_path)
         # Apply defaults to kwargs
-        kwargs["temperature"] = kwargs.get("temperature", 0.75)
+        kwargs["temperature"] = (
+            kwargs.get("temperature", 0.75) if "o1" not in model else 1
+        )
+
         kwargs["top_p"] = kwargs.get("top_p", 0.95)
         if "o1" not in self.model:
             kwargs["max_tokens"] = kwargs.get("max_tokens", 3000)
