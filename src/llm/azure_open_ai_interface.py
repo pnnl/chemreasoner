@@ -113,7 +113,7 @@ class AzureOpenaiInterface:
         client = init_azure_openai(self.model, self.dotenv_path)
         # Apply defaults to kwargs
         kwargs["temperature"] = (
-            kwargs.get("temperature", 0.75) if "o1" not in model else 1
+            kwargs.get("temperature", 0.75) if "o1" not in self.model else 1
         )
 
         kwargs["top_p"] = kwargs.get("top_p", 0.95)
