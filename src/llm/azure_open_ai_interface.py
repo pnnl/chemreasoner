@@ -116,7 +116,7 @@ class AzureOpenaiInterface:
             kwargs.get("temperature", 0.75) if "o1" not in self.model else 1
         )
 
-        kwargs["top_p"] = kwargs.get("top_p", 0.95)
+        kwargs["top_p"] = kwargs.get("top_p", 0.95) if "o1" not in self.model else 1
         if "o1" not in self.model:
             kwargs["max_tokens"] = kwargs.get("max_tokens", 3000)
         else:
