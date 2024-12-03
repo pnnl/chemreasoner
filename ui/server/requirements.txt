@@ -1,0 +1,5 @@
+flask
+flask-compress
+numpy
+scipy
+python-dotenv

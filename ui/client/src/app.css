@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  h1 {
+    @apply text-2xl font-bold;
+  }
+  h2 {
+    @apply text-xl font-bold;
+  }
+  h3 {
+    @apply text-lg font-bold;
+  }
+  ol {
+    @apply list-decimal;
+  }
+  ul {
+    @apply list-disc;
+  }
+  ol > li,
+  ul > li {
+    @apply ml-4 pb-1;
+  }
+  ol > li:last-child,
+  ul > li:last-child {
+    @apply pb-0;
+  }
+  pre,
+  code {
+    @apply max-w-full overflow-auto;
+  }
+  pre {
+    @apply rounded border border-gray-500 p-2;
+  }
+  body {
+    @apply text-xs text-gray-500;
+  }
+}
