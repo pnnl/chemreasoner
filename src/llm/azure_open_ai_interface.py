@@ -117,7 +117,7 @@ class AzureOpenaiInterface:
         if "o1" not in self.model:
             kwargs["max_tokens"] = kwargs.get("max_tokens", 3000)
         else:
-            kwargs["max_tokens"] = kwargs.get("max_completion_tokens", 3000)
+            kwargs["max_completion_tokens"] = kwargs.get("max_tokens", 3000)
 
         if system_prompts is None:
             system_prompts = [None] * len(prompts)
