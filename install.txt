@@ -1,0 +1,16 @@
+conda create -n chemreasoner_cu12 python=3.12
+conda activate chemreasoner_cu12
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+python -c "import torch; print(torch.version.cuda)"
+rm -rf ~/.cache/pip
+
+#pip install torch_geometric
+#python -c "import torch; print(torch.__version__)"
+#pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-${TORCH}+${CUDA}.html
+#pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.5.1+cu121.html
+
+pip install --verbose torch_sparse
+pip install --verbose torch_cluster
+pip install torch_geometric
+
+python src/scripts/test_gnn.py
