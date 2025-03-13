@@ -1,15 +1,15 @@
+import json
+import re
+from argparse import ArgumentParser
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from io import StringIO
+from os import listdir
+from os.path import dirname, join, realpath
+from typing import Any, Dict, List
+
+from dotenv import load_dotenv  # type: ignore
 from flask import Flask, jsonify, send_file  # type: ignore
 from flask_compress import Compress  # type: ignore
-from argparse import ArgumentParser
-from dotenv import load_dotenv  # type: ignore
-from io import StringIO
-import json
-from os import listdir
-from os.path import join, dirname, realpath
-import re
-from typing import List, Dict, Any
-
 
 load_dotenv()
 
@@ -82,6 +82,7 @@ def get_structures(node_id):
         return 0.0
 
     def get_structure_data(path_prefix: str) -> dict | None:
+        print(f"PREFIX: {path_prefix}")
         names = listdir(join(datadir, path_prefix))
         if not names:
             return None

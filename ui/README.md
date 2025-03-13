@@ -13,6 +13,13 @@ This is a web app for visualizing ChemReasoner output data. It is a Svelte-based
 1. `source .venv/bin/activate`
 1. `pip install -r requirements.txt`
 
+
+cd client
+vi .env.production
+
+# Rebuilding server:
+rm -fr .venv
+
 ## Data
 
 The `server/app.py` file is currently hard-coded to read `server/data/search_tree_6.json` for the graph data and `server/data/processed_structures/*/*.xyz`, which are not committed to the repository.
