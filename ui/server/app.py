@@ -95,7 +95,7 @@ def get_structures(node_id):
 
     def get_structure_prefix(reactant: str, catalyst: list[str]) -> str:
         catalyst_str = "".join([catalyst[0]] + sorted(catalyst[1:]))
-        return join("processed_structures", f"{catalyst_str}_{reactant}/")
+        return join("processed_structures", f"{catalyst_str}_{reactant}", "")
 
     def fetch_structures(
         reactants: List[str], catalysts: List[str]
