@@ -2,6 +2,7 @@ import json
 import re
 from argparse import ArgumentParser
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from glob import glob
 from io import StringIO
 from os import listdir
 from os.path import dirname, join, realpath
@@ -83,10 +84,16 @@ def get_structures(node_id):
 
     def get_structure_data(path_prefix: str) -> dict | None:
         print(f"PREFIX: {path_prefix}")
-        names = listdir(join(datadir, path_prefix))
-        if not names:
+        try:
+            names = listdir(join(datadir, path_prefix))
+            paths = [join(datadir, path_prefix, name) for name in names]
+        except OSError:
+            # Since these paths have an asterisk embedded in them, Windows will throw an
+            # error but glob might work...
+            paths = glob(join(datadir, path_prefix, "*.xyz"))
+        if not paths:
             return None
-        structure = open(join(datadir, path_prefix, names[0])).read()
+        structure = open(paths[0]).read()
         return {
             "structure": structure,
             "energy": get_xyz_energy(structure),
