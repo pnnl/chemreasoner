@@ -44,7 +44,7 @@ class NpEncoder(json.JSONEncoder):
         return super(NpEncoder, self).default(obj)
 
 
-def get_llm_function(config):
+def get_llm_function_v0(config):
     """Get the llm function specified by args."""
     assert isinstance(config.get("DEFAULT", "dotenv-path"), str)
     assert isinstance(config.get("DEFAULT", "llm"), str)
@@ -67,6 +67,35 @@ def get_llm_function(config):
 
     return llm_function
 
+def get_llm_function(config):
+    """Get the llm function specified by args."""
+    assert isinstance(config.get("DEFAULT", "dotenv-path"), str)
+    assert isinstance(config.get("DEFAULT", "llm"), str)
+    
+    if config.get("DEFAULT", "llm") == "pnnl-openai":
+        from llm.openai_interface import PNNLOpenAIInterface  # noqa:E402
+        # The model name will be read from the .env file
+        llm_function = PNNLOpenAIInterface(
+            config.get("DEFAULT", "dotenv-path"),
+            # No need to specify model, it'll come from the .env
+        )
+    elif "gpt" in config.get("DEFAULT", "llm") or "o1-preview" in config.get(
+        "DEFAULT", "llm"
+    ):
+        llm_function = AzureOpenaiInterface(
+            config.get("DEFAULT", "dotenv-path"),
+            model=config.get("DEFAULT", "llm"),
+        )
+    elif config.get("DEFAULT", "llm") == "llama2-13b":
+        from llm.llama2_vllm_chemreasoner import LlamaLLM  # noqa:E402
+        llm_function = LlamaLLM(
+            "meta-llama/Llama-2-13b-chat-hf",
+            num_gpus=1,
+        )
+    else:
+        raise ValueError(f"Unknown LLM {config.get('DEFAULT', 'llm')}.")
+    
+    return llm_function
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
