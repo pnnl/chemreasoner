@@ -4,8 +4,14 @@ openai
 pyyaml
 lmdb
 orjson
+numpy
 redis
 wandb
 tensorboard
 e3nn
 pydot
+pandas
+numba
+mp-api
+crystal-toolkit
+python-dotenv
