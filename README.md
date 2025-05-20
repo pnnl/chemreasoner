@@ -2,6 +2,7 @@
 ![image](https://github.com/pnnl/chemreasoner/assets/7649924/ccae35c9-876e-4865-8e46-0b229167d522)
 
 ## News/Presentations/Publications
+* NVIDIA GTC 2025 [Designing Transparent AI Systems for Scientific Discovery: Patterns and Practices for Human-AI Collaboration](https://www.nvidia.com/en-us/on-demand/session/gtc25-S72049)
 * AAAI 2025: S. Beus, H. W. Sprueill, R. Meyur, M. V. Olarte, K. Agarwal, D. Zhang, U. Sanyal, J. Lercher, S. Choudhury, "Human-AI Interaction using Linguistic Reasoning and Computational Chemistry for Trustworthy Materials Discovery"
 * PNNL Article: [Accelerating Materials Discovery with AI](https://www.pnnl.gov/publications/accelerating-materials-discovery-ai)
 * PNNL Article: [Novel Computing Tool Learns the Language of Chemistry](https://www.pnnl.gov/publications/novel-computing-tool-learns-language-chemistry)
