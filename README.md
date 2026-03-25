@@ -1,4 +1,15 @@
 # ChemReasoner: Discovering catalysts via Generative AI and Computational Chemistry
+
+# ⚡ CoThinker Preview — Scientific Reasoning on Live Experimental Data
+
+**Connect with your experimental spectral data and refine molecular design hypotheses directly from Claude Chat.**
+
+[![Claude analyzing operando Raman data](docs/Claude_chat.png)](https://github.com/pnnl/chemreasoner/tree/cothink-preview/cothink-preview)
+
+**→ [Get started on the `cothink-preview` branch](https://github.com/pnnl/chemreasoner/tree/cothink-preview/cothink-preview)**
+
+---
+
 ![image](https://github.com/pnnl/chemreasoner/assets/7649924/ccae35c9-876e-4865-8e46-0b229167d522)
 
 ## News/Presentations/Publications
