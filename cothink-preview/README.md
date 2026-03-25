@@ -11,29 +11,37 @@ This preview release includes:
 
 ---
 
+## Claude Reasoning on Live Experimental Data
+
+[![Claude analyzing operando Raman data](reports/images/Claude_chat.png)](#)
+
+Claude orchestrates multi-tool analysis across experimental conditions — checking diagnostic peaks at 928 cm⁻¹ (acetate) and 2060 cm⁻¹ (*CO), comparing predictions to observations, and producing per-condition verdicts in real time.
+
+---
+
 ## What CoThinker Produces
 
-These reports were generated autonomously by our upstream reasoner. 
+These reports were generated autonomously by our upstream reasoner.
 
 ### CO₂ Electroreduction to Acetate on Cu-Fe
 
-<!-- INSTRUCTION: Screenshot of the reaction network diagram from the CO2 report -->
-[![CO2RR Report](reports/images/co2rr_network.png)](reports/co2_acetate_cufe.pdf)
+[![CO2RR Reaction Network](reports/images/co2rr_reaction_network_reconstructed.png)](reports/co2_acetate_cufe_report2.pdf)
 
 32-node reaction network. 3 self-critique iterations with substantive refinements. The system identified \*COOH as the selectivity-controlling branch point and predicted that Fe sites lower the C-C coupling barrier for acetate over ethylene — a testable, falsifiable claim grounded in the reaction network topology.
 
-**[→ View full report (PDF)](reports/co2_acetate_cufe.pdf)**
+[![CO2RR Mechanistic Pathway](reports/images/co2rr_network.png)](reports/co2_acetate_cufe_report2.pdf)
+
+The pathway from CO₂(g) through Fe-assisted activation, CO\*-CHO\* coupling, to the critical HCCO\*@Cu-Fe branch point — where pH-controlled OH⁻ capture commits the intermediate to acetate over ethylene. Each key node and edge annotated with the mechanistic lever that controls selectivity.
+
+**[→ View full report (PDF)](reports/co2_acetate_cufe_report2.pdf)**
 
 ---
 
 ### Selective Butane Hydrogenolysis on Ni-Cu/SiO₂
 
-<!-- INSTRUCTION: Screenshot of the reaction network or selectivity map from the Ni-Cu report -->
-[![Ni-Cu Report](reports/images/nicu_network.png)](reports/butane_hydrogenolysis_nicu.pdf)
-
 144 enumerated pathways. Informed by prior-run experimental feedback. The system learned from a previous run that proposed a Cu-rich composition contradicting expert preferences — this run integrated that feedback through persistent memory, producing a Ni-rich recommendation consistent with the experimental constraints.
 
-**[→ View full report (PDF)](reports/butane_hydrogenolysis_nicu.pdf)**
+**[→ View full report (PDF)](reports/butane_hydrogenolysis_nicu_report.pdf)**
 
 ---
 
@@ -62,23 +70,13 @@ Add `http://localhost:8765/sse` as an MCP connector in Claude.ai (name it "ChemR
 
 ---
 
-## What Happens Next: Testing Hypotheses Against Real Data
+## Testing Hypotheses Against Real Data
 
-The reports above produce structured hypothesis JSONs. The MCP server below consumes them — connecting Claude to your spectra so you can interrogate every prediction against what you actually measured.
+The reports above produce structured hypothesis JSONs. The MCP server consumes them — connecting Claude to your spectra so you can interrogate every prediction against what you actually measured.
 
-### Annotated Spectrum with Blind-Spot Guard
+[![Hypothesis Test Report](reports/images/co2_rr_hypothesis_testing_report.png)](#)
 
-<!-- INSTRUCTION: Screenshot of an annotated spectrum showing assigned + unassigned peaks -->
-[![Annotated Spectrum](reports/images/annotated_spectrum.png)](#)
-
-Peaks are assigned to hypothesis species and reference library entries. Strong unassigned peaks are flagged for investigation — the system is designed to surface what you weren't looking for.
-
-### Hypothesis vs Observation
-
-<!-- INSTRUCTION: Screenshot of the comparison matrix (checkmark/x/! grid) -->
-[![Comparison Matrix](reports/images/hypothesis_comparison.png)](#)
-
-Each condition gets a verdict: confirmed, partially confirmed, or inconsistent. Missing predicted species and unexpected detections are called out explicitly.
+The system generates a full diagnostic report: 4 conditions, 45 scans, real instrument parameters. Each condition gets a verdict — confirmed, partially confirmed, or inconsistent. Missing predicted species and unexpected detections are called out explicitly. A three-tier blind-spot guard assigns peaks to expected species, checks residuals against a reference library, then flags strong unknowns for Claude to reason about.
 
 ---
 
