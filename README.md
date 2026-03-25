@@ -1,6 +1,6 @@
 # ChemReasoner: Discovering catalysts via Generative AI and Computational Chemistry
 
-# ⚡ CoThinker Preview — Scientific Reasoning on Live Experimental Data
+## ⚡ CoThinker Preview — Scientific Reasoning on Live Experimental Data
 
 **Connect with your experimental spectral data and refine molecular design hypotheses directly from Claude Chat.**
 
