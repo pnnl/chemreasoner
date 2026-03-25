@@ -1,0 +1,5 @@
+# CoThinker preview
+.DS_Store
+mcp/venv/
+mcp/__pycache__/
+demo_data/*/analysis/

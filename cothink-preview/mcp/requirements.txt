@@ -1,0 +1,4 @@
+numpy
+scipy
+mcp
+pyngrok
